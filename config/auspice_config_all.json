@@ -1,0 +1,63 @@
+{
+  "title": "Genetic diversity of Hepatitis B virus",
+  "maintainers": [
+    {"name": "Katie Kistler"}
+  ],
+  "colorings": [
+     {
+      "key": "gt",
+      "title": "Genotype",
+      "type": "categorical"
+    },
+    {
+      "key": "country",
+      "title": "country",
+      "type": "categorical"
+    },
+    {
+      "key": "country",
+      "title": "country",
+      "type": "categorical"
+    },
+    {
+      "key": "host",
+      "title": "host",
+      "type": "categorical"
+    },
+    {
+      "key": "genotype",
+      "title": "(hbp) genotype",
+      "type": "categorical"
+    },
+    {
+      "key": "subgenotype",
+      "title": "(hbp) subgenotype",
+      "type": "categorical"
+    },
+    {
+      "key": "date",
+      "title": "collection date",
+      "type": "categorical"
+    },
+    {
+      "key": "strain_name",
+      "title": "Strain (name)",
+      "type": "categorical"
+    }
+  ],
+  "display_defaults": {
+    "color_by": "genotype",
+    "map_triplicate": true
+  },
+  "filters": [
+    "host",
+    "strain_name",
+    "genotype",
+    "subgenotype"
+  ],
+  "panels": [
+    "tree",
+    "map",
+    "entropy"
+  ]
+}
