@@ -1,7 +1,8 @@
 {
   "title": "Genetic diversity of Hepatitis B virus",
   "maintainers": [
-    {"name": "Katie Kistler"}
+    {"name": "Katie Kistler"},
+    {"name": "James Hadfield"}
   ],
   "colorings": [
      {
@@ -15,29 +16,39 @@
       "type": "categorical"
     },
     {
-      "key": "country",
-      "title": "country",
-      "type": "categorical"
-    },
-    {
       "key": "host",
       "title": "host",
       "type": "categorical"
     },
     {
-      "key": "genotype",
-      "title": "(hbp) genotype",
+      "key": "genotype_inferred",
+      "title": "genotype (inferred)",
       "type": "categorical"
     },
     {
-      "key": "subgenotype",
-      "title": "(hbp) subgenotype",
+      "key": "genotype_genbank",
+      "title": "genotype (genbank)",
       "type": "categorical"
     },
     {
-      "key": "date",
+      "key": "subgenotype_genbank",
+      "title": "subgenotype (genbank)",
+      "type": "categorical"
+    },
+    {
+      "key": "collection_date",
       "title": "collection date",
       "type": "categorical"
+    },
+    {
+      "key": "circularise",
+      "title": "genome re-cut?",
+      "type": "categorical"
+    },
+    {
+      "key": "circularise_shift_bp",
+      "title": "genome re-cut at",
+      "type": "continuous"
     },
     {
       "key": "strain_name",
@@ -46,14 +57,18 @@
     }
   ],
   "display_defaults": {
-    "color_by": "genotype",
+    "color_by": "genotype_genbank",
+    "branch_label": "genotype_inferred",
     "map_triplicate": true
   },
   "filters": [
     "host",
+    "country",
     "strain_name",
-    "genotype",
-    "subgenotype"
+    "genotype_genbank",
+    "subgenotype_genbank",
+    "circularise",
+    "genotype_inferred"
   ],
   "panels": [
     "tree",
