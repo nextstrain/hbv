@@ -22,3 +22,32 @@ For the entire human-HBV tree, with 11k tips (takes ~15min on a 4-core M1 machin
 
 (If you haven't run the ingest section of the pipeline then any phylo build will run it.)
 
+
+
+## Nextclade
+
+
+Currently an all-human HBV dataset exists, with reference JN182318
+
+Create a new version of the dataset by copying a datestamped directory in `nextclade_datasets/references/JN182318/version`
+
+Update the tree and the (example) sequences:
+
+```bash
+snakemake --cores 2 auspice/hbv_nextclade-tree.json
+cp auspice/hbv_nextclade-tree.json nextclade_datasets/references/JN182318/versions/YYYY-MM-DD/tree.json
+
+snakemake --cores 1 results/nextclade-sequences/filtered.fasta
+cp results/nextclade-sequences/filtered.fasta nextclade_datasets/references/JN182318/versions/YYYY-MM-DD/sequences.fasta
+```
+
+Many of the files - especially `qc.json` - need to be optimised for HBV.
+
+Example incantation to call genomes against the above dataset:
+```bash
+nextclade run \
+  --input-dataset nextclade_datasets/references/JN182318/versions/2023-06-26 \
+  --output-all results/nextclade-test \
+  --output-basename test \
+  results/nextclade-sequences/filtered.fasta
+```

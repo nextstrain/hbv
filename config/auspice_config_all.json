@@ -21,8 +21,8 @@
       "type": "categorical"
     },
     {
-      "key": "genotype_inferred",
-      "title": "genotype (inferred)",
+      "key": "clade_membership",
+      "title": "genotype (augur clades)",
       "type": "categorical"
     },
     {
@@ -58,7 +58,7 @@
   ],
   "display_defaults": {
     "color_by": "genotype_genbank",
-    "branch_label": "genotype_inferred",
+    "branch_label": "augur_clades",
     "map_triplicate": true
   },
   "filters": [
