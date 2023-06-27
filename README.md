@@ -4,14 +4,6 @@ Currently a WIP
 
 Based on Katie Kistler's work in [blab/adaptive-evolution](https://github.com/blab/adaptive-evolution)
 
-## Obtain data
-
-1. Obtain `./ingest/genbank_sequences.gb`
-    - example search: [(Hepatitis B virus) AND (complete genome)](https://www.ncbi.nlm.nih.gov/nuccore/?term=(Hepatitis+B+virus)+AND+(complete+genome)), which returns ~11k samples
-      - Could also explore `"Hepatitis B virus"[porgn:__txid10407]`
-    - download as "Complete Record" / "File" / "GenBank (full)", a ~100Mb file.
-
-
 ## Ingest
 
 You can run the ingest part of the snakemake pipeline via:
@@ -20,6 +12,8 @@ You can run the ingest part of the snakemake pipeline via:
 snakemake --cores 4 -npf ingest/results/aligned.fasta ingest/results/sequences.fasta ingest/results/metadata.tsv
 ```
 
+Ingest will fetch genomes from NCBI's Entrez API and write to `./ingest/data/genbank.gb`.
+As of mid 2023 there are around ~11k genomes and the full GenBank file is ~150Mb.
 
 ## Phylo
 
