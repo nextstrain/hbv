@@ -1,6 +1,17 @@
+rule fetch_genbank:
+    params:
+        term = 'Hepatitis+B+virus[All+Fields]complete+genome[All+Fields]'
+    output:
+        genbank = "ingest/data/genbank.gb",
+    retries: 1  # Requires snakemake 7.7.0 or later
+    shell:
+        """
+        ingest/scripts/fetch-genbank.py --term {params.term:q} --output {output.genbank}
+        """
+
 rule parse_genbank:
     input:
-        genbank = "ingest/data/genbank_sequences.gb",
+        genbank = "ingest/data/genbank.gb",
     output:
         sequences = "ingest/results/genbank.fasta",
         metadata = "ingest/results/genbank.tsv",
