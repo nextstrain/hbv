@@ -1,7 +1,7 @@
 
 include: "ingest/ingest.smk"
 
-BUILDS = ["all", "dev"]
+BUILDS = ["all", "dev", "nextclade-tree"]
 
 # rule all:
 #     input:
@@ -84,7 +84,11 @@ def filter_params(wildcards):
     if wildcards.build == "all":
         return ""
     elif wildcards.build == "dev":
-        return "--group-by genotype_genbank --subsample-max-sequences 800"
+        return "--group-by genotype_genbank --subsample-max-sequences 500"
+    elif wildcards.build == "nextclade-tree":
+        return "--group-by genotype_genbank --subsample-max-sequences 2000"
+    elif wildcards.build == "nextclade-sequences":
+        return "--group-by genotype_genbank --subsample-max-sequences 25"
     raise Exception("Unknown build parameter")
 
 
@@ -190,6 +194,9 @@ rule ancestral:
 #         """
 
 
+## Clades are hard to predict using mutational signatures for HBV due to the amount
+## of recombination and the inherit difference in tree reconstruction.
+## They are only run for the nextclade dataset build, which we manually check
 rule clades:
     message: "Labeling clades as specified in config/clades.tsv"
     input:
@@ -204,20 +211,31 @@ rule clades:
         augur clades \
             --tree {input.tree} \
             --mutations {input.nuc_muts} \
-            --membership-name genotype_inferred \
-            --label-name genotype_inferred \
+            --membership-name clade_membership \
+            --label-name augur_clades \
             --clades {input.clades} \
             --output {output.clade_data}
         """
+
+def node_data_files(wildcards):    
+    patterns = [
+        "results/{build}/branch_lengths.json",
+        "results/{build}/nt_muts.json",
+        ## TODO XXX translated AA json
+    ]
+
+    # Only infer genotypes via `augur clades` for manually curated nextclade dataset builds
+    if wildcards.build == "nextclade-tree" or wildcards.build == "dev":
+        patterns.append("results/{build}/clades-genotypes.json")
+
+    inputs = [f.format(**dict(wildcards)) for f in patterns]
+    return inputs
 
 rule export:
     input:
         tree = "results/{build}/tree.nwk",
         metadata = "ingest/results/metadata.tsv",
-        branch_lengths = "results/{build}/branch_lengths.json",
-        nt_muts = "results/{build}/nt_muts.json",
-        clades = "results/{build}/clades-genotypes.json",
-        # aa_muts = rules.translate.output.node_data,
+        node_data = node_data_files,
         auspice_config = "config/auspice_config_all.json", ### TODO XXX parameterise when necessary
     output:
         auspice_json = "auspice/hbv_{build}.json"
@@ -227,7 +245,7 @@ rule export:
         augur export v2 \
             --tree {input.tree} \
             --metadata {input.metadata} \
-            --node-data {input.branch_lengths} {input.nt_muts} {input.clades} \
+            --node-data {input.node_data} \
             --auspice-config {input.auspice_config} \
             --output {output.auspice_json} \
             --validation-mode skip

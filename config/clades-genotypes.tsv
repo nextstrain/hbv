@@ -1,13 +1,12 @@
 clade	gene	site	alt
 
-A	nuc	1029	C
-A	nuc	2260	C
+A	nuc	667	T
+A	nuc	2044	C
+A	nuc	2996	T
 
-# Note that B is a subclade of C, not sister to
-# Homoplasic mutations indicate it's a recombinant
-B	nuc	225	A
-B	nuc	1500	C
-B	nuc	2705	G
+# Note that B is a subclade of C in the full 11k tree
+B	nuc	841	C
+B	nuc	3072	A
 
 C	nuc	346	T
 C	nuc	791	T
@@ -18,23 +17,24 @@ C_re	nuc	287	A
 C_re	nuc	957	G
 
 D	nuc	724	T
-D	nuc	930	C
+D	nuc	1059	C
 
-E	nuc	706	C
-E	nuc	1410	A
+E	nuc	346	T
+E	nuc	505	T
+E	nuc	1060	C
 
-# mutations defining F are _all_ homoplasic (i.e. recombinant?)
 F	nuc	572	T
 F	nuc	909	A
 F	nuc	1332	A
 F	nuc	1700	A
 F	nuc	2979	C
 
-G	nuc	921	C
 G	nuc	1008	G
+G	nuc	2038	T
 
 H	nuc	529	C
 H	nuc	1467	T
 
 I	nuc	181	C
 I	nuc	852	G
+I	nuc	1000	T

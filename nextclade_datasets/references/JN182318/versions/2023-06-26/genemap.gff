@@ -1,0 +1,7 @@
+##gff-version 3
+##sequence-region JN182318 1 3221
+##only using the genes which don't cross the origin (for now)
+##note: C (core) protein may start at 1814?
+EPI1857216	feature	gene	155	835	.	+	.	gene_name="S"
+EPI1857216	feature	gene	1374	1838	.	+	.	gene_name="X"
+EPI1857216	feature	gene	1901	2458	.	+	.	gene_name="C"
