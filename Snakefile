@@ -1,7 +1,7 @@
 
 include: "ingest/ingest.smk"
 
-BUILDS = ["all", "dev", "nextclade-stree"]
+BUILDS = ["all", "dev", "nextclade-tree"]
 
 # rule all:
 #     input:

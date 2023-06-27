@@ -26,6 +26,11 @@
       "type": "categorical"
     },
     {
+      "key": "clade_nextclade",
+      "title": "genotype (inferred)",
+      "type": "categorical"
+    },
+    {
       "key": "genotype_genbank",
       "title": "genotype (genbank)",
       "type": "categorical"

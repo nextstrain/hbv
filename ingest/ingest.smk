@@ -38,34 +38,54 @@ rule re_circularise:
             --reference {params.reference}
         """
 
+"""
+We use nextclade to align to reference JN182318 and also to call "genotype" ("clade" in the output CSV)
+See early commits (e.g. https://github.com/nextstrain/hepatitisB/tree/93cbb184d329c12835d0ffedec61e0fbd8cb53db)
+for a version of this rule which used nextalign instead.
+Note that the minimum seed match rate is specified in the dataset itself
+"""
 rule align_everything:
     input:
         sequences = "ingest/results/genbank.recircular.fasta",
         metadata = "ingest/results/genbank.recircular.tsv",
         reference = "ingest/config/JN182318.fasta"
     output:
-        log = temp('ingest/results/nextalign-errors.txt'),
-        alignment = "ingest/results/aligned.fasta",
-        metadata = "ingest/results/metadata.tsv",
-    params:
-        match_rate = "0.2" # default is 0.3
+        alignment = "ingest/results/nextclade.aligned.fasta",
+        summary = "ingest/results/nextclade.tsv"
     threads: 4
     shell:
         """
-        nextalign run \
-            --output-fasta {output.alignment} --output-errors {output.log} \
-            --min-match-rate {params.match_rate} -r {input.reference} \
-            --replace-unknown -j {threads} {input.sequences};
-        ingest/scripts/append-nextalign-log.py \
-            --meta-in {input.metadata} --meta-out {output.metadata} --nextalign {output.log}
+        nextclade run \
+            -j {threads} --silent --replace-unknown \
+            --input-dataset nextclade_datasets/references/JN182318/versions/2023-06-26 \
+            --output-all ingest/results \
+            --output-basename nextclade \
+            {input.sequences}
+        """
+
+rule join_nextclade_metadata:
+    input:
+        metadata = "ingest/results/genbank.recircular.tsv",
+        nextclade = "ingest/results/nextclade.tsv"
+    output:
+        metadata = "ingest/results/metadata.tsv",
+        summary = "ingest/results/metadata.summary.txt",
+    shell:
+        """
+        ingest/scripts/join-nextclade-metadata.py \
+             --metadata {input.metadata} --nextclade {input.nextclade} \
+             --output {output.metadata} --summary {output.summary}
         """
 
 rule provision:
     input:
         sequences = "ingest/results/genbank.recircular.fasta",
+        aligned = "ingest/results/nextclade.aligned.fasta"
     output:
         sequences = "ingest/results/sequences.fasta",
+        aligned = "ingest/results/aligned.fasta"
     shell:
         """
         cp {input.sequences} {output.sequences}
+        cp {input.aligned} {output.aligned}
         """
