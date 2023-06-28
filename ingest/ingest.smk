@@ -83,7 +83,7 @@ rule transform_metadata:
     output:
         metadata = "ingest/results/metadata.tsv"
     params:
-        metadata_columns = ['name', 'accesion', "strain_name", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", "collection_date", \
+        metadata_columns = ['name', 'accesion', "strain_name", "date", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
         "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
         "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
         "QC_frame_shifts","QC_stop_codons"]
