@@ -1,0 +1,293 @@
+# Adapted from https://github.com/nextstrain/ncov-ingest/blob/be874967dbefba13290610a9fdbb3d0603bfd044/source-data/gisaid_geoLocationRules.tsv
+
+*/Netherlands/*/*	Europe/Netherlands/*/*
+*/Netherlans/*/*	Europe/Netherlans/*/*
+*/The Netherlands/*/*	Europe/The Netherlands/*/*
+*/France/*/*	Europe/France/*/*
+*/Germany/*/*	Europe/Germany/*/*
+*/Belgium/*/*	Europe/Belgium/*/*
+*/Switzerland/*/*	Europe/Switzerland/*/*
+*/Russia/*/*	Europe/Russia/*/*
+*/Hungary/*/*	Europe/Hungary/*/*
+*/United Kingdom/*/*	Europe/United Kingdom/*/*
+*/Czech Republic/*/*	Europe/Czech Republic/*/*
+*/Crimea/*/*	Europe/Crimea/*/*
+*/Spain/*/*	Europe/Spain/*/*
+*/Sweden/*/*	Europe/Sweden/*/*
+*/Poland/*/*	Europe/Poland/*/*
+*/Italy/*/*	Europe/Italy/*/*
+*/Finland/*/*	Europe/Finland/*/*
+*/Serbia/*/*	Europe/Serbia/*/*
+*/Austria/*/*	Europe/Austria/*/*
+*/Romania/*/*	Europe/Romania/*/*
+*/Bosnia and Herzegovina/*/*	Europe/Bosnia and Herzegovina/*/*
+*/Greece/*/*	Europe/Greece/*/*
+*/North Macedonia/*/*	Europe/North Macedonia/*/*
+*/Moldova/*/*	Europe/Moldova/*/*
+*/Norway/*/*	Europe/Norway/*/*
+*/Lithuania/*/*	Europe/Lithuania/*/*
+*/Ukraine/*/*	Europe/Ukraine/*/*
+*/Slovakia/*/*	Europe/Slovakia/*/*
+*/Denmark/*/*	Europe/Denmark/*/*
+*/Ireland/*/*	Europe/Ireland/*/*
+*/Albania/*/*	Europe/Albania/*/*
+*/Portugal/*/*	Europe/Portugal/*/*
+*/Macedonia/*/*	Europe/Macedonia/*/*
+*/Belarus/*/*	Europe/Belarus/*/*
+*/Blegium/*/*	Europe/Blegium/*/*
+*/Country/*/*	Europe/Country/*/*
+*/Croatia/*/*	Europe/Croatia/*/*
+*/Estonia/*/*	Europe/Estonia/*/*
+*/Bulgaria/*/*	Europe/Bulgaria/*/*
+*/Liechtenstein/*/*	Europe/Liechtenstein/*/*
+*/Romaina/*/*	Europe/Romaina/*/*
+*/England/*/*	Europe/England/*/*
+*/Belgique/*/*	Europe/Belgique/*/*
+*/Republic of Moldova/*/*	Europe/Republic of Moldova/*/*
+*/Slovaia/*/*	Europe/Slovaia/*/*
+*/Swizterland/*/*	Europe/Swizterland/*/*
+*/Turkey/*/*	Europe/Turkey/*/*
+*/Bosni and Herzegovina/*/*	Europe/Bosni and Herzegovina/*/*
+*/Brazil/*/*	Europe/Brazil/*/*
+*/Faroe Islands/*/*	Europe/Faroe Islands/*/*
+*/Slovenia/*/*	Europe/Slovenia/*/*
+*/Kosovo/*/*	Europe/Kosovo/*/*
+*/Coatia/*/*	Europe/Coatia/*/*
+*/Israel/*/*	Europe/Israel/*/*
+*/Guadeloupe/*/*	Europe/Guadeloupe/*/*
+*/Serbiapozarevac/*/*	Europe/Serbiapozarevac/*/*
+*/Andorre/*/*	Europe/Andorre/*/*
+*/Montenegro/*/*	Europe/Montenegro/*/*
+*/Italia/*/*	Europe/Italia/*/*
+*/Algeria/*/*	Europe/Algeria/*/*
+*/Armenia/*/*	Europe/Armenia/*/*
+*/United Kindgom/*/*	Europe/United Kindgom/*/*
+*/Slovak Republic/*/*	Europe/Slovak Republic/*/*
+*/Czechrepublic/*/*	Europe/Czech Republic/*/*
+*/Canary Islands/*/*	Europe/Canary Islands/*/*
+*/Luxembourg/*/*	Europe/Luxembourg/*/*
+*/Iceland/*/*	Europe/Iceland/*/*
+*/Latvia/*/*	Europe/Latvia/*/*
+*/Greenland/*/*	Europe/Greenland/*/*
+
+*/Taiwan/*/*	Asia/Taiwan/*/*
+*/China/*/*	Asia/China/*/*
+*/South Korea/*/*	Asia/South Korea/*/*
+*/Kuwait/*/*	Asia/Kuwait/*/*
+*/Vietnam/*/*	Asia/Vietnam/*/*
+*/Pakistan/*/*	Asia/Pakistan/*/*
+*/Israel/*/*	Asia/Israel/*/*
+*/India/*/*	Asia/India/*/*
+*/Bangladesh/*/*	Asia/Bangladesh/*/*
+*/Thailand/*/*	Asia/Thailand/*/*
+*/Oman/*/*	Asia/Oman/*/*
+*/Bahrain/*/*	Asia/Bahrain/*/*
+*/Philippines/*/*	Asia/Philippines/*/*
+*/Indonesia/*/*	Asia/Indonesia/*/*
+*/Sri Lanka/*/*	Asia/Sri Lanka/*/*
+*/Palestine/*/*	Asia/Palestine/*/*
+*/Iran/*/*	Asia/Iran/*/*
+*/Viet Nam/*/*	Asia/Vietnam/*/*
+*/Saudi Arabia/*/*	Asia/Saudi Arabia/*/*
+*/Malaysia/*/*	Asia/Malaysia/*/*
+*/Bangaldesh/*/*	Asia/Bangaldesh/*/*
+*/Georgia/*/*	Asia/Georgia/*/*
+*/Bangladeah/*/*	Asia/Bangladeah/*/*
+*/Japan/*/*	Asia/Japan/*/*
+*/Lebanon/*/*	Asia/Lebanon/*/*
+*/United Arab Emirates/*/*	Asia/United Arab Emirates/*/*
+*/Kazakhstan/*/*	Asia/Kazakhstan/*/*
+*/Kazkahstan/*/*	Asia/Kazkahstan/*/*
+*/Uzbekistan/*/*	Asia/Uzbekistan/*/*
+*/Nepal/*/*	Asia/Nepal/*/*
+*/West Bank/*/*	Asia/West Bank/*/*
+*/Myanmar/*/*	Asia/Myanmar/*/*
+*/Iraq/*/*	Asia/Iraq/*/*
+*/Israel;/*/*	Asia/Israel;/*/*
+*/Qatar/*/*	Asia/Qatar/*/*
+*/Maldives/*/*	Asia/Maldives/*/*
+*/Srilanka/*/*	Asia/Srilanka/*/*
+*/Sultanate of Oman/*/*	Asia/Sultanate of Oman/*/*
+*/Guam/*/*	Asia/Guam/*/*
+*/Cyprus/*/*	Asia/Cyprus/*/*
+*/Syria/*/*	Asia/Syria/*/*
+*/Afghanistan/*/*	Asia/Afghanistan/*/*
+
+*/Mongolia/*/*	Asia/Mongolia/*/*
+*/Hong Kong/*/*	Asia/Hong Kong/*/*
+*/Cambodia/*/*	Asia/Cambodia/*/*
+*/Laos/*/*	Asia/Laos/*/*
+*/Kyrgyzstan/*/*	Asia/Kyrgyzstan/*/*
+
+*/Mexico/*/*	North America/Mexico/*/*
+*/USA/*/*	North America/USA/*/*
+*/Costa Rica/*/*	North America/Costa Rica/*/*
+*/Panama/*/*	North America/Panama/*/*
+*/El Salvador/*/*	North America/El Salvador/*/*
+*/Canada/*/*	North America/Canada/*/*
+*/Puerto Rico/*/*	North America/Puerto Rico/*/*
+*/Caribbean/*/*	North America/Caribbean/*/*
+*/Brazil/*/*	North America/Brazil/*/*
+*/Dominican Republic/*/*	North America/Dominican Republic/*/*
+*/Saint Barthelemy/*/*	North America/Saint Barthelemy/*/*
+*/Saint Barthélemy/*/*	North America/Saint Barthélemy/*/*
+*/St. Lucia/*/*	North America/St. Lucia/*/*
+*/Cayman Islands/*/*	North America/Cayman Islands/*/*
+*/British Virgin Islands/*/*	North America/British Virgin Islands/*/*
+*/México/*/*	North America/Mexico/*/*
+*/Trinidad and Tobago/*/*	North America/Trinidad and Tobago/*/*
+*/Martinique/*/*	North America/Martinique/*/*
+*/French Guiana/*/*	North America/French Guiana/*/*
+*/Guam/*/*	North America/Guam/*/*
+*/Honduras/*/*	North America/Honduras/*/*
+*/Guatemala/*/*	North America/Guatemala/*/*
+*/Turks and Caicos Islands/*/*	North America/Turks and Caicos Islands/*/*
+*/Guadeloupe/*/*	North America/Guadeloupe/*/*
+*/Anguilla/*/*	North America/Anguilla/*/*
+*/Barbados/*/*	North America/Barbados/*/*
+*/Dominica/*/*	North America/Dominica/*/*
+*/Grenada/*/*	North America/Grenada/*/*
+*/Jamaica/*/*	North America/Jamaica/*/*
+*/Saint Kitts and Nevis/*/*	North America/Saint Kitts and Nevis/*/*
+*/Montserrat/*/*	North America/Montserrat/*/*
+*/Saint Lucia/*/*	North America/Saint Lucia/*/*
+*/Saint Vincent and the Grenadines/*/*	North America/Saint Vincent and the Grenadines/*/*
+*/The Bahamas/*/*	North America/The Bahamas/*/*
+*/Bahamas/*/*	North America/Bahamas/*/*
+*/U.S. Virgin Islands/*/*	North America/U.S. Virgin Islands/*/*
+*/Belize/*/*	North America/Belize/*/*
+*/Haiti/*/*	North America/Haiti/*/*
+*/Cuba/*/*	North America/Cuba/*/*
+
+*/Nicaragua/*/*	North America/Nicaragua/*/*
+
+
+*/Brazil/*/*	South America/Brazil/*/*
+*/Argentina/*/*	South America/Argentina/*/*
+*/Ecuador/*/*	South America/Ecuador/*/*
+*/Chile/*/*	South America/Chile/*/*
+*/Colombia/*/*	South America/Colombia/*/*
+*/Peru/*/*	South America/Peru/*/*
+*/St Eustatius/*/*	South America/St Eustatius/*/*
+*/Trinidad/*/*	South America/Trinidad/*/*
+*/Uruguay/*/*	South America/Uruguay/*/*
+*/Bolivia/*/*	South America/Bolivia/*/*
+*/Guyane Francaise/*/*	South America/Guyane Francaise/*/*
+*/French Guiana/*/*	South America/French Guiana/*/*
+*/Guyane/*/*	South America/Guyane/*/*
+*/Grenada/*/*	South America/Grenada/*/*
+*/Guyana/*/*	South America/Guyana/*/*
+*/Trinidad and Tobago/*/*	South America/Trinidad and Tobago/*/*
+*/Paraguay/*/*	South America/Paraguay/*/*
+*/Antigua/*/*	South America/Antigua/*/*
+*/Anguilla/*/*	South America/Anguilla/*/*
+*/British Virgin Islands/*/*	South America/British Virgin Islands/*/*
+*/Bermuda/*/*	South America/Bermuda/*/*
+*/Saint Lucia/*/*	South America/Saint Lucia/*/*
+*/Martinique/*/*	South America/Martinique/*/*
+*/Saint Vincent and the Grenadines/*/*	South America/Saint Vincent and the Grenadines/*/*
+*/Barbados/*/*	South America/Barbados/*/*
+*/Jamaica/*/*	South America/Jamaica/*/*
+*/Montserrat/*/*	South America/Montserrat/*/*
+*/Venezuela/*/*	South America/Venezuela/*/*
+*/Dominica/*/*	South America/Dominica/*/*
+*/Turks and Caicos Islands/*/*	South America/Turks and Caicos Islands/*/*
+*/Antigua and Barbuda/*/*	South America/Antigua and Barbuda/*/*
+*/Saint Kitts and Nevis/*/*	South America/Saint Kitts and Nevis/*/*
+*/Espirito Santo/*/*	South America/Espirito Santo/*/*
+*/Parana/*/*	South America/Parana/*/*
+*/Rio de Janeiro/*/*	South America/Rio de Janeiro/*/*
+*/Santa Catarina/*/*	South America/Santa Catarina/*/*
+*/Amazonas/*/*	South America/Amazonas/*/*
+*/Honduras/*/*	South America/Honduras/*/*
+*/Monsterrat/*/*	South America/Monsterrat/*/*
+*/St Lucia/*/*	South America/St Lucia/*/*
+*/Brasil/*/*	South America/Brasil/*/*
+
+*/Australia/*/*	Oceania/Australia/*/*
+*/New Zealand/*/*	Oceania/New Zealand/*/*
+*/Polynesia/*/*	Oceania/Polynesia/*/*
+*/Northern Mariana Islands/*/*	Oceania/Northern Mariana Islands/*/*
+*/French Polynesia/*/*	Oceania/French Polynesia/*/*
+*/Guam/*/*	Oceania/Guam/*/*
+*/Wallis and Futuna/*/*	Oceania/Wallis and Futuna/*/*
+*/Wallis and Futuna Islands/*/*	Oceania/Wallis and Futuna Islands/*/*
+*/Palau/*/*	Oceania/Palau/*/*
+*/American Samoa/*/*	Oceania/American Samoa/*/*
+*/New Caledonia/*/*	Oceania/New Caledonia/*/*
+
+*/Kiribati/*/*	Oceania/Kiribati/*/*
+*/Papua New Guinea/*/*	Oceania/Papua New Guinea/*/*
+*/Vanuatu/*/*	Oceania/Vanuatu/*/*
+*/Samoa/*/*	Oceania/Samoa/*/*
+*/Tonga/*/*	Oceania/Tonga/*/*
+*/Fiji/*/*	Oceania/Fiji/*/*
+*/Kiribati/*/*	Oceania/Kiribati/*/*
+
+*/Senegal/*/*	Africa/Senegal/*/*
+*/South Africa/*/*	Africa/South Africa/*/*
+*/Democratic Republic of the Congo/*/*	Africa/Democratic Republic of the Congo/*/*
+*/Madagascar/*/*	Africa/Madagascar/*/*
+*/Egypt/*/*	Africa/Egypt/*/*
+*/Cameroon/*/*	Africa/Cameroon/*/*
+*/Reunion/*/*	Africa/Reunion/*/*
+*/Nigeria/*/*	Africa/Nigeria/*/*
+*/Côte D'Ivoire/*/*	Africa/Côte D'Ivoire/*/*
+*/Equatorial Guinea/*/*	Africa/Equatorial Guinea/*/*
+*/Tunisia/*/*	Africa/Tunisia/*/*
+*/Burkina Faso/*/*	Africa/Burkina Faso/*/*
+*/Morocco/*/*	Africa/Morocco/*/*
+*/Mayotte/*/*	Africa/Mayotte/*/*
+*/Mosambik/*/*	Africa/Mosambik/*/*
+*/Gaborone/*/*	Africa/Gaborone/*/*
+*/Cotedivoire/*/*	Africa/Cotedivoire/*/*
+*/Ivory Coast/*/*	Africa/Ivory Coast/*/*
+*/Côte d'Ivoire/*/*	Africa/Côte d'Ivoire/*/*
+*/Côte D’Ivoire/*/*	Africa/Côte D’Ivoire/*/*
+*/Cote Divoire/*/*	Africa/Cote Divoire/*/*
+*/Togo/*/*	Africa/Togo/*/*
+*/Mozambique/*/*	Africa/Mozambique/*/*
+*/Réunion/*/*	Africa/Réunion/*/*
+*/Namibia/*/*	Africa/Namibia/*/*
+*/Ghana/*/*	Africa/Ghana/*/*
+*/La Reunion/*/*	Africa/La Reunion/*/*
+*/Lesotho/*/*	Africa/Lesotho/*/*
+*/Cote D'Ivoire/*/*	Africa/Cote D'Ivoire/*/*
+*/Malawi/*/*	Africa/Malawi/*/*
+*/Comoros/*/*	Africa/Comoros/*/*
+*/Angola/*/*	Africa/Angola/*/*
+*/Uganda/*/*	Africa/Uganda/*/*
+*/Zambia/*/*	Africa/Zambia/*/*
+*/Botswana/*/*	Africa/Botswana/*/*
+*/Congo/*/*	Africa/Congo/*/*
+*/Guyane/*/*	Africa/Guyane/*/*
+*/Mauritius/*/*	Africa/Mauritius/*/*
+*/Somalia/*/*	Africa/Somalia/*/*
+*/Burkinafaso/*/*	Africa/Burkinafaso/*/*
+*/Niogeria/*/*	Africa/Niogeria/*/*
+*/Kenya/*/*	Africa/Kenya/*/*
+*/Canary Islands/*/*	Africa/Canary Islands/*/*
+*/Sierra Leone/*/*	Africa/Sierra Leone/*/*
+*/Djibouti/*/*	Africa/Djibouti/*/*
+*/Democratic Republic of Congo/*/*	Africa/Democratic Republic of Congo/*/*
+*/Cabo Verde/*/*	Africa/Cabo Verde/*/*
+*/Guinea/*/*	Africa/Guinea/*/*
+*/Algeria/*/*	Africa/Algeria/*/*
+*/Liberia/*/*	Africa/Liberia/*/*
+*/Zimbabwe/*/*	Africa/Zimbabwe/*/*
+*/Gabon/*/*	Africa/Gabon/*/*
+*/Eswatini/*/*	Africa/Eswatini/*/*
+*/Rwanda/*/*	Africa/Rwanda/*/*
+*/Ethiopia/*/*	Africa/Ethiopia/*/*
+*/Benin/*/*	Africa/Benin/*/*
+*/Sudan/*/*	Africa/Sudan/*/*
+*/Republic of the Congo/*/*	Africa/Republic of the Congo/*/*
+*/Seychelles/*/*	Africa/Seychelles/*/*
+*/Niger/*/*	Africa/Niger/*/*
+*/Cote d'Ivoire/*/*	Africa/Cote d'Ivoire/*/*
+
+*/Tanzania/*/*	Africa/Tanzania/*/*
+*/Cape Verde/*/*	Africa/Cape Verde/*/*
+*/Mali/*/*	Africa/Mali/*/*
+*/Gambia/*/*	Africa/Gambia/*/*
+*/Central African Republic/*/*	Africa/Central African Republic/*/*

@@ -11,6 +11,11 @@
       "type": "categorical"
     },
     {
+      "key": "region",
+      "title": "region",
+      "type": "categorical"
+    },
+    {
       "key": "country",
       "title": "country",
       "type": "categorical"

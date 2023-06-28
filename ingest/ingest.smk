@@ -68,13 +68,31 @@ rule join_nextclade_metadata:
         metadata = "ingest/results/genbank.recircular.tsv",
         nextclade = "ingest/results/nextclade.tsv"
     output:
-        metadata = "ingest/results/metadata.tsv",
+        metadata = "ingest/results/metadata_nextclade.tsv",
         summary = "ingest/results/metadata.summary.txt",
     shell:
         """
         ingest/scripts/join-nextclade-metadata.py \
              --metadata {input.metadata} --nextclade {input.nextclade} \
              --output {output.metadata} --summary {output.summary}
+        """
+
+rule transform_metadata:
+    input:
+        metadata = "ingest/results/metadata_nextclade.tsv"
+    output:
+        metadata = "ingest/results/metadata.tsv"
+    params:
+        metadata_columns = ['name', 'accesion', "strain_name", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", "collection_date", \
+        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
+        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
+        "QC_frame_shifts","QC_stop_codons"]
+    shell:
+        """
+        ingest/scripts/tsv-to-ndjson.py < {input.metadata} |
+            ingest/scripts/fix_country_field.py |
+            ingest/scripts/apply-geolocation-rules.py --geolocation-rules ingest/config/geoLocationRules.tsv |
+            ingest/scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
         """
 
 rule provision:
