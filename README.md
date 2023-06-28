@@ -33,6 +33,8 @@ As of mid 2023 there are around ~11k genomes and the full GenBank file is ~150Mb
 
 * For the entire human-HBV tree, with 11k tips (takes ~15min on a 4-core M1 machine): `snakemake --cores 4 -pf auspice/hbv_all.json`
 
+* For genotype builds, each of ~500 tips: `snakemake --cores 4 -pf auspice/hbv_A.json`. Currently genotypes A-D are supported.
+
 (If you haven't run the ingest section of the pipeline then any phylo build will run it.)
 
 ## Accuracy of Nextclade inference
@@ -84,7 +86,6 @@ cp results/nextclade-sequences/filtered.fasta nextclade_datasets/references/JN18
 ## TODO
 
 * Sanitise metadata
-* Partition dataset via inferred genotype (or subgenotype?)
 * Check occurrences of a clade of (genbank-labelled) genotype G within the I clade
 * Optimise nextclade parameters
 * The mutation counts are incredible & need examining

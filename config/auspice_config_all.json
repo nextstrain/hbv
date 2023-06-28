@@ -46,10 +46,15 @@
       "type": "categorical"
     },
     {
-      "key": "collection_date",
+      "key": "date",
       "title": "collection date",
       "type": "categorical"
     },
+    {
+        "key": "year",
+        "title": "collection year",
+        "type": "continuous"
+      },
     {
       "key": "circularise",
       "title": "genome re-cut?",

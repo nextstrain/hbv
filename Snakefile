@@ -3,6 +3,17 @@ include: "ingest/ingest.smk"
 
 BUILDS = ["all", "dev", "nextclade-tree"]
 
+GENOTYPES = ["A", "B", "C", "D"]
+
+ROOT = {
+    "all": "HQ603073", # NHP-HBV isolate
+    # genotype roots chosen by examining the entire tree and picking a suitably close isolate
+    "A": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "B": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "C": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "D": "KX186584", # root is genotype E
+}
+
 # rule all:
 #     input:
 #         auspice_json = expand("auspice/hepatitisB_{lineage}.json", lineage=LINEAGES)
@@ -75,10 +86,20 @@ BUILDS = ["all", "dev", "nextclade-tree"]
 #                   #  --reference-sequence {input.reference} \
 # #
 
+def get_root(wildcards):
+    if wildcards.build in ROOT:
+        return ROOT[wildcards.build]
+    return ROOT['all']
 
-### TODO XXX
-# iqtree writes log files etc to the input path + some suffix
-
+rule include_file:
+    output:
+        file = "results/{build}/include.txt",
+    params:
+        root = get_root
+    shell:
+        """
+        echo {params.root:q} > {output.file}
+        """
 
 def filter_params(wildcards):
     if wildcards.build == "all":
@@ -89,14 +110,20 @@ def filter_params(wildcards):
         return "--group-by genotype_genbank --subsample-max-sequences 2000"
     elif wildcards.build == "nextclade-sequences":
         return "--group-by genotype_genbank --subsample-max-sequences 25"
+    elif wildcards.build in GENOTYPES:
+        if wildcards.build == "C":
+            query = f"--query \"(clade_nextclade=='C') | (clade_nextclade=='C_re')\""
+        else:
+            query = f"--query \"clade_nextclade=='{wildcards.build}'\""
+        return f"{query} --group-by year --subsample-max-sequences 500"
     raise Exception("Unknown build parameter")
-
 
 rule filter:
     input:
         sequences = "ingest/results/aligned.fasta",
         metadata = "ingest/results/metadata.tsv",
-        include = "config/include.txt",
+        include = "results/{build}/include.txt",
+        exclude = "config/exclude.txt",
     output:
         sequences = "results/{build}/filtered.fasta",
         metadata = "results/{build}/filtered.tsv",
@@ -106,7 +133,7 @@ rule filter:
         """
         augur filter \
             --sequences {input.sequences} --metadata {input.metadata} \
-            --include {input.include} \
+            --include {input.include} --exclude {input.exclude} \
             {params.args} \
             --output-sequences {output.sequences} --output-metadata {output.metadata}
         """
@@ -127,37 +154,54 @@ rule tree:
             --output {output.tree}
         """
 
+def refine_parameters(wildcards):
+    params = []
+    ## Following code will be useful if we infer a timetree, which _may_
+    ## be possible at the subgenotype level?
+    # params.append("--timetree")
+    # params.append("--date-inference marginal")
+    # params.append("--date-confidence")
+    # params.append("--stochastic-resolve")
+    # params.append("--coalescent opt")
+    # params.append("--clock-filter-iqd 4")
+    # params.append("--root best")
+    params.append(f"--root {get_root(wildcards)}")
+    return " ".join(params)
+
 rule refine:
-    message:
-        """
-        Refining tree
-        NO TIMETREE CURRENTLY
-        """
+    message: "Pruning the outgroup from the tree"
     input:
         tree = "results/{build}/tree_raw.nwk",
         alignment = "results/{build}/filtered.fasta",
         metadata = "ingest/results/metadata.tsv"
     output:
-        tree = "results/{build}/tree.nwk",
+        tree = "results/{build}/tree.refined.nwk",
         node_data = "results/{build}/branch_lengths.json"
     params:
-        coalescent = "opt",
-        date_inference = "marginal",
-        clock_filter_iqd= 4
+        refine = refine_parameters,
     shell:
         """
         augur refine \
-            --tree {input.tree} \
-            --alignment {input.alignment} \
-            --metadata {input.metadata} \
-            --output-tree {output.tree} \
-            --output-node-data {output.node_data} \
-            --root HQ603073 \
-            --coalescent {params.coalescent} \
-            --date-confidence \
-            --date-inference {params.date_inference} \
-            --clock-filter-iqd {params.clock_filter_iqd}
+            --tree {input.tree} --alignment {input.alignment} --metadata {input.metadata} \
+            {params.refine} \
+            --output-tree {output.tree} --output-node-data {output.node_data}
         """
+
+
+## see https://github.com/nextstrain/augur/issues/340#issuecomment-545184212
+rule prune_outgroup:
+    input:
+        tree = "results/{build}/tree.refined.nwk"
+    output:
+        tree = "results/{build}/tree.nwk"
+    params:
+        root = get_root
+    run:
+        from Bio import Phylo
+        T = Phylo.read(input[0], "newick")
+        outgroup = [c for c in T.find_clades() if str(c.name) == params[0]][0]
+        T.prune(outgroup)
+        Phylo.write(T, output[0], "newick")
 
 
 rule ancestral:

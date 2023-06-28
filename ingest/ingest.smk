@@ -83,7 +83,7 @@ rule transform_metadata:
     output:
         metadata = "ingest/results/metadata.tsv"
     params:
-        metadata_columns = ['name', 'accesion', "strain_name", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", "collection_date", \
+        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
         "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
         "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
         "QC_frame_shifts","QC_stop_codons"]
@@ -92,6 +92,7 @@ rule transform_metadata:
         ingest/scripts/tsv-to-ndjson.py < {input.metadata} |
             ingest/scripts/fix_country_field.py |
             ingest/scripts/apply-geolocation-rules.py --geolocation-rules ingest/config/geoLocationRules.tsv |
+            ingest/scripts/add-year.py |
             ingest/scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
         """
 

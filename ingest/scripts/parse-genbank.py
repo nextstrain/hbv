@@ -182,8 +182,8 @@ def parse_metadata(record):
     metadata['country'] = extract(source, 'country') or 'None'
     metadata['host'] = extract(source, 'host') or 'None'
     metadata['genotype_genbank'], metadata['subgenotype_genbank'] = parse_genotype(note) if note else ("None", "None")
-    metadata['collection_date'] = parse_collection_date(record, source)
-    if not metadata['collection_date']:
+    metadata['date'] = parse_collection_date(record, source)
+    if not metadata['date']:
         raise MissingDate
     return metadata
 
