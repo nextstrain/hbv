@@ -33,7 +33,7 @@ As of mid 2023 there are around ~11k genomes and the full GenBank file is ~150Mb
 
 * For the entire human-HBV tree, with 11k tips (takes ~15min on a 4-core M1 machine): `snakemake --cores 4 -pf auspice/hbv_all.json`
 
-* For genotype builds, each of ~500 tips: `snakemake --cores 4 -pf auspice/hbv_A.json`. Currently genotypes A-D are supported. Note that the rooting needs to be improved and is probably incorrect.
+* For genotype builds, each of ~500 tips: `snakemake --cores 4 -pf auspice/hbv_A.json`. Currently genotypes A-D are supported.
 
 (If you haven't run the ingest section of the pipeline then any phylo build will run it.)
 
@@ -89,4 +89,3 @@ cp results/nextclade-sequences/filtered.fasta nextclade_datasets/references/JN18
 * Check occurrences of a clade of (genbank-labelled) genotype G within the I clade
 * Optimise nextclade parameters
 * The mutation counts are incredible & need examining
-* Improve rooting of genotype trees, perhaps by using a per-genotype root sample from the HBV-all tree?

@@ -5,7 +5,14 @@ BUILDS = ["all", "dev", "nextclade-tree"]
 
 GENOTYPES = ["A", "B", "C", "D"]
 
-ROOT = "HQ603073" # included in config/include.txt. A NHP-HBV isolate.
+ROOT = {
+    "all": "HQ603073", # NHP-HBV isolate
+    # genotype roots chosen by examining the entire tree and picking a suitably close isolate
+    "A": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "B": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "C": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "D": "KX186584", # root is genotype E
+}
 
 # rule all:
 #     input:
@@ -79,10 +86,20 @@ ROOT = "HQ603073" # included in config/include.txt. A NHP-HBV isolate.
 #                   #  --reference-sequence {input.reference} \
 # #
 
+def get_root(wildcards):
+    if wildcards.build in ROOT:
+        return ROOT[wildcards.build]
+    return ROOT['all']
 
-### TODO XXX
-# iqtree writes log files etc to the input path + some suffix
-
+rule include_file:
+    output:
+        file = "results/{build}/include.txt",
+    params:
+        root = get_root
+    shell:
+        """
+        echo {params.root:q} > {output.file}
+        """
 
 def filter_params(wildcards):
     if wildcards.build == "all":
@@ -105,7 +122,7 @@ rule filter:
     input:
         sequences = "ingest/results/aligned.fasta",
         metadata = "ingest/results/metadata.tsv",
-        include = "config/include.txt",
+        include = "results/{build}/include.txt",
         exclude = "config/exclude.txt",
     output:
         sequences = "results/{build}/filtered.fasta",
@@ -148,7 +165,7 @@ def refine_parameters(wildcards):
     # params.append("--coalescent opt")
     # params.append("--clock-filter-iqd 4")
     # params.append("--root best")
-    params.append(f"--root {ROOT}")
+    params.append(f"--root {get_root(wildcards)}")
     return " ".join(params)
 
 rule refine:
@@ -178,7 +195,7 @@ rule prune_outgroup:
     output:
         tree = "results/{build}/tree.nwk"
     params:
-        root = ROOT
+        root = get_root
     run:
         from Bio import Phylo
         T = Phylo.read(input[0], "newick")
