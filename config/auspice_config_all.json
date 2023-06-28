@@ -80,6 +80,10 @@
     "circularise",
     "genotype_inferred"
   ],
+  "geo_resolutions": [
+    "region",
+    "country"
+  ],
   "panels": [
     "tree",
     "map",

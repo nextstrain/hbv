@@ -98,7 +98,8 @@ rule filter:
         metadata = "ingest/results/metadata.tsv",
         include = "config/include.txt",
     output:
-        sequences = "results/{build}/filtered.fasta"
+        sequences = "results/{build}/filtered.fasta",
+        metadata = "results/{build}/filtered.tsv",
     params:
         args = filter_params
     shell:
@@ -107,7 +108,7 @@ rule filter:
             --sequences {input.sequences} --metadata {input.metadata} \
             --include {input.include} \
             {params.args} \
-            --output {output.sequences}
+            --output-sequences {output.sequences} --output-metadata {output.metadata}
         """
 
 
@@ -231,12 +232,30 @@ def node_data_files(wildcards):
     inputs = [f.format(**dict(wildcards)) for f in patterns]
     return inputs
 
+rule colors:
+    input:
+        ordering="config/color_ordering.tsv",
+        color_schemes="config/color_schemes.tsv",
+        metadata="results/{build}/filtered.tsv",
+    output:
+        colors="results/{build}/colors.tsv",
+    shell:
+        """
+        python3 scripts/assign-colors.py \
+            --metadata {input.metadata} \
+            --ordering {input.ordering} \
+            --color-schemes {input.color_schemes} \
+            --output {output.colors}
+        """
+
 rule export:
     input:
         tree = "results/{build}/tree.nwk",
         metadata = "ingest/results/metadata.tsv",
         node_data = node_data_files,
         auspice_config = "config/auspice_config_all.json", ### TODO XXX parameterise when necessary
+        colors = "results/{build}/colors.tsv",
+        lat_longs = "config/lat-longs.tsv",
     output:
         auspice_json = "auspice/hbv_{build}.json"
     shell:
@@ -247,6 +266,7 @@ rule export:
             --metadata {input.metadata} \
             --node-data {input.node_data} \
             --auspice-config {input.auspice_config} \
+            --colors {input.colors} --lat-longs {input.lat_longs} \
             --output {output.auspice_json} \
             --validation-mode skip
         """
