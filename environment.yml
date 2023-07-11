@@ -1,0 +1,7 @@
+name: nextstrain-HBV
+channels:
+  - conda-forge
+dependencies:
+  - snakemake
+  - biopython
+prefix: /mnt/projects/mambaforge/envs/nextstrain-HBV
