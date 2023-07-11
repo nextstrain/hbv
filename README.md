@@ -16,13 +16,23 @@ The general approach is:
   * `nextclade-tree` is used to update the nextclade dataset (see below)
 
 
+## Setup environment
+
+Run the following command in this directory to create a conda environment.
+
+```
+conda env create
+```
+
 ## Ingest
 
-You can run the ingest part of the snakemake pipeline via:
+You can run the ingest part of the Snakemake pipeline via:
 
 ```
 snakemake --cores 4 -npf ingest/results/aligned.fasta ingest/results/sequences.fasta ingest/results/metadata.tsv
 ```
+
+The command is a `dry-run`: change `-npf` to `-pf` to start the real run.
 
 Ingest will fetch genomes from NCBI's Entrez API and write to `./ingest/data/genbank.gb`.
 As of mid 2023 there are around ~11k genomes and the full GenBank file is ~150Mb.
