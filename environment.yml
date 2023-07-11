@@ -4,4 +4,4 @@ channels:
 dependencies:
   - snakemake
   - biopython
-prefix: /mnt/projects/mambaforge/envs/nextstrain-HBV
+  - nextclade
