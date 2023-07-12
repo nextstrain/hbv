@@ -91,7 +91,7 @@ rule transform_metadata:
         """
         ingest/scripts/tsv-to-ndjson.py < {input.metadata} |
             ingest/scripts/fix_country_field.py |
-            ingest/scripts/apply-geolocation-rules.py --geolocation-rules ingest/config/geoLocationRules.tsv |
+            ingest/vendored/apply-geolocation-rules --geolocation-rules ingest/config/geoLocationRules.tsv |
             ingest/scripts/add-year.py |
             ingest/scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
         """
