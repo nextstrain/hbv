@@ -4,20 +4,6 @@ Applies user curated geolocation rules to the geolocation fields in the NDJSON
 records from stdin. The modified records are output to stdout. This does not do
 any additional transformations on top of the user curations.
 """
-
-"""
-Copied from https://github.com/nextstrain/monkeypox/blob/62fca491c6775573ad036eedf34b271b4952f2c2/ingest/bin/apply-geolocation-rules
-with two changes:
-
-First change allows missing fields in the input ndjson
--             annotated_values = transform_geolocations(geolocation_rules, [record.[field] for field in location_fields])
-+             annotated_values = transform_geolocations(geolocation_rules, [record.get(field, '') for field in location_fields])
-
-Second change allows blank lines in the location-rules TSV
--            if line.lstrip()[0] == '#':
-+            if line.strip()=="" or line.lstrip()[0] == '#':
-"""
-
 import argparse
 import json
 from collections import defaultdict
