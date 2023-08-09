@@ -262,7 +262,7 @@ rule clades:
             --output {output.clade_data}
         """
 
-def node_data_files(wildcards):    
+def node_data_files(wildcards):
     patterns = [
         "results/{build}/branch_lengths.json",
         "results/{build}/nt_muts.json",
@@ -304,7 +304,6 @@ rule export:
         auspice_json = "auspice/hbv_{build}.json"
     shell:
         """
-        export AUGUR_RECURSION_LIMIT=10000;
         augur export v2 \
             --tree {input.tree} \
             --metadata {input.metadata} \
