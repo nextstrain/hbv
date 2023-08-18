@@ -69,6 +69,11 @@ Scripts for supporting ingest workflow automation that don’t really belong in 
 - [trigger-on-new-data](trigger-on-new-data) - Triggers downstream GitHub Actions if the provided `upload-to-s3` outputs do not contain the `identical_file_message`
   A hacky way to ensure that we only trigger downstream phylogenetic builds if the S3 objects have been updated.
 
+NCBI interaction scripts that are useful for fetching public metadata and sequences.
+
+- [fetch-from-ncbi-entrez](fetch-from-ncbi-entrez) - Fetch metadata and nucleotide sequences from [NCBI Entrez](https://www.ncbi.nlm.nih.gov/books/NBK25501/) and output to a GenBank file.
+  Useful for pathogens with metadata and annotations in custom fields that are not part of the standard [NCBI Virus](https://www.ncbi.nlm.nih.gov/labs/virus/vssi/) or [NCBI Datasets](https://www.ncbi.nlm.nih.gov/datasets/) outputs.
+
 Potential Nextstrain CLI scripts
 
 - [sha256sum](sha256sum) - Used to check if files are identical in upload-to-s3 and download-from-s3 scripts.
