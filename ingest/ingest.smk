@@ -6,7 +6,7 @@ rule fetch_genbank:
     retries: 1  # Requires snakemake 7.7.0 or later
     shell:
         """
-        ingest/scripts/fetch-genbank.py --term {params.term:q} --output {output.genbank}
+        ingest/vendored/fetch-from-ncbi-entrez --term {params.term:q} --output {output.genbank}
         """
 
 rule parse_genbank:
