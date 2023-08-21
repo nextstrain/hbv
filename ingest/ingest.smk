@@ -9,9 +9,25 @@ rule fetch_genbank:
         ingest/vendored/fetch-from-ncbi-entrez --term {params.term:q} --output {output.genbank}
         """
 
+rule add_extra_genomes:
+    """
+    This step shouldn't be necessary but the NCBI reference genome, NC_003977,
+    is not returned via the ENTREZ query. Even if we change the reference it's good
+    to add this genome.
+    """
+    input:
+        entrez = "ingest/data/genbank.gb",
+        ref = "ingest/config/NC_003977.gb"
+    output:
+        genbank = "ingest/data/genbank.extended.gb",
+    shell:
+        """
+        cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
+        """
+
 rule parse_genbank:
     input:
-        genbank = "ingest/data/genbank.gb",
+        genbank = "ingest/data/genbank.extended.gb",
     output:
         sequences = "ingest/results/genbank.fasta",
         metadata = "ingest/results/genbank.tsv",
@@ -29,7 +45,7 @@ rule re_circularise:
         sequences = "ingest/results/genbank.recircular.fasta",
         metadata = "ingest/results/genbank.recircular.tsv",
     params:
-        reference = "JN182318" # should be the same as the one used for the big alignment
+        reference = config['reference_accession']
     shell:
         """
         ingest/scripts/re-circularise.py \
@@ -38,26 +54,27 @@ rule re_circularise:
             --reference {params.reference}
         """
 
-"""
-We use nextclade to align to reference JN182318 and also to call "genotype" ("clade" in the output CSV)
-See early commits (e.g. https://github.com/nextstrain/hepatitisB/tree/93cbb184d329c12835d0ffedec61e0fbd8cb53db)
-for a version of this rule which used nextalign instead.
-Note that the minimum seed match rate is specified in the dataset itself
-"""
 rule align_everything:
+    """
+    Nextclade v3 is used to align all genomes using a reference dataset.
+    Note that the minimum seed match rate is specified in the dataset itself.
+    """
     input:
         sequences = "ingest/results/genbank.recircular.fasta",
         metadata = "ingest/results/genbank.recircular.tsv",
-        reference = "ingest/config/JN182318.fasta"
     output:
+        # Note that these outputs require `--output-basename nextclade`
         alignment = "ingest/results/nextclade.aligned.fasta",
         summary = "ingest/results/nextclade.tsv"
+    params:
+        dataset = config['nextclade_dataset'],
+        nextclade = config['nextclade_binary']
     threads: 4
     shell:
         """
-        nextclade run \
+        {params.nextclade} run \
             -j {threads} --silent --replace-unknown \
-            --input-dataset nextclade_datasets/references/JN182318/versions/2023-06-26 \
+            --input-dataset {params.dataset} \
             --output-all ingest/results \
             --output-basename nextclade \
             {input.sequences}
@@ -96,7 +113,7 @@ rule transform_metadata:
             ingest/scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
         """
 
-rule provision:
+rule copy_ingest_files:
     input:
         sequences = "ingest/results/genbank.recircular.fasta",
         aligned = "ingest/results/nextclade.aligned.fasta"

@@ -77,26 +77,48 @@ I              ********************  99.2% (n=131/132)
 recombinant                           0.0% (n=0/372)
 ```
 
-## Updating Nextclade dataset
+# Updating the Nextclade dataset
 
-
-Currently a HBV dataset exists using reference JN182318 and a ~2000 tip tree attempting to cover observed human HBV diversity and genotypes.
-
-Create a new version of the dataset by copying a previous datestamped directory in `nextclade_datasets/references/JN182318/version/`
-
-Update the tree and potentially the example sequences:
-
-```bash
-snakemake --cores 2 auspice/hbv_nextclade-tree.json
-cp auspice/hbv_nextclade-tree.json nextclade_datasets/references/JN182318/versions/YYYY-MM-DD/tree.json
-
-snakemake --cores 1 results/nextclade-sequences/filtered.fasta
-cp results/nextclade-sequences/filtered.fasta nextclade_datasets/references/JN182318/versions/YYYY-MM-DD/sequences.fasta
-```
+Nextclade datasets exist for reference `NC_003977` and `JN182318`, however the latter is deprecated and will be removed shortly.
+The dataset includes a ~2000 tip tree attempting to cover observed human HBV diversity and genotypes, as well as a small set of example sequences which are useful for trialling the web interface.
 
 > NOTE: Many of the files - especially `qc.json` - still need to be optimised for HBV.
 
-## TODO
+### Updating the tree
+
+Generate a new tree, and manually check the clades have been correctly annotated - this often requires updating `config/clades-genotypes.tsv` and re-generating the Auspice json:
+
+```bash
+snakemake --cores 2 auspice/hbv_nextclade-tree.json
+```
+
+When you are happy with the tree, create a new datestamped version of the dataset by copying a previous directory in `nextclade_datasets`
+and replacing the `tree.json` with the newly generated tree (`auspice/hbv_nextclade-tree.json`).
+
+Finally update `nextclade_dataset` in `config/config.yaml` to point to the new dataset
+
+
+### Updating example sequences
+
+A small set of example sequences can be generated via
+
+```bash
+snakemake --cores 1 results/nextclade-sequences/filtered.fasta
+```
+
+And then a new dataset created as described above.
+
+### Changing the Nextclade reference
+
+
+* Create a new dataset by copying files from a previous one and changing the path to reflect the new reference
+* Remove the tree.json, change the reference related files
+* update `nextclade_dataset` in `config/config.yaml` to point to the new dataset
+* run through a "nextclade-tree" build, e.g. `snakemake -npf auspice/hbv_nextclade-tree.json`
+* update the clade TSV & rerun until you're happy (all clade definitions will need updating if you changed the reference)
+* copy `auspice/hbv_nextclade-tree.json` to be the `tree.json` in your dataset
+
+# TODO
 
 * Sanitise metadata
 * Check occurrences of a clade of (genbank-labelled) genotype G within the I clade

@@ -1,4 +1,4 @@
-
+configfile: "config/config.yaml"
 include: "ingest/ingest.smk"
 
 BUILDS = ["all", "dev", "nextclade-tree"]
