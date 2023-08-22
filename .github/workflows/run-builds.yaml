@@ -1,0 +1,16 @@
+name: Run the builds
+
+# Only support manual trigger of this workflow.
+on:
+  workflow_dispatch
+
+jobs:
+  run-build:
+    permissions:
+      id-token: write
+    uses: nextstrain/.github/.github/workflows/pathogen-repo-build.yaml@master
+    secrets: inherit
+    with:
+      runtime: conda
+      run: |
+        snakemake --cores 1 -npf auspice/hbv_A.json
