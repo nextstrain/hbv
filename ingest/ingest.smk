@@ -65,7 +65,8 @@ rule align_everything:
     output:
         # Note that these outputs require `--output-basename nextclade`
         alignment = "ingest/results/nextclade.aligned.fasta",
-        summary = "ingest/results/nextclade.tsv"
+        summary = "ingest/results/nextclade.tsv",
+        translations = expand("ingest/results/nextclade_gene_{gene}.translation.fasta", gene=config['genes'])
     params:
         dataset = config['nextclade_dataset'],
         nextclade = config['nextclade_binary']

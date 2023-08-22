@@ -3,16 +3,6 @@ include: "ingest/ingest.smk"
 
 BUILDS = ["all", "dev", "nextclade-tree"]
 
-GENOTYPES = ["A", "B", "C", "D"]
-
-ROOT = {
-    "all": "HQ603073", # NHP-HBV isolate
-    # genotype roots chosen by examining the entire tree and picking a suitably close isolate
-    "A": "MK534669", # root is genotype I (I is A/C/G recombinant)
-    "B": "MK534669", # root is genotype I (I is A/C/G recombinant)
-    "C": "MK534669", # root is genotype I (I is A/C/G recombinant)
-    "D": "KX186584", # root is genotype E
-}
 
 # rule all:
 #     input:
@@ -87,19 +77,27 @@ ROOT = {
 # #
 
 def get_root(wildcards):
-    if wildcards.build in ROOT:
-        return ROOT[wildcards.build]
-    return ROOT['all']
+    if wildcards.build in config['roots']:
+        return config['roots'][wildcards.build]
+    return config['roots']['all']
 
+## For "all-HBV" like builds - i.e. those which don't downsample to a single genotype
+## We deliberatly include some outliers so we can prune out non-human sequences
+## And we include the reference genome
 rule include_file:
     output:
         file = "results/{build}/include.txt",
     params:
-        root = get_root
-    shell:
-        """
-        echo {params.root:q} > {output.file}
-        """
+        root = get_root,
+        outgroups = lambda w: config['outgroups'] if w.build in BUILDS else [],
+        ref = lambda w: [config['reference_accession']] if w.build in BUILDS else [],
+    run:
+        with open(output[0], 'w') as fh:
+            print(params[0], file=fh)
+            for name in params[1]:
+                print(name, file=fh)
+            for name in params[2]:
+                print(name, file=fh)
 
 def filter_params(wildcards):
     if wildcards.build == "all":
@@ -110,7 +108,7 @@ def filter_params(wildcards):
         return "--group-by genotype_genbank --subsample-max-sequences 2000"
     elif wildcards.build == "nextclade-sequences":
         return "--group-by genotype_genbank --subsample-max-sequences 25"
-    elif wildcards.build in GENOTYPES:
+    elif wildcards.build in config['genotypes']:
         if wildcards.build == "C":
             query = f"--query \"(clade_nextclade=='C') | (clade_nextclade=='C_re')\""
         else:
@@ -187,57 +185,44 @@ rule refine:
             --output-tree {output.tree} --output-node-data {output.node_data}
         """
 
-
-## see https://github.com/nextstrain/augur/issues/340#issuecomment-545184212
 rule prune_outgroup:
     input:
         tree = "results/{build}/tree.refined.nwk"
     output:
         tree = "results/{build}/tree.nwk"
     params:
-        root = get_root
-    run:
-        from Bio import Phylo
-        T = Phylo.read(input[0], "newick")
-        outgroup = [c for c in T.find_clades() if str(c.name) == params[0]][0]
-        T.prune(outgroup)
-        Phylo.write(T, output[0], "newick")
+        outgroups = lambda w: [get_root(w), *(config['outgroups'] if w.build in BUILDS else [])]
+    shell:
+        """
+        python scripts/remove_outgroups.py --names {params.outgroups} --tree {input.tree} --output {output.tree}
+        """
 
 
 rule ancestral:
     input:
         tree = "results/{build}/tree.nwk",
         alignment = "results/{build}/filtered.fasta",
+        translations = rules.align_everything.output.translations,
     output:
-        node_data = "results/{build}/nt_muts.json"
+        node_data = "results/{build}/mutations.json",
+        translations = expand("results/{{build}}/mutations_{gene}.translation.fasta", gene=config['genes'])
     params:
-        inference = "joint"
+        inference = "joint",
+        genes = config['genes'],
+        annotation = config['temporary_genemap_for_augur_ancestral'],
+        translation_pattern = 'results/{build}/mutations_%GENE.translation.fasta'
     shell:
         """
         augur ancestral \
             --tree {input.tree} \
             --alignment {input.alignment} \
+            --inference {params.inference} \
+            --annotation {params.annotation} \
+            --translations ingest/results/nextclade_gene_%GENE.translation.fasta \
+            --genes {params.genes} \
             --output-node-data {output.node_data} \
-            --inference {params.inference}
+            --output-translations {params.translation_pattern}
         """
-
-# rule translate:
-#     message: "Translating amino acid sequences"
-#     input:
-#         tree = rules.refine.output.tree,
-#         node_data = rules.ancestral.output.node_data,
-#         reference = files.reference
-#     output:
-#         node_data = "results/aa_muts_hepatitisB_{lineage}.json"
-#     shell:
-#         """
-#         augur translate \
-#             --tree {input.tree} \
-#             --ancestral-sequences {input.node_data} \
-#             --reference-sequence {input.reference} \
-#             --output {output.node_data} \
-#         """
-
 
 ## Clades are hard to predict using mutational signatures for HBV due to the amount
 ## of recombination and the inherit difference in tree reconstruction.
@@ -247,7 +232,7 @@ rule clades:
     input:
         tree =  "results/{build}/tree.nwk",
         # aa_muts = rules.translate.output.node_data,
-        nuc_muts = "results/{build}/nt_muts.json",
+        nuc_muts = "results/{build}/mutations.json",
         clades = "config/clades-genotypes.tsv"
     output:
         clade_data = "results/{build}/clades-genotypes.json",
@@ -262,12 +247,42 @@ rule clades:
             --output {output.clade_data}
         """
 
+# make sure all differences between the alignment reference and the root are attached as mutations to the root.
+# This is almost possible via `augur ancestral --root-sequence` however that functionality does not work for
+# CDSs which wrap the origin.
+rule attach_root_mutations:
+    input:
+        mutations = "results/{build}/mutations.json",
+        tree = "results/{build}/tree.nwk",
+        translations = expand("results/{{build}}/mutations_{gene}.translation.fasta", gene=config['genes'])
+    output:
+        mutations = "results/{build}/mutations.reference-mutations-on-root.json",
+    params:
+        genes = config['genes'],
+        reference = config['reference_accession'],
+        translation_pattern = 'results/{build}/mutations_%GENE.translation.fasta',
+    shell:
+        """
+        python3 scripts/attach_root_mutations.py \
+            --tree {input.tree} \
+            --reference-name {params.reference} \
+            --translations {params.translation_pattern} \
+            --genes {params.genes} \
+            --mutations-in {input.mutations} \
+            --mutations-out {output.mutations}
+        """
+
 def node_data_files(wildcards):
     patterns = [
         "results/{build}/branch_lengths.json",
-        "results/{build}/nt_muts.json",
-        ## TODO XXX translated AA json
     ]
+
+    # For nextclade dataset trees we need to annotate all differences between the root & the nextclade reference
+    # But for everything else we don't want this!
+    if wildcards.build == "nextclade-tree":
+        patterns.append("results/{build}/mutations.reference-mutations-on-root.json")
+    else:
+        patterns.append("results/{build}/mutations.json")
 
     # Only infer genotypes via `augur clades` for manually curated nextclade dataset builds
     if wildcards.build == "nextclade-tree" or wildcards.build == "dev":
