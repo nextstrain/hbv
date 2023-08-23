@@ -4,77 +4,9 @@ include: "ingest/ingest.smk"
 BUILDS = ["all", "dev", "nextclade-tree"]
 
 
-# rule all:
-#     input:
-#         auspice_json = expand("auspice/hepatitisB_{lineage}.json", lineage=LINEAGES)
-
-# rule files:
-#     params:
-#         reference = "config/reference_hepatitisB_{lineage}.gb",
-#         auspice_config = "config/auspice_config_all.json",
-#         dropped_strains = "config/dropped_strains_hepatitisB_{lineage}.txt"
-
-
-# files = rules.files.params
-
-
-
-# rule filter:
-#     message:
-#         """
-#         Filtering to
-#           - {params.sequences_per_group} sequence(s) per {params.group_by!s}
-#           - minimum genome length of {params.min_length}
-#         """
-#     input:
-#         sequences = rules.parse.output.sequences,
-#         metadata = rules.parse.output.metadata,
-#         exclude = files.dropped_strains,
-#         include = "config/include.txt", # TESTING ONLY
-#     output:
-#         sequences = "results/filtered_hepatitisB_{lineage}.fasta"
-#     params:
-#         group_by = "country year",
-#         sequences_per_group = 50,
-#         min_length = 3000
-#     shell:
-#         """
-#         augur filter \
-#             --sequences {input.sequences} \
-#             --metadata {input.metadata} \
-#             --exclude {input.exclude} \
-#             --exclude-all --include {input.include} \
-#             --output {output.sequences}
-#         """
-
-# --group-by {params.group_by} \
-# --sequences-per-group {params.sequences_per_group} \
-# --min-length {params.min_length}
-
-# rule align:
-#     message:
-#         """
-#         Aligning sequences to {input.reference}
-#           - filling gaps with N
-#         """
-#     input:
-#         sequences = rules.filter.output.sequences,
-#         reference = files.reference
-#     threads: 8
-#     output:
-#         alignment = "results/aligned_hepatitisB_{lineage}.fasta"
-#     shell:
-#         """
-#         augur align \
-#             --sequences {input.sequences} \
-#             --output {output.alignment} \
-#             --reference-name JN182318 \
-#             --nthreads {threads} \
-#             --fill-gaps
-#         """
-
-#                   #  --reference-sequence {input.reference} \
-# #
+rule all:
+    input:
+        auspice_json = expand("auspice/hbv_{target}.json", target=["all", *config['genotypes']])
 
 def get_root(wildcards):
     if wildcards.build in config['roots']:
@@ -99,6 +31,10 @@ rule include_file:
             for name in params[2]:
                 print(name, file=fh)
 
+## TODO - there are a number of nextclade QC status' we can filter on here.
+## Currently the settings in the nextclade dataset need to be looked at as 
+## around 40% of all sequences (including the entirety of some genotypes)
+## have QC=bad mainly due to frameshifts and stop codons.
 def filter_params(wildcards):
     if wildcards.build == "all":
         return ""
@@ -135,7 +71,6 @@ rule filter:
             {params.args} \
             --output-sequences {output.sequences} --output-metadata {output.metadata}
         """
-
 
 rule tree:
     message: "Building tree"
@@ -403,6 +338,8 @@ rule auspice_config:
         with open(output[0], 'w') as fh:
             json.dump(data, fh, indent=2)
 
+# Note that `--validation-mode skip` is used because the JSON schema is overly restrictive
+# and rejects our branch labels as they have underscores
 rule export:
     input:
         tree = "results/{build}/tree.nwk",
@@ -424,15 +361,3 @@ rule export:
             --output {output.auspice_json} \
             --validation-mode skip
         """
-
-## AUGUR BUG TODO XXX
-## we skip validation because
-##   .display_defaults.branch_label "genotype_inferred" failed pattern validation for "^(none|[a-zA-Z0-9]+)$"
-
-# rule clean:
-#     message: "Removing directories: {params}"
-#     params:
-#         "results ",
-#         "auspice"
-#     shell:
-#         "rm -rfv {params}"
