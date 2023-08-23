@@ -13,4 +13,5 @@ jobs:
     with:
       runtime: conda
       run: |
-        snakemake --cores 1 -npf auspice/hbv_A.json
+        nextstrain build --cpus 1 . -pf vendor_nextclade3_x86;
+        nextstrain build --cpus 1 . -pf deploy;

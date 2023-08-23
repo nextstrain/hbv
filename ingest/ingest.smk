@@ -1,3 +1,24 @@
+rule vendor_nextclade3_x86:
+    """
+    Nextclade v3 is unreleased. This repo includes an arch64 version but for GitHub
+    actions we need an x86 version. 
+    This executable is produced as part of Nextclade's CI - e.g. see artifacts from
+    https://github.com/nextstrain/nextclade/actions/runs/5829996974
+
+    This rule is temporary as once Nextclde v3 is released we can either use the
+    version in the Nextstrain runtime or use an approach similar to ncov-ingest:
+    https://github.com/nextstrain/ncov-ingest/blob/6c7ae5d7d259d62b8a0f016f02be51a11090592a/workflow/snakemake_rules/nextclade.smk#L130
+    """
+    params:
+        path = config['nextclade_binary']
+    shell:
+        """
+        curl -fsSL "https://nextstrain-scratch.s3.amazonaws.com/james/nextclade-x86_64-unknown-linux-gnu" -o {params[0]:q}
+        chmod +x {params[0]:q}
+        NEXTCLADE_VERSION="$(./{params[0]:q} --version)"
+        echo "[ INFO] Nextclade version: $NEXTCLADE_VERSION" 
+        """
+
 rule fetch_genbank:
     params:
         term = 'Hepatitis+B+virus[All+Fields]complete+genome[All+Fields]'
