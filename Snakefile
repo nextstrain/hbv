@@ -307,12 +307,108 @@ rule colors:
             --output {output.colors}
         """
 
+rule auspice_config:
+    output:
+        "results/{build}/auspice_config.json"
+    run:
+        build_name = wildcards.build
+        title = "Genetic diversity of Hepatitis B virus"
+        if build_name in config['genotypes']:
+            title = f"Genetic diversity of Hepatitis B virus genotype {build_name}" 
+
+        dev_colorings = [
+            { "key": "circularise", "title": "genome rotated?", "type": "categorical" },
+            { "key": "circularise_shift_bp", "title": "rotation offset", "type": "continuous" },
+            { "key": "QC_overall_score",     "title": "Nextclade QC overall score", "type": "categorical" },
+            { "key": "QC_overall_status",    "title": "Nextclade QC overall status", "type": "categorical" },
+            { "key": "total_substitutions",  "title": "Nextclade QC total substitutions", "type": "continuous" },
+            { "key": "total_deletions",      "title": "Nextclade QC total deletions", "type": "continuous" },
+            { "key": "total_insertions",     "title": "Nextclade QC total insertions", "type": "continuous" },
+            { "key": "total_frame_shifts",   "title": "Nextclade QC total frame shifts", "type": "continuous" },
+            { "key": "total_missing",        "title": "Nextclade QC total missing", "type": "continuous" },
+            { "key": "alignment_score",      "title": "Nextclade QC aln score", "type": "continuous" },
+            { "key": "coverage",             "title": "Nextclade QC coverage", "type": "continuous" },
+            { "key": "QC_missing_data",      "title": "Nextclade QC status missing data", "type": "categorical" },
+            { "key": "QC_mixed_sites",       "title": "Nextclade QC status mixed sites", "type": "categorical" },
+            { "key": "QC_rare_mutations",    "title": "Nextclade QC status rare muts", "type": "categorical" },
+            { "key": "QC_frame_shifts",      "title": "Nextclade QC status frame shifts", "type": "categorical" },
+            { "key": "QC_stop_codons",       "title": "Nextclade QC status stop codons", "type": "categorical" },
+        ] if build_name in ['dev', 'all'] else []
+
+        augur_clades =     { "key": "clade_membership", "title": "HBV Genotype (clades TSV)", "type": "categorical" }
+        nextclade_clades = { "key": "clade_nextclade",  "title": "HBV Genotype (Nextclade)",  "type": "categorical" }
+
+
+        default_color_by = "region" # genotype builds are the ~same genotype...
+        if build_name=='nextclade-tree':
+            default_color_by = "clade_membership" # augur clades TSV
+        elif build_name in ['dev', 'all']:
+            default_color_by = "clade_nextclade"
+
+        data = {
+            "title": title,
+            "build_url": "https://github.com/nextstrain/hepatitisB/",
+            "data_provenance": [
+                {"name": "GenBank", "url": "https://www.ncbi.nlm.nih.gov/nucleotide/"}
+            ],
+            "maintainers": [
+                {"name": "Katie Kistler"},
+                {"name": "James Hadfield"},
+                {"name": "Nextstrain"},
+            ],
+            "colorings": [
+                {"key": "gt", "title": "Genotype (by position)", "type": "categorical"},
+                {"key": "region", "title": "region", "type": "categorical"},
+                { "key": "country", "title": "country", "type": "categorical" },
+                { "key": "host", "title": "host", "type": "categorical" },
+                (augur_clades if build_name in ['dev', "nextclade-tree"] else None),
+                (nextclade_clades if build_name != 'nextclade-tree' else None),
+                { "key": "genotype_genbank",    "title": "HBV Genotype (Genbank)",    "type": "categorical" },
+                { "key": "subgenotype_genbank", "title": "HBV Subgenotype (Genbank)", "type": "categorical" },
+                { "key": "year", "title": "collection year", "type": "continuous"},
+                { "key": "date", "title": "collection date", "type": "categorical" },
+                *dev_colorings,
+                { "key": "strain_name", "title": "Strain (name)", "type": "categorical" },
+            ],
+            "display_defaults": {
+                "color_by": default_color_by,
+                "branch_label": "augur_clades", # This won't be there for most builds...
+                "map_triplicate": True
+            },
+            "filters": [
+                "host",
+                "country",
+                "strain_name",
+                (augur_clades['key'] if build_name in ['dev', "nextclade-tree"] else None),
+                "clade_nextclade",
+                "genotype_genbank",
+                "subgenotype_genbank",
+                *[d['key'] for d in dev_colorings if d['type']=='categorical'],
+            ],
+            "geo_resolutions": [
+                "region",
+                "country"
+            ],
+            "panels": [
+                "tree",
+                "map",
+                "entropy"
+            ]
+        }
+
+        ## Prune out empty values
+        data['colorings'] = [c for c in data['colorings'] if c]
+        data['filters'] = [f for f in data['filters'] if f]
+
+        with open(output[0], 'w') as fh:
+            json.dump(data, fh, indent=2)
+
 rule export:
     input:
         tree = "results/{build}/tree.nwk",
         metadata = "ingest/results/metadata.tsv",
         node_data = node_data_files,
-        auspice_config = "config/auspice_config_all.json", ### TODO XXX parameterise when necessary
+        auspice_config = "results/{build}/auspice_config.json",
         colors = "results/{build}/colors.tsv",
         lat_longs = "config/lat-longs.tsv",
     output:
