@@ -31,3 +31,4 @@ roots: {
 # candidate non-human sequences which fall in outgroups (the entire outgroup will be pruned)
 outgroups: ["FM209514", "HQ603059", "FJ798097", "HQ603068"] # "HQ603059", "FJ798097", "AY330914", "AY781182", "AB823660", "AY330914", "FJ798098"]
 
+deploy_destination: 's3://nextstrain-staging'

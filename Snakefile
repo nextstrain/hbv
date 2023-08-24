@@ -3,10 +3,11 @@ include: "ingest/ingest.smk"
 
 BUILDS = ["all", "dev", "nextclade-tree"]
 
+DEFAULT_TARGETS = ["all", *config['genotypes']]
 
 rule all:
     input:
-        auspice_json = expand("auspice/hbv_{target}.json", target=["all", *config['genotypes']])
+        auspice_json = expand("auspice/hbv_{target}.json", target=DEFAULT_TARGETS)
 
 def get_root(wildcards):
     if wildcards.build in config['roots']:
@@ -360,4 +361,16 @@ rule export:
             --colors {input.colors} --lat-longs {input.lat_longs} \
             --output {output.auspice_json} \
             --validation-mode skip
+        """
+
+rule deploy:
+    input:
+        *rules.all.input,
+    output:
+        touch(expand("results/{target}/deploy.done", target=DEFAULT_TARGETS))
+    params:
+        deploy_destination = config["deploy_destination"]
+    shell:
+        """
+        nextstrain remote upload {params.deploy_destination} {input}
         """
