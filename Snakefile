@@ -336,6 +336,7 @@ rule auspice_config:
         data['colorings'] = [c for c in data['colorings'] if c]
         data['filters'] = [f for f in data['filters'] if f]
 
+        import json
         with open(output[0], 'w') as fh:
             json.dump(data, fh, indent=2)
 
