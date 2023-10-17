@@ -29,16 +29,10 @@ As of mid 2023 there are around ~11k genomes and the full GenBank file is ~150Mb
 
 ### `ingest/vendored`
 
-This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) to manage copies of ingest scripts in `ingest/vendored`, from [nextstrain/ingest](https://github.com/nextstrain/ingest). To pull new changes from the central ingest repository, run:
+This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) to manage copies of ingest scripts in [`ingest/vendored`](./ingest/vendored), from [nextstrain/ingest](https://github.com/nextstrain/ingest). To pull new changes from the central ingest repository, run:
 
-```sh
-git subrepo pull ingest/vendored
-```
-
-Changes should not be pushed using `git subrepo push`.
-
-1. For pathogen-specific changes, make them in this repository via a pull request.
-2. For pathogen-agnostic changes, make them on [nextstrain/ingest](https://github.com/nextstrain/ingest) via pull request there, then use `git subrepo pull` to add those changes to this repository.
+See [ingest/vendored/README.md](./ingest/vendored/README.md#vendoring) for instructions on how to update
+the vendored scripts.
 
 ## Phylo
 
