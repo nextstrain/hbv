@@ -1,3 +1,13 @@
+# Use default configuration values. Override with Snakemake's --configfile/--config options.
+configfile: "defaults/config.yaml"
+
+rule all:
+    input:
+        "results/aligned.fasta",
+        "results/sequences.fasta",
+        "results/metadata.tsv",
+
+
 rule vendor_nextclade3_x86:
     """
     Nextclade v3 is unreleased. This repo includes an arch64 version but for GitHub
@@ -21,13 +31,13 @@ rule vendor_nextclade3_x86:
 
 rule fetch_genbank:
     params:
-        term = 'Hepatitis+B+virus[All+Fields]complete+genome[All+Fields]'
+        term = config['entrez_query']
     output:
-        genbank = "ingest/data/genbank.gb",
+        genbank = "data/entrez/genbank.gb",
     retries: 1  # Requires snakemake 7.7.0 or later
     shell:
         """
-        ingest/vendored/fetch-from-ncbi-entrez --term {params.term:q} --output {output.genbank}
+        vendored/fetch-from-ncbi-entrez --term {params.term:q} --output {output.genbank}
         """
 
 rule add_extra_genomes:
@@ -37,10 +47,10 @@ rule add_extra_genomes:
     to add this genome.
     """
     input:
-        entrez = "ingest/data/genbank.gb",
-        ref = "ingest/config/NC_003977.gb"
+        entrez = "data/entrez/genbank.gb",
+        ref = config['reference_genbank'],
     output:
-        genbank = "ingest/data/genbank.extended.gb",
+        genbank = "data/entrez/genbank.with-reference.gb",
     shell:
         """
         cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
@@ -48,28 +58,28 @@ rule add_extra_genomes:
 
 rule parse_genbank:
     input:
-        genbank = "ingest/data/genbank.extended.gb",
+        genbank = "data/entrez/genbank.with-reference.gb",
     output:
-        sequences = "ingest/results/genbank.fasta",
-        metadata = "ingest/results/genbank.tsv",
+        sequences = "data/genbank.fasta",
+        metadata = "data/genbank.tsv",
     shell:
         """
-        ingest/scripts/parse-genbank.py --genbank {input.genbank} \
+        scripts/parse-genbank.py --genbank {input.genbank} \
             --output-sequences {output.sequences} --output-metadata {output.metadata}
         """
 
 rule re_circularise:
     input:
-        metadata = "ingest/results/genbank.tsv",
-        sequences = "ingest/results/genbank.fasta",
+        metadata = "data/genbank.tsv",
+        sequences = "data/genbank.fasta",
     output:
-        sequences = "ingest/results/genbank.recircular.fasta",
-        metadata = "ingest/results/genbank.recircular.tsv",
+        sequences = "data/genbank.recircular.fasta",
+        metadata = "data/genbank.recircular.tsv",
     params:
         reference = config['reference_accession']
     shell:
         """
-        ingest/scripts/re-circularise.py \
+        scripts/re-circularise.py \
             --seqs-in {input.sequences} --meta-in {input.metadata} \
             --seqs-out {output.sequences} --meta-out {output.metadata} \
             --reference {params.reference}
@@ -81,13 +91,13 @@ rule align_everything:
     Note that the minimum seed match rate is specified in the dataset itself.
     """
     input:
-        sequences = "ingest/results/genbank.recircular.fasta",
-        metadata = "ingest/results/genbank.recircular.tsv",
+        sequences = "data/genbank.recircular.fasta",
+        metadata = "data/genbank.recircular.tsv",
     output:
         # Note that these outputs require `--output-basename nextclade`
-        alignment = "ingest/results/nextclade.aligned.fasta",
-        summary = "ingest/results/nextclade.tsv",
-        translations = expand("ingest/results/nextclade_gene_{gene}.translation.fasta", gene=config['genes'])
+        alignment = "data/nextclade/nextclade.aligned.fasta",
+        summary = "data/nextclade/nextclade.tsv",
+        translations = expand("data/nextclade/nextclade_gene_{gene}.translation.fasta", gene=config['genes'])
     params:
         dataset = config['nextclade_dataset'],
         nextclade = config['nextclade_binary']
@@ -97,30 +107,30 @@ rule align_everything:
         {params.nextclade} run \
             -j {threads} --silent --replace-unknown \
             --input-dataset {params.dataset} \
-            --output-all ingest/results \
+            --output-all data/nextclade \
             --output-basename nextclade \
             {input.sequences}
         """
 
 rule join_nextclade_metadata:
     input:
-        metadata = "ingest/results/genbank.recircular.tsv",
-        nextclade = "ingest/results/nextclade.tsv"
+        metadata = "data/genbank.recircular.tsv",
+        nextclade = "data/nextclade/nextclade.tsv"
     output:
-        metadata = "ingest/results/metadata_nextclade.tsv",
-        summary = "ingest/results/metadata.summary.txt",
+        metadata = "data/metadata.tsv",
+        summary = "data/metadata.summary.txt",
     shell:
         """
-        ingest/scripts/join-nextclade-metadata.py \
+        scripts/join-nextclade-metadata.py \
              --metadata {input.metadata} --nextclade {input.nextclade} \
              --output {output.metadata} --summary {output.summary}
         """
 
 rule transform_metadata:
     input:
-        metadata = "ingest/results/metadata_nextclade.tsv"
+        metadata = "data/metadata.tsv"
     output:
-        metadata = "ingest/results/metadata.tsv"
+        metadata = "results/metadata.tsv"
     params:
         metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
         "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
@@ -128,20 +138,20 @@ rule transform_metadata:
         "QC_frame_shifts","QC_stop_codons"]
     shell:
         """
-        ingest/scripts/tsv-to-ndjson.py < {input.metadata} |
-            ingest/scripts/fix_country_field.py |
-            ingest/vendored/apply-geolocation-rules --geolocation-rules ingest/config/geoLocationRules.tsv |
-            ingest/scripts/add-year.py |
-            ingest/scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
+        scripts/tsv-to-ndjson.py < {input.metadata} |
+            scripts/fix_country_field.py |
+            vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv |
+            scripts/add-year.py |
+            scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
         """
 
 rule copy_ingest_files:
     input:
-        sequences = "ingest/results/genbank.recircular.fasta",
-        aligned = "ingest/results/nextclade.aligned.fasta"
+        sequences = "data/genbank.recircular.fasta",
+        aligned = "data/nextclade/nextclade.aligned.fasta",
     output:
-        sequences = "ingest/results/sequences.fasta",
-        aligned = "ingest/results/aligned.fasta"
+        sequences = "results/sequences.fasta",
+        aligned = "results/aligned.fasta"
     shell:
         """
         cp {input.sequences} {output.sequences}
