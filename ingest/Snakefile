@@ -60,21 +60,45 @@ rule parse_genbank:
     input:
         genbank = "data/entrez/genbank.with-reference.gb",
     output:
-        sequences = "data/genbank.fasta",
-        metadata = "data/genbank.tsv",
+        ndjson = "data/genbank.ndjson"
     shell:
         """
-        scripts/parse-genbank.py --genbank {input.genbank} \
-            --output-sequences {output.sequences} --output-metadata {output.metadata}
+        scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
         """
 
-rule re_circularise:
+rule curate:
     input:
-        metadata = "data/genbank.tsv",
-        sequences = "data/genbank.fasta",
+        ndjson = "data/genbank.ndjson"
     output:
-        sequences = "data/genbank.recircular.fasta",
-        metadata = "data/genbank.recircular.tsv",
+        metadata = "data/curated-metadata.tsv",
+        sequences = "data/curated-sequences.fasta",
+    params:
+        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
+        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
+        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
+        "QC_frame_shifts","QC_stop_codons"]
+    shell:
+        # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
+        # vendored/apply-geolocation-rules 
+        # scripts/add-year.py adds "year" to NDJSON entries
+        """
+        cat {input.ndjson} \
+            | scripts/fix_country_field.py \
+            | vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv \
+            | scripts/add-year.py \
+            | augur curate passthru \
+                --output-seq-field sequence --output-id-field accession \
+                --output-metadata {output.metadata} --output-fasta {output.sequences}
+        """
+
+
+rule recircularise:
+    input:
+        metadata = "data/curated-metadata.tsv",
+        sequences = "data/curated-sequences.fasta",
+    output:
+        sequences = "data/circularised.fasta",
+        metadata = "data/circularised.tsv",
     params:
         reference = config['reference_accession']
     shell:
@@ -91,8 +115,8 @@ rule align_everything:
     Note that the minimum seed match rate is specified in the dataset itself.
     """
     input:
-        sequences = "data/genbank.recircular.fasta",
-        metadata = "data/genbank.recircular.tsv",
+        sequences = "data/circularised.fasta",
+        metadata = "data/circularised.tsv",
     output:
         # Note that these outputs require `--output-basename nextclade`
         alignment = "data/nextclade/nextclade.aligned.fasta",
@@ -114,10 +138,10 @@ rule align_everything:
 
 rule join_nextclade_metadata:
     input:
-        metadata = "data/genbank.recircular.tsv",
+        metadata = "data/circularised.tsv",
         nextclade = "data/nextclade/nextclade.tsv"
     output:
-        metadata = "data/metadata.tsv",
+        metadata = "results/metadata.tsv",
         summary = "data/metadata.summary.txt",
     shell:
         """
@@ -126,28 +150,9 @@ rule join_nextclade_metadata:
              --output {output.metadata} --summary {output.summary}
         """
 
-rule transform_metadata:
-    input:
-        metadata = "data/metadata.tsv"
-    output:
-        metadata = "results/metadata.tsv"
-    params:
-        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
-        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
-        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
-        "QC_frame_shifts","QC_stop_codons"]
-    shell:
-        """
-        scripts/tsv-to-ndjson.py < {input.metadata} |
-            scripts/fix_country_field.py |
-            vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv |
-            scripts/add-year.py |
-            scripts/ndjson-to-tsv.py --metadata-columns {params.metadata_columns} --metadata {output.metadata}
-        """
-
 rule copy_ingest_files:
     input:
-        sequences = "data/genbank.recircular.fasta",
+        sequences = "data/circularised.fasta",
         aligned = "data/nextclade/nextclade.aligned.fasta",
     output:
         sequences = "results/sequences.fasta",
