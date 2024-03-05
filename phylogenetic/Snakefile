@@ -1,5 +1,4 @@
-configfile: "config/config.yaml"
-include: "ingest/ingest.smk"
+configfile: "defaults/config.yaml"
 
 BUILDS = ["all", "dev", "nextclade-tree"]
 
@@ -55,10 +54,10 @@ def filter_params(wildcards):
 
 rule filter:
     input:
-        sequences = "ingest/results/aligned.fasta",
-        metadata = "ingest/results/metadata.tsv",
+        sequences = "../ingest/results/aligned.fasta",
+        metadata = "../ingest/results/metadata.tsv",
         include = "results/{build}/include.txt",
-        exclude = "config/exclude.txt",
+        exclude = "defaults/exclude.txt",
     output:
         sequences = "results/{build}/filtered.fasta",
         metadata = "results/{build}/filtered.tsv",
@@ -107,7 +106,7 @@ rule refine:
     input:
         tree = "results/{build}/tree_raw.nwk",
         alignment = "results/{build}/filtered.fasta",
-        metadata = "ingest/results/metadata.tsv"
+        metadata = "../ingest/results/metadata.tsv"
     output:
         tree = "results/{build}/tree.refined.nwk",
         node_data = "results/{build}/branch_lengths.json"
@@ -133,12 +132,11 @@ rule prune_outgroup:
         python scripts/remove_outgroups.py --names {params.outgroups} --tree {input.tree} --output {output.tree}
         """
 
-
 rule ancestral:
     input:
         tree = "results/{build}/tree.nwk",
         alignment = "results/{build}/filtered.fasta",
-        translations = rules.align_everything.output.translations,
+        translations = expand("../ingest/data/nextclade/cds_{gene}.fasta", gene=config['genes']),
     output:
         node_data = "results/{build}/mutations.json",
         translations = expand("results/{{build}}/mutations_{gene}.translation.fasta", gene=config['genes'])
@@ -154,7 +152,7 @@ rule ancestral:
             --alignment {input.alignment} \
             --inference {params.inference} \
             --annotation {params.annotation} \
-            --translations ingest/results/nextclade_gene_%GENE.translation.fasta \
+            --translations ../ingest/data/nextclade/cds_%GENE.fasta \
             --genes {params.genes} \
             --output-node-data {output.node_data} \
             --output-translations {params.translation_pattern}
@@ -164,12 +162,11 @@ rule ancestral:
 ## of recombination and the inherit difference in tree reconstruction.
 ## They are only run for the nextclade dataset build, which we manually check
 rule clades:
-    message: "Labeling clades as specified in config/clades.tsv"
     input:
         tree =  "results/{build}/tree.nwk",
         # aa_muts = rules.translate.output.node_data,
         nuc_muts = "results/{build}/mutations.json",
-        clades = "config/clades-genotypes.tsv"
+        clades = "defaults/clades-genotypes.tsv"
     output:
         clade_data = "results/{build}/clades-genotypes.json",
     shell:
@@ -229,8 +226,8 @@ def node_data_files(wildcards):
 
 rule colors:
     input:
-        ordering="config/color_ordering.tsv",
-        color_schemes="config/color_schemes.tsv",
+        ordering="defaults/color_ordering.tsv",
+        color_schemes="defaults/color_schemes.tsv",
         metadata="results/{build}/filtered.tsv",
     output:
         colors="results/{build}/colors.tsv",
@@ -345,11 +342,11 @@ rule auspice_config:
 rule export:
     input:
         tree = "results/{build}/tree.nwk",
-        metadata = "ingest/results/metadata.tsv",
+        metadata = "../ingest/results/metadata.tsv",
         node_data = node_data_files,
         auspice_config = "results/{build}/auspice_config.json",
         colors = "results/{build}/colors.tsv",
-        lat_longs = "config/lat-longs.tsv",
+        lat_longs = "defaults/lat-longs.tsv",
     output:
         auspice_json = "auspice/hbv_{build}.json"
     shell:
