@@ -11,8 +11,6 @@ entrez_query: 'Hepatitis+B+virus[All+Fields]complete+genome[All+Fields]'
 # Path to the nextclade dataset, which will be used to align all sequences
 nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
 
-nextclade_binary: "../bin/nextclade"
-
 # technically CDSs, but we use these terms rather interchangeably.
 # These should be the entire list of CDSs in the nextclade dataset's genemap
 genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']

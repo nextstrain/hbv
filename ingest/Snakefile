@@ -8,27 +8,6 @@ rule all:
         "results/metadata.tsv",
 
 
-rule vendor_nextclade3_x86:
-    """
-    Nextclade v3 is unreleased. This repo includes an arch64 version but for GitHub
-    actions we need an x86 version. 
-    This executable is produced as part of Nextclade's CI - e.g. see artifacts from
-    https://github.com/nextstrain/nextclade/actions/runs/5829996974
-
-    This rule is temporary as once Nextclde v3 is released we can either use the
-    version in the Nextstrain runtime or use an approach similar to ncov-ingest:
-    https://github.com/nextstrain/ncov-ingest/blob/6c7ae5d7d259d62b8a0f016f02be51a11090592a/workflow/snakemake_rules/nextclade.smk#L130
-    """
-    params:
-        path = config['nextclade_binary']
-    shell:
-        """
-        curl -fsSL "https://nextstrain-scratch.s3.amazonaws.com/james/nextclade-x86_64-unknown-linux-gnu" -o {params[0]:q}
-        chmod +x {params[0]:q}
-        NEXTCLADE_VERSION="$(./{params[0]:q} --version)"
-        echo "[ INFO] Nextclade version: $NEXTCLADE_VERSION" 
-        """
-
 rule fetch_genbank:
     params:
         term = config['entrez_query']
@@ -109,37 +88,38 @@ rule recircularise:
             --reference {params.reference}
         """
 
-rule align_everything:
+rule nextclade:
     """
-    Nextclade v3 is used to align all genomes using a reference dataset.
+    Nextclade v3 is used to align all genomes using a reference dataset and infer genotypes ("clade_nextclade")
     Note that the minimum seed match rate is specified in the dataset itself.
     """
     input:
         sequences = "data/circularised.fasta",
-        metadata = "data/circularised.tsv",
     output:
-        # Note that these outputs require `--output-basename nextclade`
-        alignment = "data/nextclade/nextclade.aligned.fasta",
-        summary = "data/nextclade/nextclade.tsv",
-        translations = expand("data/nextclade/nextclade_gene_{gene}.translation.fasta", gene=config['genes'])
+        alignment = "data/nextclade/aligned.fasta",
+        tree = "data/nextclade/nextclade.json",
+        translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
+        metadata = "data/nextclade/metadata.tsv",
     params:
         dataset = config['nextclade_dataset'],
-        nextclade = config['nextclade_binary']
+        translations_pattern = lambda w: "data/nextclade/cds_{cds}.fasta",
     threads: 4
     shell:
         """
-        {params.nextclade} run \
+        nextclade run \
             -j {threads} --silent --replace-unknown \
             --input-dataset {params.dataset} \
-            --output-all data/nextclade \
-            --output-basename nextclade \
+            --output-fasta {output.alignment} \
+            --output-translations {params.translations_pattern} \
+            --output-tsv {output.metadata} \
+            --output-tree {output.tree} \
             {input.sequences}
         """
 
 rule join_nextclade_metadata:
     input:
         metadata = "data/circularised.tsv",
-        nextclade = "data/nextclade/nextclade.tsv"
+        nextclade = "data/nextclade/metadata.tsv"
     output:
         metadata = "results/metadata.tsv",
         summary = "data/metadata.summary.txt",
@@ -153,7 +133,7 @@ rule join_nextclade_metadata:
 rule copy_ingest_files:
     input:
         sequences = "data/circularised.fasta",
-        aligned = "data/nextclade/nextclade.aligned.fasta",
+        aligned = "data/nextclade/aligned.fasta",
     output:
         sequences = "results/sequences.fasta",
         aligned = "results/aligned.fasta"
