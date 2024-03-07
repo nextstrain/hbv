@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Rotating genomes | Nextstrain Hepatitis-B (HBV) builds</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="preload" as="style" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&amp;display=swap" crossorigin>
+<link rel="stylesheet" type="text/css" href="./_observablehq/theme-air,near-midnight.css">
+<link rel="modulepreload" href="./_observablehq/client.js">
+<link rel="modulepreload" href="./_observablehq/runtime.js">
+<link rel="modulepreload" href="./_observablehq/stdlib.js">
+<link rel="modulepreload" href="./_npm/d3-dsv@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/@observablehq/plot@0.6.13/+esm.js">
+<link rel="modulepreload" href="./_npm/d3@7.8.5/+esm.js">
+<link rel="modulepreload" href="./_npm/isoformat@0.2.1/+esm.js">
+<link rel="modulepreload" href="./_npm/interval-tree-1d@1.0.4/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-array@3.2.4/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-axis@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-brush@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-chord@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-color@3.1.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-contour@4.0.2/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-delaunay@6.0.4/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-dispatch@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-drag@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-ease@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-fetch@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-force@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-format@3.1.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-geo@3.1.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-hierarchy@3.1.2/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-interpolate@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-path@3.1.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-polygon@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-quadtree@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-random@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-scale@4.0.2/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-scale-chromatic@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-selection@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-shape@3.2.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-time@3.1.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-time-format@4.1.0/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-timer@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-transition@3.0.1/+esm.js">
+<link rel="modulepreload" href="./_npm/d3-zoom@3.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/binary-search-bounds@2.0.5/+esm.js">
+<link rel="modulepreload" href="./_npm/internmap@2.0.3/+esm.js">
+<link rel="modulepreload" href="./_npm/delaunator@5.0.0/+esm.js">
+<link rel="modulepreload" href="./_npm/robust-predicates@3.0.2/+esm.js">
+<script type="module">
+
+import {define} from "./_observablehq/client.js";
+import {registerFile} from "./_observablehq/stdlib.js";
+
+registerFile("./data/alignment_raw.json", {"name":"./data/alignment_raw.json","mimeType":"application/json","path":"./_file/data/alignment_raw.2b0020e5.json"});
+registerFile("./data/alignment_rotated.json", {"name":"./data/alignment_rotated.json","mimeType":"application/json","path":"./_file/data/alignment_rotated.84723980.json"});
+registerFile("./data/metadata.tsv", {"name":"./data/metadata.tsv","mimeType":"text/tab-separated-values","path":"./_file/data/metadata.284690f9.tsv"});
+
+define({id: "d8e7eccc", inline: true, inputs: ["numAbove","rotatedMatchCount","display"], body: async (numAbove,rotatedMatchCount,display) => {
+display(await(
+numAbove(rotatedMatchCount, 90)
+))
+}});
+
+define({id: "8c248eae", inline: true, inputs: ["numAbove","rawMatchCount","display"], body: async (numAbove,rawMatchCount,display) => {
+display(await(
+numAbove(rawMatchCount, 90)
+))
+}});
+
+define({id: "39fefde5", inline: true, inputs: ["numAbove","rotatedMatchCount","display"], body: async (numAbove,rotatedMatchCount,display) => {
+display(await(
+numAbove(rotatedMatchCount, 80)
+))
+}});
+
+define({id: "9d58746b", inline: true, inputs: ["numAbove","rawMatchCount","display"], body: async (numAbove,rawMatchCount,display) => {
+display(await(
+numAbove(rawMatchCount, 80)
+))
+}});
+
+define({id: "303bc21b", inputs: ["display","Plot","rawMatchCount","rotatedMatchCount"], body: (display,Plot,rawMatchCount,rotatedMatchCount) => {
+display(Plot.plot({
+  marginTop: 20,
+  marginRight: 20,
+  marginBottom: 30,
+  marginLeft: 60,
+  grid: true,
+  inset: 10,
+  // aspectRatio: 0.6,
+  width: 1000,
+  figure: true,
+  color: {legend: true},
+  className: "largerFont",
+  x: { tickSize: 15, label: "Genomes"},
+  y: { tickSize: 15, label: "Aln match (%)"},
+  marks: [
+    Plot.frame(),
+    Plot.dot(rawMatchCount, {x: "idx", y: "count", stroke: "black"}),
+    Plot.dot(rotatedMatchCount, {x: "idx", y: "count", stroke: "genotype", fill: "genotype", symbol: "circle", r: 3}),
+    Plot.crosshair(rotatedMatchCount, {x: "idx", y: "count", stroke: "genotype"}),
+  ]
+}))
+}});
+
+define({id: "5f2d7d93", inputs: ["FileAttachment"], outputs: ["parseMetadata","metadata"], body: async (FileAttachment) => {
+const parseMetadata = async () => {
+    return Object.fromEntries(
+        (await FileAttachment("data/metadata.tsv").tsv())
+            .map((row) => [row.name, row])
+    )
+}
+const metadata = await parseMetadata()
+return {parseMetadata,metadata};
+}});
+
+define({id: "e6bc5f1f", inputs: ["metadata"], outputs: ["refLength","parseAlignment"], body: (metadata) => {
+const refLength = 3182;
+const parseAlignment = async (attachment) => {
+  return Object.entries(
+      await attachment.json()
+    )
+    .map(([name, count]) => ({name, count}))
+    .sort((a, b) => a.count > b.count ? -1 : 1)
+    .map((d, idx) => ({...d, count: d.count/refLength*100}))
+    .map((d, idx) => ({...d, idx}))
+    .map((d) => ({...d, genotype: metadata[d.name]?.genotype_genbank}))
+}
+return {refLength,parseAlignment};
+}});
+
+define({id: "97abf221", inputs: ["parseAlignment","FileAttachment"], outputs: ["rotatedMatchCount","rawMatchCount"], body: async (parseAlignment,FileAttachment) => {
+const rotatedMatchCount = await parseAlignment(FileAttachment("data/alignment_rotated.json"))
+const rawMatchCount = await parseAlignment(FileAttachment("data/alignment_raw.json"))
+// console.log("rotatedMatchCount", rotatedMatchCount.slice(0, 10))
+// console.log("rawMatchCount", rawMatchCount.slice(0, 10))
+return {rotatedMatchCount,rawMatchCount};
+}});
+
+define({id: "6d292a81", outputs: ["numAbove"], body: () => {
+const numAbove = (dataset, perc) => {
+  return dataset.filter((d) => d.count > perc).length
+}
+return {numAbove};
+}});
+
+</script>
+<input id="observablehq-sidebar-toggle" type="checkbox" title="Toggle sidebar">
+<label id="observablehq-sidebar-backdrop" for="observablehq-sidebar-toggle"></label>
+<nav id="observablehq-sidebar">
+  <ol>
+    <label id="observablehq-sidebar-close" for="observablehq-sidebar-toggle"></label>
+    <li class="observablehq-link"><a href="./">Nextstrain Hepatitis-B (HBV) builds</a></li>
+  </ol>
+  <ol>
+    <li class="observablehq-link observablehq-link-active"><a href="./rotated">Rotating genomes</a></li>
+  </ol>
+</nav>
+<script>{Object.assign(document.createElement("a"),{href:""}).password&&location.replace(location.href);const e=document.querySelector("#observablehq-sidebar"),o=document.querySelector("#observablehq-sidebar-toggle"),r=sessionStorage.getItem("observablehq-sidebar");r?o.checked=r==="true":o.indeterminate=!0;for(const t of document.querySelectorAll("#observablehq-sidebar summary")){const s=t.parentElement;switch(sessionStorage.getItem(`observablehq-sidebar:${t.textContent}`)){case"true":s.open=!0;break;case"false":s.classList.contains("observablehq-section-active")||(s.open=!1);break}}addEventListener("beforeunload",()=>sessionStorage.setItem("observablehq-sidebar-scrolly",`${e.scrollTop}`));const a=sessionStorage.getItem("observablehq-sidebar-scrolly");a!=null&&(e.style.cssText="overflow: hidden;",e.scrollTop=+a,e.style.cssText="");}</script>
+<aside id="observablehq-toc" data-selector="h1:not(:first-of-type), h2:first-child, :not(h1) + h2">
+<nav>
+</nav>
+</aside>
+<div id="observablehq-center">
+<main id="observablehq-main" class="observablehq">
+<h1 id="alignment-lengths" tabindex="-1"><a class="observablehq-header-anchor" href="#alignment-lengths">Alignment lengths</a></h1>
+<p>HBV is a circular genome and so the genomes found on NCBI have been linearised.
+The following plot shows the % of the genome which aligns to the reference (in black), where around 1000 genomes seem to only have 50% matching.
+If we rotate the genomes in order to all start at the same place then we can improve this (coloured dots).</p>
+<p>Genomes with over 90% match: <span id="cell-d8e7eccc" class="observablehq--loading"></span> (rotated) vs <span id="cell-8c248eae" class="observablehq--loading"></span> (NCBI)</p>
+<p>Genomes with over 80% match: <span id="cell-39fefde5" class="observablehq--loading"></span> vs <span id="cell-9d58746b" class="observablehq--loading"></span></p>
+<div id="cell-303bc21b" class="observablehq observablehq--block observablehq--loading"></div>
+<style type="text/css">
+  .largerFont {
+    font-size: 16px;
+  }
+</style>
+<div id="cell-5f2d7d93" class="observablehq observablehq--block"></div>
+<div id="cell-e6bc5f1f" class="observablehq observablehq--block"></div>
+<div id="cell-97abf221" class="observablehq observablehq--block"></div>
+<div id="cell-6d292a81" class="observablehq observablehq--block"></div>
+</main>
+<footer id="observablehq-footer">
+<nav><a rel="prev" href="./"><span>Nextstrain Hepatitis-B (HBV) builds</span></a></nav>
+<div>Built with <a href="https://observablehq.com/" target="_blank">Observable</a> on <a title="2024-03-07T17:24:39">Mar 7, 2024</a>.</div>
+</footer>
+</div>
