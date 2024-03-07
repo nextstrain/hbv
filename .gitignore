@@ -13,6 +13,9 @@ stats.json
 # temporary directories useful for local development
 scratch/
 
+# used as a separate git workdir for gh-pages branch
+/dist/
+
 # Downloaded remote files from sources we expect
 /nextstrain-ncov-private/
 /nextstrain-data/

@@ -142,3 +142,25 @@ rule copy_ingest_files:
         cp {input.sequences} {output.sequences}
         cp {input.aligned} {output.aligned}
         """
+
+
+rule align_unrotated:
+    """
+    Align all genomes before rotation for parsing by our notebook.
+    This rule must be called explicitly, it is not part of the DAG to produce the outputs of `rule all`
+    """
+    input:
+        sequences = "data/curated-sequences.fasta",
+    output:
+        alignment = "data/curated-sequences.aligned.fasta",
+    params:
+        dataset = config['nextclade_dataset'],
+    threads: 4
+    shell:
+        """
+        nextclade run \
+            -j {threads} --silent --replace-unknown \
+            --input-dataset {params.dataset} \
+            --output-fasta {output.alignment} \
+            {input.sequences}
+        """
