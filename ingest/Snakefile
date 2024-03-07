@@ -1,0 +1,144 @@
+# Use default configuration values. Override with Snakemake's --configfile/--config options.
+configfile: "defaults/config.yaml"
+
+rule all:
+    input:
+        "results/aligned.fasta",
+        "results/sequences.fasta",
+        "results/metadata.tsv",
+
+
+rule fetch_genbank:
+    params:
+        term = config['entrez_query']
+    output:
+        genbank = "data/entrez/genbank.gb",
+    retries: 1  # Requires snakemake 7.7.0 or later
+    shell:
+        """
+        vendored/fetch-from-ncbi-entrez --term {params.term:q} --output {output.genbank}
+        """
+
+rule add_extra_genomes:
+    """
+    This step shouldn't be necessary but the NCBI reference genome, NC_003977,
+    is not returned via the ENTREZ query. Even if we change the reference it's good
+    to add this genome.
+    """
+    input:
+        entrez = "data/entrez/genbank.gb",
+        ref = config['reference_genbank'],
+    output:
+        genbank = "data/entrez/genbank.with-reference.gb",
+    shell:
+        """
+        cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
+        """
+
+rule parse_genbank:
+    input:
+        genbank = "data/entrez/genbank.with-reference.gb",
+    output:
+        ndjson = "data/genbank.ndjson"
+    shell:
+        """
+        scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
+        """
+
+rule curate:
+    input:
+        ndjson = "data/genbank.ndjson"
+    output:
+        metadata = "data/curated-metadata.tsv",
+        sequences = "data/curated-sequences.fasta",
+    params:
+        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
+        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
+        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
+        "QC_frame_shifts","QC_stop_codons"]
+    shell:
+        # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
+        # vendored/apply-geolocation-rules 
+        # scripts/add-year.py adds "year" to NDJSON entries
+        """
+        cat {input.ndjson} \
+            | scripts/fix_country_field.py \
+            | vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv \
+            | scripts/add-year.py \
+            | augur curate passthru \
+                --output-seq-field sequence --output-id-field accession \
+                --output-metadata {output.metadata} --output-fasta {output.sequences}
+        """
+
+
+rule recircularise:
+    input:
+        metadata = "data/curated-metadata.tsv",
+        sequences = "data/curated-sequences.fasta",
+    output:
+        sequences = "data/circularised.fasta",
+        metadata = "data/circularised.tsv",
+    params:
+        reference = config['reference_accession']
+    shell:
+        """
+        scripts/re-circularise.py \
+            --seqs-in {input.sequences} --meta-in {input.metadata} \
+            --seqs-out {output.sequences} --meta-out {output.metadata} \
+            --reference {params.reference}
+        """
+
+rule nextclade:
+    """
+    Nextclade v3 is used to align all genomes using a reference dataset and infer genotypes ("clade_nextclade")
+    Note that the minimum seed match rate is specified in the dataset itself.
+    """
+    input:
+        sequences = "data/circularised.fasta",
+    output:
+        alignment = "data/nextclade/aligned.fasta",
+        tree = "data/nextclade/nextclade.json",
+        translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
+        metadata = "data/nextclade/metadata.tsv",
+    params:
+        dataset = config['nextclade_dataset'],
+        translations_pattern = lambda w: "data/nextclade/cds_{cds}.fasta",
+    threads: 4
+    shell:
+        """
+        nextclade run \
+            -j {threads} --silent --replace-unknown \
+            --input-dataset {params.dataset} \
+            --output-fasta {output.alignment} \
+            --output-translations {params.translations_pattern} \
+            --output-tsv {output.metadata} \
+            --output-tree {output.tree} \
+            {input.sequences}
+        """
+
+rule join_nextclade_metadata:
+    input:
+        metadata = "data/circularised.tsv",
+        nextclade = "data/nextclade/metadata.tsv"
+    output:
+        metadata = "results/metadata.tsv",
+        summary = "data/metadata.summary.txt",
+    shell:
+        """
+        scripts/join-nextclade-metadata.py \
+             --metadata {input.metadata} --nextclade {input.nextclade} \
+             --output {output.metadata} --summary {output.summary}
+        """
+
+rule copy_ingest_files:
+    input:
+        sequences = "data/circularised.fasta",
+        aligned = "data/nextclade/aligned.fasta",
+    output:
+        sequences = "results/sequences.fasta",
+        aligned = "results/aligned.fasta"
+    shell:
+        """
+        cp {input.sequences} {output.sequences}
+        cp {input.aligned} {output.aligned}
+        """

@@ -1,0 +1,55 @@
+{
+    "schemaVersion": "3.0.0",
+    "attributes": {
+        "name": "HBV",
+        "reference name": "NC_003977",
+        "reference accession": "NC_003977",
+        "experimental": true
+    },
+    "compatibility": {
+        "cli": "3.2.1"
+    },
+    "files": {
+        "reference": "reference.fasta",
+        "pathogenJson": "pathogen.json",
+        "genomeAnnotation": "genome_annotation.gff3",
+        "treeJson": "tree.json"
+    },
+    "qc": {
+        "schemaVersion": "1.2.0",
+        "privateMutations": {
+            "enabled": true,
+            "typical": 100,
+            "cutoff": 150,
+            "weightLabeledSubstitutions": 2,
+            "weightReversionSubstitutions": 1,
+            "weightUnlabeledSubstitutions": 1
+        },
+        "missingData": {
+            "enabled": false,
+            "missingDataThreshold": 100,
+            "scoreBias": 10
+        },
+        "snpClusters": {
+            "enabled": false,
+            "windowSize": 100,
+            "clusterCutOff": 5,
+            "scoreWeight": 50
+        },
+        "mixedSites": {
+            "enabled": true,
+            "mixedSitesThreshold": 4
+        },
+        "frameShifts": {
+            "enabled": true
+        },
+        "stopCodons": {
+            "enabled": true,
+            "ignoredStopCodons": []
+        }
+    },
+    "alignmentParams": {
+        "gapAlignmentSide": "left",
+        "minSeedCover": 0.2
+    }
+}

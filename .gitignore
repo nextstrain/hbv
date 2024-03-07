@@ -10,6 +10,9 @@ defaults/colors.tsv
 defaults/colors_*.tsv
 stats.json
 
+# temporary directories useful for local development
+scratch/
+
 # Downloaded remote files from sources we expect
 /nextstrain-ncov-private/
 /nextstrain-data/
@@ -19,7 +22,7 @@ stats.json
 environment*
 
 # Snakemake state dir
-/.snakemake
+.snakemake
 snakemake_log
 
 # Jupyter notebook related

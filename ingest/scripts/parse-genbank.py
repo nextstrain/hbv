@@ -12,7 +12,7 @@ import dateutil
 import dateutil.parser
 from collections import defaultdict
 import re
-import csv
+import json
 
 class MissingDate(Exception):
     pass
@@ -192,17 +192,16 @@ if __name__ == '__main__':
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--genbank", help="Input genbank file")
-    parser.add_argument("--output-sequences")
-    parser.add_argument("--output-metadata")
+    parser.add_argument("--input", metavar="GENBANK", help="Input genbank file")
+    parser.add_argument("--output", metavar="NDJSON")
     args = parser.parse_args()
 
     n_records = 0
-    seq_records = []
+    seq_records = {}
     exclude_counts = defaultdict(int)
     metadata = {}
 
-    for record in SeqIO.parse(open(args.genbank,"r"), "genbank"):
+    for record in SeqIO.parse(open(args.input,"r"), "genbank"):
         n_records+=1
 
         if exclude_isolate(record):
@@ -215,16 +214,16 @@ if __name__ == '__main__':
             exclude_counts['missing date']+=1
             continue   
 
-        seq_records.append(SeqRecord(record.seq, id=record_metadata['accession'], description=''))  
+        accession = record_metadata['accession']
+        seq_records[accession] = SeqRecord(record.seq, id=accession, description='')
         metadata[record_metadata['accession']] = record_metadata
 
     print(f"{n_records} records parsed. Excluded "+', '.join([f"n={v} ({k})"for k,v in exclude_counts.items()]))
     summarise(metadata)
 
-    SeqIO.write(seq_records, args.output_sequences, "fasta")
-    with open(args.output_metadata, 'w') as fh:
-        writer = csv.writer(fh, delimiter='\t', quotechar='"')
-        header = list(next(iter(metadata.values())).keys())
-        writer.writerow(header)
+    metadata_keys = list(next(iter(metadata.values())).keys())
+    with open(args.output, 'w') as fh:
         for d in metadata.values():
-            writer.writerow([d[k] for k in header])
+            row = {k: d[k] for k in metadata_keys}
+            row['sequence'] = str(seq_records[row['accession']].seq)
+            print(json.dumps(row), file=fh)
