@@ -17,7 +17,7 @@ configfile: "defaults/config.yaml"
 # the customizations you will need for the downstream phylogenetic workflow.
 rule all:
     input:
-        "data/ncbi.subset3.ndjson",
+        #"data/ncbi.subset3.ndjson",
         "results/aligned.fasta",
         "results/sequences.fasta",
         "results/metadata.tsv",
