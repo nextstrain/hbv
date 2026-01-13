@@ -37,7 +37,7 @@ def format_field_map(field_map: dict[str, str]) -> str:
 # separate files: a metadata TSV and a sequences FASTA.
 rule curate:
     input:
-        sequences_ndjson="data/ncbi.subset3.ndjson",
+        sequences_ndjson="data/ncbi.ndjson",
     output:
         metadata = "data/curated-metadata.tsv",
         sequences = "data/curated-sequences.fasta",

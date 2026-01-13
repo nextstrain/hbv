@@ -122,15 +122,15 @@ rule format_ncbi_datasets_ndjson:
         """
 
 
-rule subset_ndjson_3:
-    input:
-        ndjson="data/ncbi.ndjson"
-    output:
-        ndjson="data/ncbi.subset3.ndjson",
-    shell:
-        r"""
-        (
-          grep '"accession"[[:space:]]*:[[:space:]]*"NC_003977"' {input.ndjson} || true
-          head -n 100 {input.ndjson}
-        ) | awk '!seen[$0]++' > {output.ndjson}
-        """
+#rule subset_ndjson_3:
+#    input:
+#        ndjson="data/ncbi.ndjson"
+#    output:
+#        ndjson="data/ncbi.subset3.ndjson",
+#    shell:
+#        r"""
+#        (
+#          grep '"accession"[[:space:]]*:[[:space:]]*"NC_003977"' {input.ndjson} || true
+#          head -n 100 {input.ndjson}
+#        ) | awk '!seen[$0]++' > {output.ndjson}
+#        """
