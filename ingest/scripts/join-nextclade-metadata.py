@@ -81,14 +81,19 @@ if __name__ == '__main__':
         genotypes = aligned.groupby(["clade_nextclade"])["QC_overall_status"].count()
         summarise(genotypes, "Genotypes assigned via Nextclade inference (all aligned sequences)", fh=fh)
 
-        genotypes = aligned.groupby(["genotype_genbank"])["genotype_genbank"].count()
-        summarise(genotypes, "Genotypes assigned via GenBank annotation (all aligned sequences)", fh=fh)
+        has_genbank = "genotype_genbank" in aligned.columns and aligned["genotype_genbank"].astype(str).str.strip().ne("").any()
 
-        # compare genbank assigned genotypes to nextclade assigned ones
-        print("Accuracy of inferred genotypes (nextclade) vs metadata-assigned genotypes (GenBank)", file=fh)
-        g = aligned.groupby(["genotype_genbank", "clade_nextclade"])[["genotype_genbank", "clade_nextclade"]].size().reset_index()
-        genotypes = set(g['genotype_genbank'])
-        genotypes.remove('None')
-        for genotype in sorted([*genotypes]):
-            df = g[g['genotype_genbank']==genotype]
-            print_summary(genotype, g[(g['genotype_genbank']==genotype) & (g['clade_nextclade']==genotype)][0].sum(), g[g['genotype_genbank']==genotype][0].sum(), fh)
+        if has_genbank:
+            genotypes = aligned.groupby(["genotype_genbank"])["genotype_genbank"].count()
+            summarise(genotypes, "Genotypes assigned via GenBank annotation (all aligned sequences)", fh=fh)
+
+            print("Accuracy of inferred genotypes (nextclade) vs metadata-assigned genotypes (GenBank)", file=fh)
+            g = aligned.groupby(["genotype_genbank", "clade_nextclade"]).size().reset_index(name="n")
+            genotypes = set(g["genotype_genbank"]) - {"None", "", None}
+            for genotype in sorted(genotypes):
+                df = g[g["genotype_genbank"] == genotype]
+                correct = df.loc[df["clade_nextclade"] == genotype, "n"].sum()
+                total = df["n"].sum()
+                print_summary(genotype, correct, total, fh)
+        else:
+            print("No GenBank genotype annotations available in metadata; skipping GenBank vs Nextclade comparison.", file=fh)
