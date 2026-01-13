@@ -67,6 +67,7 @@ rule filter:
         """
         augur filter \
             --sequences {input.sequences} --metadata {input.metadata} \
+            --metadata-id-columns accession \
             --include {input.include} --exclude {input.exclude} \
             {params.args} \
             --output-sequences {output.sequences} --output-metadata {output.metadata}
