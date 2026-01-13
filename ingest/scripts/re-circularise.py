@@ -57,38 +57,59 @@ def identify_origin(records, seeds, verbose=0):
     
     count = 0
     origins = {}
-    for name, record in records.items():
-        count+=1
+    skipped = 0
 
-        if count%1000==0:
+    print("Processing", len(records), "items...")
+
+    for name, record in records.items():
+        count += 1
+        if count % 1000 == 0:
             print(count)
+
         mismatches = 10000
         seed_used = None
         match_start = None
+
         try:
             for seed in seeds:
-                l = len(seed['seq'])
-                for i in range(0, len(record.seq)-l-seed['start']-1):
-                    c = seq_diff(seed['seq'], str(record.seq[i:i+l]))
-                    if c<mismatches:
+                l = len(seed["seq"])
+                max_i = len(record.seq) - l - seed["start"] - 1
+                if max_i <= 0:
+                    continue
+
+                for i in range(0, max_i):
+                    c = seq_diff(seed["seq"], str(record.seq[i:i + l]))
+                    if c < mismatches:
                         mismatches = c
                         match_start = i
                         seed_used = seed
-                    if c==0:
+                    if c == 0:
                         raise StopIteration
         except StopIteration:
             pass
-                
-        origin = match_start - seed_used['start']
+
+        if seed_used is None or match_start is None:
+            skipped += 1
+            origins[record.name] = {
+                "origin": None,
+                "start_pos_seed": None,
+                "seed_used": None,
+                "mismatches": None,
+                "recut": False,
+                "bad_match": True,
+            }
+            continue
+
+        origin = match_start - seed_used["start"]
         origins[record.name] = {
-            'origin': origin,
-            'start_pos_seed': match_start,
-            'seed_used': seed,
-            'mismatches': mismatches,
-            'recut': origin > START_BUFFER and mismatches<BAD_SEED_MISMATCH_COUNT,
-            'bad_match': mismatches>=BAD_SEED_MISMATCH_COUNT,
+            "origin": origin,
+            "start_pos_seed": match_start,
+            "seed_used": seed_used,
+            "mismatches": mismatches,
+            "recut": origin > START_BUFFER and mismatches < BAD_SEED_MISMATCH_COUNT,
+            "bad_match": mismatches >= BAD_SEED_MISMATCH_COUNT,
         }
-        
+
         if origin < 0 and verbose>0:
             print(f"\t{record.name} origin is at 5' end!")
             
@@ -101,7 +122,8 @@ def identify_origin(records, seeds, verbose=0):
                 print("\n")
                 # print_match(reference.seq[0:30], record.seq[origin:origin+30])
                 # print("\n")
-            
+
+    print(f"Skipped (no seed search possible): {skipped}/{len(records)}")
     print(f"Matches found:    {len([v for v in origins.values() if not v['bad_match']])}/{len(origins)}")
     print(f"Genomes to recut: {len([v for v in origins.values() if v['recut']])}/{len(origins)}")
     print(f"Bad Matches:      {len([v for v in origins.values() if v['bad_match']])}/{len(origins)}")
