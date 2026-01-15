@@ -132,5 +132,9 @@ curate:
     "institution",
     "url",
     "genotype",
-    "taxon_id"
+    "taxon_id",
+    "genotype_genbank",
+    "subgenotype_genbank"
+
+
   ]
