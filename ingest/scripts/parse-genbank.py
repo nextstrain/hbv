@@ -147,23 +147,23 @@ def summarise(metadata):
     print()
 
 def parse_collection_date(record, source):
-
     collection_date = extract(source, 'collection_date')
     if not collection_date:
-        collection_date = record.annotations['date']
-    
-    if collection_date == '2018/2019':
-        return False
-    
-    formatted_date = dateutil.parser.parse(collection_date).strftime('%Y-%m-%d')
-    #dateutil parser will assign a day (today's date) to unknown days, and same for month, want XX instead
-    if len(collection_date)==8:
+        collection_date = record.annotations.get('date')
+
+    try:
+        formatted_date = dateutil.parser.parse(collection_date).strftime('%Y-%m-%d')
+    except Exception:
+        return None  # NA
+
+    # normalize unknown precision
+    if len(collection_date) == 8:        # YYYY-MM
         formatted_date = formatted_date[:-2] + 'XX'
-    elif len(collection_date)==4:
-        # NOTE: around 1/4 sequences only have a year!
+    elif len(collection_date) == 4:      # YYYY
         formatted_date = formatted_date[:5] + 'XX-XX'
 
     return formatted_date
+
 
 def extract(feature, key):
     if key in feature.qualifiers:
