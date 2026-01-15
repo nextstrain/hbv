@@ -8,8 +8,13 @@ REQUIRED INPUTS:
 OUTPUTS:
 
     ndjson = data/ncbi.ndjson
+    ndjson_genbank = "data/genbank.ndjson" # for metadata only
+
+
 
 There are two different approaches for fetching data from NCBI. The "Fetching from Entrez" workflow was adapted to "Fetch from NCBI" using the Mumps repo (https://github.com/nextstrain/mumps/blob/main/ingest/rules/fetch_from_ncbi.smk) as a template.
+Fetching from Entrez is still included to provide *self-described* HBV (sub)genotype metadata to be compared with Nextclade assignments at later steps. 
+
 Edit the workflow config to provide the correct parameter.
 
 Workflow:
@@ -20,9 +25,19 @@ Workflow:
     - Only returns metadata fields that are available through NCBI Datasets
     - Only works for viral genomes
 
+
+2. Fetch from Entrez (https://www.ncbi.nlm.nih.gov/books/NBK25501/)
+    - requires `entrez_search_term` config (now `entrez_query`)
+    - Returns all available data via a GenBank file
+    - Requires a custom script to parse the necessary fields from the GenBank file
+
 """
 
 
+
+###########################################################################
+####################### 1. Fetch from NCBI Datasets #######################
+###########################################################################
 
 
 
@@ -44,6 +59,24 @@ rule fetch_ncbi_dataset_package:
         datasets download virus genome taxon {params.ncbi_taxon_id:q} \
             --no-progressbar \
             --filename {output.dataset_package}
+        """
+
+# Note: This rule is not part of the default workflow!
+# It is intended to be used as a specific target for users to be able
+# to inspect and explore the full raw metadata from NCBI Datasets.
+rule dump_ncbi_dataset_report:
+    input:
+        dataset_package="data/ncbi_dataset.zip",
+    output:
+        ncbi_dataset_tsv="data/ncbi_dataset_report_raw.tsv",
+    log:
+        "logs/dump_ncbi_dataset_report.txt"
+    shell:
+        r"""
+        exec &> >(tee {log:q})
+
+        dataformat tsv virus-genome \
+            --package {input.dataset_package} > {output.ncbi_dataset_tsv}
         """
 
 
@@ -122,15 +155,128 @@ rule format_ncbi_datasets_ndjson:
         """
 
 
-#rule subset_ndjson_3:
-#    input:
-#        ndjson="data/ncbi.ndjson"
-#    output:
-#        ndjson="data/ncbi.subset3.ndjson",
-#    shell:
-#        r"""
-#        (
-#          grep '"accession"[[:space:]]*:[[:space:]]*"NC_003977"' {input.ndjson} || true
-#          head -n 100 {input.ndjson}
-#        ) | awk '!seen[$0]++' > {output.ndjson}
-#        """
+# Temporary rule for subsetting dataset for development only
+rule subset_ndjson_n:
+    input:
+        ndjson="data/ncbi.ndjson"
+    output:
+        ndjson="data/ncbi.subset{n}.ndjson",
+    params:
+        n=lambda wc: config["subset_n"],
+    shell:
+        r"""
+        (
+          grep '"accession"[[:space:]]*:[[:space:]]*"NC_003977"' {input.ndjson} || true
+          head -n {params.n} {input.ndjson}
+        ) | awk '!seen[$0]++' > {output.ndjson}
+        """
+
+
+
+
+
+###########################################################################
+########################## 2. Fetch from Entrez ###########################
+###########################################################################
+
+
+# overrides.smk
+rule fetch_genbank:
+    params:
+        term=config["entrez_query"]
+    output:
+        genbank="data/entrez/genbank.gb"
+    shell:
+        r"""
+        python - {params.term:q} {output.genbank:q} <<'PY'
+import json, sys, time, random
+from http.client import IncompleteRead
+from urllib.error import HTTPError, URLError
+from Bio import SeqIO, Entrez
+
+Entrez.email = "hello@nextstrain.org"
+BATCH_SIZE = 1000
+
+def get_esearch_history(term):
+    handle = Entrez.esearch(
+        db="nucleotide",
+        term=term,
+        retmode="json",
+        usehistory="y",
+        retmax=0,
+    )
+    esearch_result = json.loads(handle.read())["esearchresult"]
+    print(f"Search term {{term!r}} returned {{esearch_result['count']}} IDs.")
+    return {{
+        "count": int(esearch_result["count"]),
+        "query_key": esearch_result["querykey"],
+        "web_env": esearch_result["webenv"],
+    }}
+
+def fetch_batch(query_key, web_env, start, tries=8):
+    for attempt in range(tries):
+        try:
+            handle = Entrez.efetch(
+                db="nucleotide",
+                query_key=query_key,
+                webenv=web_env,
+                retstart=start,
+                retmax=BATCH_SIZE,
+                rettype="gb",
+                retmode="text",
+            )
+            return handle.read()
+        except (IncompleteRead, HTTPError, URLError, OSError):
+            time.sleep(min(60, (2 ** attempt) + random.random()))
+    raise RuntimeError(f"efetch failed after {{tries}} tries at retstart={{start}}")
+
+def main(term, out_path):
+    h = get_esearch_history(term)
+    count, query_key, web_env = h["count"], h["query_key"], h["web_env"]
+
+    print(f"Fetching GenBank records in batches of n={{BATCH_SIZE}}")
+    with open(out_path, "w") as output_handle:
+        written = 0
+        for start in range(0, count, BATCH_SIZE):
+            records = fetch_batch(query_key, web_env, start)
+            output_handle.write(records)
+            output_handle.flush()
+            written += records.count("\nLOCUS")
+            print(f"[batch] total_written={{written}}")
+            time.sleep(0.4)
+
+if __name__ == "__main__":
+    term = sys.argv[1]
+    out_path = sys.argv[2]
+    main(term, out_path)
+PY
+        """
+
+
+rule add_extra_genomes:
+    """
+    This step shouldn't be necessary but the NCBI reference genome, NC_003977,
+    is not returned via the ENTREZ query. Even if we change the reference it's good
+    to add this genome.
+    """
+    input:
+        entrez = "data/entrez/genbank.gb",
+        ref = config['reference_genbank'],
+    output:
+        genbank = "data/entrez/genbank.with-reference.gb",
+    shell:
+        """
+        cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
+        """
+
+
+rule parse_genbank:
+    input:
+        genbank = "data/entrez/genbank.with-reference.gb",
+    output:
+        ndjson = "data/genbank.ndjson"
+    shell:
+        """
+        scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
+        """
+

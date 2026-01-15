@@ -14,8 +14,6 @@ OUTPUTS:
 """
 
 
-
-
 def format_field_map(field_map: dict[str, str]) -> str:
     """
     Format dict to `"key1"="value1" "key2"="value2"...` for use in shell commands.
@@ -26,6 +24,31 @@ def format_field_map(field_map: dict[str, str]) -> str:
 
 
 
+rule curate_genbank_metadata:
+    input:
+        ndjson = "data/genbank.ndjson"
+    output:
+        metadata = "data/curated-genbank-metadata.tsv",
+        sequences = "data/curated-genbank-sequences.fasta",
+    params:
+        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
+        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
+        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
+        "QC_frame_shifts","QC_stop_codons"]
+    shell:
+        # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
+        # vendored/apply-geolocation-rules 
+        # scripts/add-year.py adds "year" to NDJSON entries
+        """
+        cat {input.ndjson} \
+            | scripts/fix_country_field.py \
+            | vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv \
+            | scripts/add-year.py \
+            | augur curate passthru \
+                --output-seq-field sequence --output-id-field accession \
+                --output-metadata {output.metadata} --output-fasta {output.sequences}
+        """
+
 
 
 # This curate pipeline is based on existing pipelines for pathogen repos using NCBI data.
@@ -35,7 +58,7 @@ def format_field_map(field_map: dict[str, str]) -> str:
 # the input as NDJSON records from stdin and output NDJSON records to stdout.
 # The final step of the pipeline should convert the NDJSON records to two
 # separate files: a metadata TSV and a sequences FASTA.
-rule curate:
+rule curate_ncbi:
     input:
         sequences_ndjson="data/ncbi.ndjson",
     output:
@@ -96,30 +119,40 @@ rule curate:
                 --output-seq-field {params.sequence_field}
         """
 
+
 rule add_metadata_columns:
     """Add columns to metadata
     Notable columns:
     - [NEW] url: URL linking to the NCBI GenBank record ('https://www.ncbi.nlm.nih.gov/nuccore/*').
+    - (self-assigned) strain annotation from Genbank records
     """
     input:
-        metadata = "data/curated-metadata.tsv"
+        metadata="data/curated-metadata.tsv",
+        metadata_genbank="data/curated-genbank-metadata.tsv",
     output:
-        metadata = temp("data/all_metadata_added.tsv")
+        metadata=temp("data/all_metadata_added.tsv"),
     log:
         "logs/add_metadata_columns.txt"
     params:
-        accession=config['curate']['genbank_accession']
+        accession_col="accession"
     shell:
         r"""
         exec &> >(tee {log:q})
 
-        csvtk mutate2 -t \
-          -n url \
-          -e '"https://www.ncbi.nlm.nih.gov/nuccore/" + ${params.accession}' \
-          {input.metadata} \
-        > {output.metadata}
-        """
+        scripts/add_genbank_metadata.py \
+          --metadata {input.metadata} \
+          --metadata-genbank {input.metadata_genbank} \
+          --accession-col {params.accession_col} \
+          --out {output.metadata}
+    """
 
+
+
+
+
+
+
+# TO DO: Add new cols
 rule subset_metadata:
     input:
         metadata="data/all_metadata_added.tsv",
