@@ -7,7 +7,7 @@ REQUIRED INPUTS:
 
 OUTPUTS:
 
-    sequences = "data/circularised.fasta",
+    sequences = "results/sequences.fasta",
     metadata = "data/circularised.tsv",
 
 
@@ -124,7 +124,7 @@ rule add_metadata_columns:
     """Add columns to metadata
     Notable columns:
     - [NEW] url: URL linking to the NCBI GenBank record ('https://www.ncbi.nlm.nih.gov/nuccore/*').
-    - (self-assigned) strain annotation from Genbank records
+    - "genotype_genbank", "subgenotype_genbank": (self-assigned) strain annotation from Genbank records
     """
     input:
         metadata="data/curated-metadata.tsv",
@@ -189,7 +189,20 @@ rule recircularise:
         """
 
 
-    
+
+rule copy_ingest_sequences:
+    input:
+        sequences = "data/circularised.fasta",
+    output:
+        sequences = "results/sequences.fasta",
+    shell:
+        """
+        cp {input.sequences} {output.sequences}
+        """
+
+
+
+####### OPTIONAL #########
 rule align_unrotated:
     """
     Align all genomes before rotation for parsing by our notebook.

@@ -4,7 +4,7 @@ and sequences.
 
 REQUIRED INPUTS:
 
-    sequences = "data/circularised.fasta",
+    sequences = "results/sequences.fasta",
     metadata = "data/circularised.tsv",
 
 OUTPUTS:
@@ -23,7 +23,25 @@ https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 """
 
 
-
+# TO DO: WRITE RULE DATASET GET THAT GETS IT FROM PROPER REPO INSTEAD OF FROM PRIOR INGEST RROCEDURE
+# Example: Adapted from MPox:
+#rule get_nextclade_dataset:
+#    output:
+#        "data/hbv.zip",  
+#    params:
+#        dataset_name="HBV",  # CHANGE
+#    log:
+#        "logs/get_nextclade_dataset.txt",
+#    benchmark:
+#        "benchmarks/get_nextclade_dataset.txt"
+#    shell:
+#        r"""
+#        exec &> >(tee {log:q})
+#
+#        nextclade3 dataset get \
+#            --name {params.dataset_name:q} \
+#            --output-zip {output:q}
+#        """
 
 
 rule nextclade:
@@ -32,7 +50,7 @@ rule nextclade:
     Note that the minimum seed match rate is specified in the dataset itself.
     """
     input:
-        sequences = "data/circularised.fasta",
+        sequences = "results/sequences.fasta",
     output:
         alignment = "data/nextclade/aligned.fasta",
         tree = "data/nextclade/nextclade.json",
@@ -68,16 +86,13 @@ rule join_nextclade_metadata:
              --output {output.metadata} --summary {output.summary}
         """
 
-rule copy_ingest_files:
+rule copy_ingest_alignment:
     input:
-        sequences = "data/circularised.fasta",
         aligned = "data/nextclade/aligned.fasta",
     output:
-        sequences = "results/sequences.fasta",
         aligned = "results/aligned.fasta"
     shell:
         """
-        cp {input.sequences} {output.sequences}
         cp {input.aligned} {output.aligned}
         """
 
