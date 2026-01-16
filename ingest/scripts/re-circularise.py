@@ -10,6 +10,10 @@ and if it's suitably far into the genome we shift the genome accordingly.
 
 Adds the 'circularise' field to the metadata TSV
                                                                                     @jameshadfield June 2023
+
+
+Not sure where the JN182318 reference above comes from actually since NC_003977 is used in the config file for the respecive rule. 
+                                                                                    @jonasamirar January 2026
 """
 
 import argparse
