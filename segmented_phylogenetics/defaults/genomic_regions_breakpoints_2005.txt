@@ -1,0 +1,9 @@
+# start	end	name (1-based; inclusive; start>end means wrap)
+1	641	segment1
+642	762	segment2
+763	1464	segment3
+1465	1815	segment4
+1816	2392	segment5
+2393	2585	segment6
+2586	2675	segment7
+2676	3182	segment8

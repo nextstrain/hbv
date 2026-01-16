@@ -1,0 +1,143 @@
+configfile: "defaults/config.yaml"
+
+
+#    Expcted inputs from ingest:
+#        sequences="../ingest/results/sequences.fasta",
+#        metadata="../ingest/results/metadata.tsv",
+#        alignment="../ingest/results/aligned.fasta",
+
+
+
+def region_names(path):
+    names = []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            names.append(line.split()[0])  # first column = name
+    return names
+
+REGION_NAMES = region_names(config["genomic_regions"])
+OUTDIR = "data/regions"
+
+
+rule all:
+    input:
+        fasta=expand(f"{OUTDIR}" + "/{name}/{name}_subsequence.fasta", name=REGION_NAMES),
+        gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
+
+
+rule copy:
+    input:
+        sequences="../ingest/results/sequences.fasta",
+        metadata="../ingest/results/metadata.tsv",
+        alignment="../ingest/results/aligned.fasta",
+    output:
+        sequences="data/sequences.fasta",
+        metadata="data/metadata.tsv",
+        alignment="data/alignment.fasta",
+    shell:
+        """
+        mkdir -p data
+        cp {input.sequences} {output.sequences}
+        cp {input.metadata} {output.metadata}
+        cp {input.alignment} {output.alignment}
+        """
+
+rule length_filter:
+    input:
+        sequences="data/sequences.fasta",
+        metadata="data/metadata.tsv",
+        alignment="data/alignment.fasta",
+    output:
+        sequences="data/filtered/sequences.len_filtered.fasta",
+        alignment="data/filtered/alignment.len_filtered.fasta",
+        metadata="data/filtered/metadata.len_filtered.tsv",
+    params:
+        min_length=config["min_length"],
+        max_length=config["max_length"],
+        length_filtering=config["length_filtering"],
+    shell:
+        r"""
+        mkdir -p data
+        kept_ids="$(mktemp)"
+
+        if [ "{params.length_filtering}" = "true" ] || [ "{params.length_filtering}" = "True" ] || [ "{params.length_filtering}" = "1" ]; then
+            seqkit seq -g -m={params.min_length} -M={params.max_length} {input.sequences} > {output.sequences}
+
+            seqkit seq -n {output.sequences} > "$kept_ids"
+
+            seqkit grep -f "$kept_ids" {input.alignment} > {output.alignment}
+
+            awk 'NR==FNR {{a[$1]=1; next}} FNR==1 || ($1 in a)' "$kept_ids" {input.metadata} > {output.metadata}
+        else
+            cp {input.sequences} {output.sequences}
+            cp {input.alignment} {output.alignment}
+            cp {input.metadata} {output.metadata}
+        fi
+
+        rm -f "$kept_ids"
+        """
+
+
+# Writes segments file based on gene annotations in reference GenBank
+rule specify_genomic_regions_genes:
+    input:
+        ref_gb=config["reference"]["genbank"],
+        script="scripts/specify_genomic_regions_genes.py",
+    output:
+        regions="defaults/genomic_regions_genes.txt",
+    shell:
+        r"""
+        python {input.script} {input.ref_gb} {output.regions}
+        """
+
+# Writes segments file based on previously identified breakpoints
+rule specify_genomic_regions_breakpoints:
+    input:
+        ref_gb=config["reference"]["genbank"],
+        script="scripts/specify_genomic_regions_breakpoints.py",
+    output:
+        regions=config["breakpoints"]["out"],
+        mapping=config["breakpoints"]["map_out"],
+    params:
+        old_ref=config["breakpoints"]["old_ref"],
+        bps=lambda wc: " ".join(map(str, config["breakpoints"]["list"])),
+        buffer=int(config["breakpoints"].get("buffer", 0)),
+    shell:
+        r"""
+        python {input.script} \
+          --ref-gb {input.ref_gb} \
+          --old-ref {params.old_ref} \
+          --breakpoints {params.bps} \
+          --buffer {params.buffer} \
+          --map-out {output.mapping} \
+          --out {output.regions}
+        """
+
+
+# To Do: have this segment the tsv metadata as well, including calculating new quality metrics
+# To Do: make this work for non complete sequences, i.e. additional filtering for each region if region not sufficiently covered
+rule extract_genomic_regions:
+    input:
+        alignment="data/filtered/alignment.len_filtered.fasta",
+        regions=config["genomic_regions"],
+        ref_gb=config["reference"]["genbank"],
+        script="scripts/extract_regions.py",
+
+    output:
+        fasta=expand(f"{OUTDIR}" + "/{name}/{name}_subsequence.fasta", name=REGION_NAMES),
+        gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
+    params:
+        ref_id=config["reference"]["id"],
+        outdir=OUTDIR,
+    shell:
+        r"""
+        mkdir -p {params.outdir}
+        python scripts/extract_regions.py {input.alignment} {input.regions} {params.ref_id} {input.ref_gb} {params.outdir}
+        """
+
+
+
+
