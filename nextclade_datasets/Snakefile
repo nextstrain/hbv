@@ -1,5 +1,148 @@
 configfile: "config/config.yaml"
 
+
+TREE_METHOD = "iqtree"
+
+
+
+BUILD_NAMES = [
+    "hbv_dev",
+    "hbv_A",
+    "hbv_B",
+    "hbv_C",
+    "hbv_D",
+    "hbv_all"
+    ]
+
+
+DATASET_FILES = [
+    "pathogen.json",
+    "sequences.fasta",
+    "genome_annotation.gff3",
+    "README.md",
+    "CHANGELOG.md",
+]
+
+
+
+# Helper functions to allow build-specific annotations
+def annotation_path(wildcards):
+    if "annotation" in config[wildcards.build_name]:
+        return config[wildcards.build_name]["annotation"]
+    return "resources/genome_annotation.gff3"
+
+
+def gene_path(wildcards):
+    if "genes" in config[wildcards.build_name]:
+        return config[wildcards.build_name]["genes"]
+    return "resources/genes.txt"
+
+
+def genes(wildcards):
+    gene_file = gene_path(wildcards)
+    genes = [line.strip() for line in open(gene_file)]
+    return genes
+
+
+
+rule all:
+    input:
+        datasets=expand(
+            "datasets/{dataset}/{file}", dataset=BUILD_NAMES, file=DATASET_FILES
+        ),
+        tests=expand("test_output/{dataset}", dataset=BUILD_NAMES),
+        duplicates=expand("results/{dataset}/duplicates.txt", dataset=BUILD_NAMES),
+
+
+# Does not run by default as part of ruele all
+rule deploy_to_nextstrain_staging:
+    input:
+        rules.all.input,
+    shell:
+        """
+        nextstrain deploy s3://nextstrain-staging {input}
+        """
+
+
+
+# TO DO: UPLOAD DATASETS TO NEXTSTRAIN.ORG AND ENABLE THIS RULE INSTEAD OF THE BELOW COPY RULE
+#rule download:
+#    "Downloading ingested sequences and metadata from data.nextstrain.org"
+#    output:
+#        sequences="data/sequences.fasta.zst",
+#        metadata="data/metadata.tsv.zst",
+#        alignment="data/alignment.fasta.zst",
+#    params:
+#        metadata_url="https://data.nextstrain.org/files/workflows/hbv/metadata_with_restricted.tsv.zst",         # Those do not exist yet
+#        sequences_url="https://data.nextstrain.org/files/workflows/hbv/sequences_with_restricted.fasta.zst",
+#        alignment_url="https://data.nextstrain.org/files/workflows/hbv/alignment_with_restricted.fasta.zst",
+#    shell:
+#        """
+#        curl -fsSL {params.sequences_url:q} --output {output.sequences}
+#        curl -fsSL {params.metadata_url:q} --output {output.metadata}
+#        curl -fsSL {params.alignment_url:q} --output {output.alignment}
+ #       """
+
+
+# works
+rule copy:
+     output:
+         sequences="data/sequences.fasta.zst",
+         metadata="data/metadata.tsv.zst",
+         alignment="data/alignment.fasta.zst",
+     shell:
+         """
+         zstd -f ../ingest/results/sequences.fasta -o {output.sequences}
+         zstd -f ../ingest/results/metadata.tsv -o {output.metadata}
+         zstd -f ../ingest/results/aligned.fasta -o {output.alignment}
+         """
+
+
+
+rule decompress_metadata:
+    "Decompressing sequences and metadata and strip version from fasta ID"
+    input:
+        metadata="data/metadata.tsv.zst",
+    output:
+        metadata="data/metadata.tsv",
+    shell:
+        """
+        zstd --decompress --keep {input.metadata}
+        """
+
+
+
+# TO DO: Add known duplicates if any, resources/known_duplicates.txt" currently empty
+rule decompress_sequences_and_remove_duplicates:
+    "Decompressing sequences and strip version from fasta ID"
+    input:
+        sequences="data/{file}.fasta.zst",
+        known_duplicates="resources/known_duplicates.txt",
+    output:
+        sequences="data/{file}.fasta",
+    params:
+        min_length=config["min_length"],
+    shell:
+        """
+        zstdcat {input.sequences} \
+        | seqkit replace \
+            -p "^([^.]+).*" -r '$1' \
+        | seqkit grep -w0 -v -f {input.known_duplicates} \
+        | seqkit seq -m={params.min_length} \
+        > {output.sequences}
+        """
+
+
+
+
+
+
+
+
+
+
+
+
 rule test_dataset:
     input:
         tree="datasets/{build_name}/tree.json",
@@ -45,3 +188,5 @@ rule cleanall:
         "bin",
     shell:
         "rm -rfv {params}"
+
+
