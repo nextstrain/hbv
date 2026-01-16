@@ -13,7 +13,7 @@ OUTPUTS:
     sequences = "results/sequences.fasta",
     aligned = "results/aligned.fasta"
     summary = "data/metadata.summary.txt",
-    tree = "data/nextclade/nextclade.json",
+    tree = "data/nextclade/nextclade.json",  # DOESNT BELONG HERE
 
 
 
@@ -50,10 +50,10 @@ rule nextclade:
     Note that the minimum seed match rate is specified in the dataset itself.
     """
     input:
-        sequences = "results/sequences.fasta",
+        sequences = "results/sequences.fasta",    # MAYBE SHOULD RATHER BE   "data/hbv.zip "
     output:
         alignment = "data/nextclade/aligned.fasta",
-        tree = "data/nextclade/nextclade.json",
+        tree = "data/nextclade/nextclade.json",      # MAYBE DONT WANT TREE YET
         translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
         metadata = "data/nextclade/metadata.tsv",
     params:
@@ -74,7 +74,7 @@ rule nextclade:
 
 rule join_nextclade_metadata:
     input:
-        metadata = "data/circularised.tsv",
+        metadata = "data/circularised.tsv",             
         nextclade = "data/nextclade/metadata.tsv"
     output:
         metadata = "results/metadata.tsv",
