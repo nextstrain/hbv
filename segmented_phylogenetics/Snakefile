@@ -25,9 +25,11 @@ OUTDIR = "data/regions"
 
 rule all:
     input:
-        tree=expand(f"{OUTDIR}" + "/{name}/{name}.tree.nwk", name=REGION_NAMES),
         fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
+        tree_nwk= expand(f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk", name=REGION_NAMES),
+        tree_json=expand(f"{OUTDIR}" + "/{name}/{name}.tree.json", name=REGION_NAMES),
+
 
 
 
@@ -155,45 +157,84 @@ rule extract_genomic_regions:
 
 
 
-#rule nextclade:
-#    """
-#    Nextclade v3 is used to buld the tree and recalculate QC metrics for the genomic regions
-#    """
-#    input:
-#        alignment = expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
-#    output:
-#        tree = expand(f"{OUTDIR}" + "/{name}/{name}_tree.json", name=REGION_NAMES),
-#        metadata_qc = expand(f"{OUTDIR}" + "/{name}/{name}_metadata.tsv", name=REGION_NAMES),
-#    params:
-#        dataset = config['nextclade_dataset'],
-#    threads: 4
-#    shell:
-#        """
-#        nextclade run \
-#        -j {threads} --silent --replace-unknown \
-#        --input-dataset {params.dataset} \
-#        --output-tsv {output.metadata_qc} \
-#        --output-tree-nwk {output.tree} \
-#        {input.alignment}
-#        """
-
-
 rule augur_tree:
-    """
-    Build a per-region phylogenetic tree directly from the existing sub-alignment
-    (no time-resolving), using augur tree with the fasttree backend.
-    """
     input:
         alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
     output:
         tree = f"{OUTDIR}" + "/{name}/{name}.tree.nwk",
+    threads: 4
     shell:
         """
         augur tree \
-            --alignment {input.alignment} \
-            --method fasttree \
-            --output {output.tree}
+          --alignment {input.alignment} \
+          --method fasttree \
+          --output {output.tree}
+        """
+        
+
+
+
+rule augur_refine:
+    input:
+        tree = f"{OUTDIR}" + "/{name}/{name}.tree.nwk",
+        alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
+    output:
+        tree = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
+    threads: 4
+    shell:
+        """
+        augur refine \
+          --tree {input.tree} \
+          --alignment {input.alignment} \
+          --root mid_point \
+          --output-tree {output.tree}
         """
 
+
+
+
+rule augur_export:
+    input:
+        tree = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
+        alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
+        metadata = f"{OUTDIR}" + "/{name}/{name}_metadata.tsv",
+    output:
+        json = f"{OUTDIR}" + "/{name}/{name}.tree.json",
+    threads: 1
+    shell:
+        """
+        augur export v2 \
+          --tree {input.tree} \
+          --alignment {input.alignment} \
+          --metadata {input.metadata} \
+          --output {output.json}
+        """
+
+
+
+
+rule compare_trees:
+    """
+    compare trees from different regions (bare minimum starting point)
+    """
+    input:
+        t1 = f"{OUTDIR}/segment1/segment1.tree.nwk",
+        t2 = f"{OUTDIR}/segment2/segment2.tree.nwk",
+
+    output:
+    
+    shell:
+        """
+        python scripts/compare_region_trees.py {input.t1} {input.t2} 
+        """
+
+
+
+
+#        augur tree
+
+#       refine 
+
+#        midpoint rooting, nno timmeree
 
 
