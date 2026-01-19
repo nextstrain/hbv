@@ -6,11 +6,37 @@ from Bio import AlignIO, SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 
-aln_path = sys.argv[1]
-regions_path = sys.argv[2]
-ref_id = sys.argv[3]
-gb_path = sys.argv[4]
-outdir = sys.argv[5] if len(sys.argv) > 5 else "."
+import argparse
+
+import argparse
+
+ap = argparse.ArgumentParser(description="Extract alignment regions by reference coordinates; write per-region FASTA, GenBank, and optional metadata.")
+
+ap.add_argument("aln_path", help="Input multiple sequence alignment (FASTA).")
+ap.add_argument("regions_path", help="Regions file: 'name start end' (1-based, inclusive; start>end means circular wrap).")
+ap.add_argument("ref_id", help="Reference sequence ID in the alignment (exact or prefix match).")
+ap.add_argument("gb_path", help="GenBank file for the reference sequence.")
+ap.add_argument("outdir", nargs="?", default=".", help="Output directory (default: current directory).")
+
+ap.add_argument("--min-cov", type=float, default=0.0, help="Minimum non-gap fraction required to keep a sequence per region (0.0–1.0).")
+ap.add_argument("--metadata", default=None, help="Optional metadata TSV file to subset per region.")
+ap.add_argument("--keep-cols", nargs="*", default=None, help="Metadata columns to keep (default: all).")
+
+args = ap.parse_args()
+
+if not (0.0 <= args.min_cov <= 1.0):
+    ap.error("--min-cov must be between 0.0 and 1.0")
+
+
+aln_path    = args.aln_path
+regions_path = args.regions_path
+ref_id      = args.ref_id
+gb_path     = args.gb_path
+outdir      = args.outdir
+min_cov     = args.min_cov
+metadata    = args.metadata
+keep_cols   = args.keep_cols
+
 
 aln = AlignIO.read(aln_path, "fasta")
 gb_ref = SeqIO.read(gb_path, "genbank")
@@ -53,33 +79,56 @@ if aln_ref_len != gb_ref_len:
         f"This means the alignment reference and GenBank are not the same origin or not the same reference."
     )
 
+
 def clip_features(gb_ref, seg0, seg1, out_offset):
     """
-    Keep the portions of features overlapping [seg0, seg1) on the original reference (0-based, half-open),
-    and shift them into the output coordinate system by out_offset (0-based).
+    Clip features to overlap with [seg0, seg1) on original reference (0-based, half-open),
+    then shift into output coords by out_offset (0-based).
+    Works for FeatureLocation and CompoundLocation (join).
     """
     out = []
+    window = FeatureLocation(seg0, seg1)
+
     for feat in gb_ref.features:
         if feat.location is None:
             continue
 
-        f0 = int(feat.location.start)
-        f1 = int(feat.location.end)
+        loc = feat.location
+        parts = loc.parts if hasattr(loc, "parts") else [loc]
 
-        if f1 <= seg0 or f0 >= seg1:
+        new_parts = []
+        for p in parts:
+            # intersection of [p.start,p.end) with [seg0,seg1)
+            a0, a1 = int(p.start), int(p.end)
+            b0, b1 = seg0, seg1
+            i0, i1 = max(a0, b0), min(a1, b1)
+            if i1 <= i0:
+                continue
+
+            new_parts.append(
+                FeatureLocation(
+                    i0 - seg0 + out_offset,
+                    i1 - seg0 + out_offset,
+                    strand=p.strand,
+                )
+            )
+
+        if not new_parts:
             continue
 
-        new0 = max(f0, seg0) - seg0 + out_offset
-        new1 = min(f1, seg1) - seg0 + out_offset
+        # If original was a join and we kept 2 parts, Biopython will keep it as CompoundLocation automatically
+        new_loc = new_parts[0] if len(new_parts) == 1 else sum(new_parts[1:], new_parts[0])
 
         out.append(
             SeqFeature(
-                location=FeatureLocation(new0, new1, strand=feat.location.strand),
+                location=new_loc,
                 type=feat.type,
                 qualifiers=feat.qualifiers,
             )
         )
+
     return out
+
 
 with open(regions_path) as f:
     for line in f:
@@ -110,10 +159,58 @@ with open(regions_path) as f:
             col_end2 = refpos_to_col[end]
             sub_aln = aln[:, col_start1:col_end1 + 1] + aln[:, col_start2:col_end2 + 1]
 
+        # --- coverage filter (per sequence in this region) ---
+        if min_cov>0.0:
+            print(f"Applying minimum coverage filter of {min_cov*100}% for region {name} ({start}-{end})", end=": ")
+        region_len = sub_aln.get_alignment_length()
+        kept = []
+        for rec in sub_aln:
+            s = str(rec.seq)
+            cov = (region_len - s.count("-")) / region_len
+            if cov >= min_cov:
+                kept.append(rec)
+        print ("Keeping {}/{} sequences for region {}".format(len(kept), len(sub_aln), name))
+
+        sub_aln = sub_aln.__class__(kept)  # MultipleSeqAlignment from kept records
+
+
         region_dir = f"{outdir}/{name}"
         os.makedirs(region_dir, exist_ok=True)
-        AlignIO.write(sub_aln, f"{region_dir}/{name}_subsequence.fasta", "fasta")
-        
+        AlignIO.write(sub_aln, f"{region_dir}/{name}_sub-alignment.fasta", "fasta")
+    
+        if metadata is not None:
+            kept_ids = {r.id for r in sub_aln}
+            subseq_len_by_id = {r.id: len(str(r.seq).replace("-", "")) for r in sub_aln}
+            
+
+            with open(metadata) as f:
+                header = f.readline().rstrip("\n").split("\t")
+
+                id_col = header[0]  # first column is the ID
+                keep = header if keep_cols is None else [id_col] + [c for c in keep_cols if c in header]
+                keep_out = ["length_subsequence" if c == "length" else c for c in keep]
+
+                idx = {c: header.index(c) for c in keep}
+
+                out_meta = f"{region_dir}/{name}_metadata.tsv"
+                with open(out_meta, "w") as out_fh:
+                    out_fh.write("\t".join(keep_out) + "\n")
+                    for line in f:
+                        row = line.rstrip("\n").split("\t")
+                        if not row:
+                            continue
+                        if row[0] in kept_ids:
+                            seq_id = row[0]
+                            out_fh.write(
+                                "\t".join(
+                                    str(subseq_len_by_id[seq_id]) if c == "length" else row[idx[c]]
+                                    for c in keep
+                                ) + "\n"
+                            )
+
+
+
+
         # --- GenBank sequence slice (wrap-aware) ---
         if not wraps:
             sub_seq = gb_ref.seq[start - 1:end]
