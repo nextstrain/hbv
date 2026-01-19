@@ -54,3 +54,8 @@ metadata_keep_cols:
   - circularise
   - circularise_shift_bp
   - clade_nextclade
+
+
+
+# Path to the nextclade dataset, which will be used to align all sequences
+nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
