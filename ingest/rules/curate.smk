@@ -223,3 +223,4 @@ rule align_unrotated:
             --output-fasta {output.alignment} \
             {input.sequences}
         """
+        
