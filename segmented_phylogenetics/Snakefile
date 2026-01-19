@@ -7,7 +7,6 @@ configfile: "defaults/config.yaml"
 #        alignment="../ingest/results/aligned.fasta",
 
 
-
 def region_names(path):
     names = []
     with open(path) as f:
@@ -18,14 +17,18 @@ def region_names(path):
             names.append(line.split()[0])  # first column = name
     return names
 
+
+
 REGION_NAMES = region_names(config["genomic_regions"])
 OUTDIR = "data/regions"
 
 
 rule all:
     input:
-        fasta=expand(f"{OUTDIR}" + "/{name}/{name}_subsequence.fasta", name=REGION_NAMES),
+        tree=expand(f"{OUTDIR}" + "/{name}/{name}.tree.nwk", name=REGION_NAMES),
+        fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
+
 
 
 rule copy:
@@ -90,7 +93,7 @@ rule specify_genomic_regions_genes:
         regions="defaults/genomic_regions_genes.txt",
     shell:
         r"""
-        python {input.script} {input.ref_gb} {output.regions}
+        python {input.script} {input.ref_gb} {output.regions} 
         """
 
 # Writes segments file based on previously identified breakpoints
@@ -125,19 +128,72 @@ rule extract_genomic_regions:
         regions=config["genomic_regions"],
         ref_gb=config["reference"]["genbank"],
         script="scripts/extract_regions.py",
+        metadata="data/filtered/metadata.len_filtered.tsv",
 
     output:
-        fasta=expand(f"{OUTDIR}" + "/{name}/{name}_subsequence.fasta", name=REGION_NAMES),
+        fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
     params:
         ref_id=config["reference"]["id"],
         outdir=OUTDIR,
+        min_cov=config["min_coverage_per_region"],
+        metadata_cols=" ".join(config["metadata_keep_cols"])
+
     shell:
         r"""
         mkdir -p {params.outdir}
-        python scripts/extract_regions.py {input.alignment} {input.regions} {params.ref_id} {input.ref_gb} {params.outdir}
+        python scripts/extract_regions.py \
+            {input.alignment} \
+            {input.regions} \
+            {params.ref_id} \
+            {input.ref_gb} \
+            {params.outdir} \
+            --min-cov {params.min_cov} \
+            --metadata {input.metadata} \
+            --keep-cols {params.metadata_cols}
         """
 
+
+
+#rule nextclade:
+#    """
+#    Nextclade v3 is used to buld the tree and recalculate QC metrics for the genomic regions
+#    """
+#    input:
+#        alignment = expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
+#    output:
+#        tree = expand(f"{OUTDIR}" + "/{name}/{name}_tree.json", name=REGION_NAMES),
+#        metadata_qc = expand(f"{OUTDIR}" + "/{name}/{name}_metadata.tsv", name=REGION_NAMES),
+#    params:
+#        dataset = config['nextclade_dataset'],
+#    threads: 4
+#    shell:
+#        """
+#        nextclade run \
+#        -j {threads} --silent --replace-unknown \
+#        --input-dataset {params.dataset} \
+#        --output-tsv {output.metadata_qc} \
+#        --output-tree-nwk {output.tree} \
+#        {input.alignment}
+#        """
+
+
+rule augur_tree:
+    """
+    Build a per-region phylogenetic tree directly from the existing sub-alignment
+    (no time-resolving), using augur tree with the fasttree backend.
+    """
+    input:
+        alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
+    output:
+        tree = f"{OUTDIR}" + "/{name}/{name}.tree.nwk",
+    shell:
+        """
+        augur tree \
+            --alignment {input.alignment} \
+            --method fasttree \
+            --output {output.tree}
+        """
 
 
 
