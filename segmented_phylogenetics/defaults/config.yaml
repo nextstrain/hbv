@@ -9,8 +9,8 @@ reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
 
-#genomic_regions: defaults/genomic_regions_genes.txt
-genomic_regions: defaults/genomic_regions_breakpoints_2005.txt
+genomic_regions: defaults/genomic_regions_genes.txt
+#genomic_regions: defaults/genomic_regions_breakpoints_2005.txt
 
 
 

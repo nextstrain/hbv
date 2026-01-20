@@ -28,7 +28,7 @@ rule all:
         fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
         tree_nwk= expand(f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk", name=REGION_NAMES),
-        tree_json=expand(f"{OUTDIR}" + "/{name}/{name}.tree.json", name=REGION_NAMES),
+        tree_json=expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
 
 
 
@@ -135,6 +135,7 @@ rule extract_genomic_regions:
     output:
         fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
+        metadata=expand(f"{OUTDIR}" + "/{name}/{name}_metadata.tsv", name=REGION_NAMES),
     params:
         ref_id=config["reference"]["id"],
         outdir=OUTDIR,
@@ -176,10 +177,10 @@ rule augur_tree:
 
 rule augur_refine:
     input:
-        tree = f"{OUTDIR}" + "/{name}/{name}.tree.nwk",
+        tree      = f"{OUTDIR}" + "/{name}/{name}.tree.nwk",
         alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
     output:
-        tree = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
+        tree      = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
     threads: 4
     shell:
         """
@@ -195,19 +196,37 @@ rule augur_refine:
 
 rule augur_export:
     input:
-        tree = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
-        alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
-        metadata = f"{OUTDIR}" + "/{name}/{name}_metadata.tsv",
+        tree      = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
+        metadata  = f"{OUTDIR}" + "/{name}/{name}_metadata.tsv",
+        config    = "defaults/auspice_config.json",
     output:
-        json = f"{OUTDIR}" + "/{name}/{name}.tree.json",
+        json      = f"{OUTDIR}" + "/{name}/{name}.json",
     threads: 1
     shell:
         """
         augur export v2 \
-          --tree {input.tree} \
-          --alignment {input.alignment} \
-          --metadata {input.metadata} \
-          --output {output.json}
+        --tree "{input.tree}" \
+        --metadata "{input.metadata}" \
+        --metadata-id-columns accession \
+        --auspice-config defaults/auspice_config.json \
+        --color-by-metadata \
+            genotype_genbank \
+            subgenotype_genbank \
+            clade_nextclade \
+            genotype \
+            taxon_id \
+            host \
+            is_lab_host \
+            region \
+            country \
+            division \
+            location \
+            year \
+            date \
+            strain \
+            isolate \
+        --output "{output.json}"
+
         """
 
 
@@ -228,13 +247,5 @@ rule compare_trees:
         python scripts/compare_region_trees.py {input.t1} {input.t2} 
         """
 
-
-
-
-#        augur tree
-
-#       refine 
-
-#        midpoint rooting, nno timmeree
 
 
