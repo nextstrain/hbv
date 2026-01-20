@@ -29,6 +29,8 @@ rule all:
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
         tree_nwk= expand(f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk", name=REGION_NAMES),
         tree_json=expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
+        distances= "results/pairwise_tip_distance_correlation_matrix.tsv",
+        distances_png= "results/pairwise_tip_distance_correlation_matrix.png"
 
 
 
@@ -248,4 +250,19 @@ rule compare_trees:
         """
 
 
-
+rule compare_pairwise_distances:
+    """
+    Compare pairwise tip distances between trees from different genomic regions
+    """
+    input:
+        trees = expand(f"{OUTDIR}" + "/{name}/{name}.tree.nwk", name=REGION_NAMES),
+    output:
+        distances = "results/pairwise_tip_distance_correlation_matrix.tsv",
+        distances_png = "results/pairwise_tip_distance_correlation_matrix.png",
+    params:
+        n_pairs = config.get("n_subsamples_pairwise_distance_comparison", 100),
+    shell:
+        """
+        mkdir -p results
+        python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs}
+        """
