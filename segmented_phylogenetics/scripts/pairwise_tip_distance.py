@@ -26,36 +26,51 @@ def select_random_pairs(names, n_pairs, rng):
     return [tuple(rng.sample(names, 2)) for _ in range(n_pairs)]
 
 
-def calculate_distance(trees, pairs):
-    tree_distances = []
+
+def calculate_distances_both(trees, pairs):
+    pat_all, topo_all = [], []
     for tree in trees:
         lookup = {t.name: t for t in tree.get_terminals() if t.name is not None}
-        distances = []
+        pat, topo = [], []
         for n1, n2 in pairs:
-            dist = tree.distance(lookup[n1], lookup[n2])
-            distances.append((n1, n2, dist))
-        tree_distances.append(distances)
-    return tree_distances
+            a, b = lookup[n1], lookup[n2]
 
-def calculate_correlation(distances):
-    # distances is a list of lists of (name1, name2, dist) for each tree
+            # patristic
+            pat.append(tree.distance(a, b))
+
+            # topological (edges)
+            m = tree.common_ancestor(a, b)
+            topo.append(len(tree.get_path(a)) + len(tree.get_path(b)) - 2 * len(tree.get_path(m)))
+
+        pat_all.append(pat)
+        topo_all.append(topo)
+    return pat_all, topo_all
+
+
+import matplotlib.pyplot as plt
+
+
+
+def calculate_correlation(values_per_tree):
     import numpy as np
     from scipy.stats import pearsonr
 
-    n_trees = len(distances)
-    corr_matrix = np.zeros((n_trees, n_trees))
+    n = len(values_per_tree)
+    corr_matrix = np.zeros((n, n))
 
-    for i in range(n_trees):
-        dists_i = [d[2] for d in distances[i]]
-        for j in range(i, n_trees):
-            dists_j = [d[2] for d in distances[j]]
-            corr, _ = pearsonr(dists_i, dists_j)
+    for i in range(n):
+        for j in range(i, n):
+            x, y = values_per_tree[i], values_per_tree[j]
+            corr = 1.0 if i == j else pearsonr(x, y)[0]
+            if corr != corr:  # NaN check
+                corr = 0.0
+
             corr_matrix[i, j] = corr
             corr_matrix[j, i] = corr
 
     return corr_matrix
 
-def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png):
+def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(1.2 * len(labels), 1.0 * len(labels)))
@@ -75,8 +90,8 @@ def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png):
         for j in range(len(labels)):
             ax.text(j, i, f"{corr_matrix[i, j]:.2f}",
                     ha="center", va="center", fontsize=8)
-
-    ax.set_title(f"Pairwise tip-distance correlation (n = {n_pairs} pairs)", pad=20)
+    metric="Patristic" if metric=="patristic" else "Topological"
+    ax.set_title(f"Pairwise tip-distance correlation (n = {n_pairs} pairs), metric={metric}", pad=20)
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label("Pearson correlation")
@@ -84,6 +99,30 @@ def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png):
     plt.tight_layout()
     plt.savefig(out_png, dpi=300)
     plt.close()
+
+
+def plot_correlation_grid(values, labels, metric, out_png):
+    import matplotlib.pyplot as plt
+
+    n = len(values)
+    fig, axes = plt.subplots(n, n, figsize=(2*n, 2*n))
+
+    for i in range(n):
+        for j in range(n):
+            ax = axes[i, j]
+            ax.scatter(values[i], values[j], s=2, alpha=0.3)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            if i == n - 1:
+                ax.set_xlabel(labels[j], rotation=90)
+            if j == 0:
+                ax.set_ylabel(labels[i])
+
+    fig.suptitle(f"{metric} distance scatter matrix")
+    plt.tight_layout()
+    plt.savefig(out_png, dpi=300)
+    plt.close()
+
 
 
 def main():
@@ -112,27 +151,34 @@ def main():
     rng = random.Random(args.seed)
     pairs = select_random_pairs(shared, args.sample_pairs, rng)
 
-    tree_distances = calculate_distance(trees, pairs)
-    corr_matrix = calculate_correlation(tree_distances)
-
-    with open("results/pairwise_tip_distance_correlation_matrix.tsv", "w") as f:
-        header = "\t" + "\t".join(os.path.basename(p) for p in args.trees)
-        print(header, file=f)
-        for i, row in enumerate(corr_matrix):
-            line = os.path.basename(args.trees[i]) + "\t" + "\t".join(f"{v:.4f}" for v in row)
-            print(line, file=f)
+    # compute metrics (per tree, per pair)
+    pat_dists, topo_dists = calculate_distances_both(trees, pairs)
 
     labels = [os.path.basename(p).replace(".tree.nwk", "") for p in args.trees]
-    save_corr_heatmap(
-    corr_matrix,
-    labels,
-    args.sample_pairs,
-    "results/pairwise_tip_distance_correlation_matrix.png",
-)
 
+    for metric, values_per_tree in (("patristic", pat_dists), ("topo", topo_dists)):
+        corr_matrix = calculate_correlation(values_per_tree)
 
+        tsv_out = f"results/pairwise_tip_distance_correlation_matrix.{metric}.tsv"
+        png_out = f"results/pairwise_tip_distance_correlation_matrix.{metric}.png"
 
+        with open(tsv_out, "w") as f:
+            header = "\t" + "\t".join(os.path.basename(p) for p in args.trees)
+            print(header, file=f)
+            for i, row in enumerate(corr_matrix):
+                line = os.path.basename(args.trees[i]) + "\t" + "\t".join(f"{v:.4f}" for v in row)
+                print(line, file=f)
 
+        save_corr_heatmap(corr_matrix, labels, args.sample_pairs, png_out, metric)
+
+        # ---- ADD THIS ----
+        grid_out = f"results/pairwise_tip_distance_scatter_grid.{metric}.png"
+        plot_correlation_grid(
+            values_per_tree,
+            labels,
+            metric=metric,
+            out_png=grid_out,
+        )
 
 
 

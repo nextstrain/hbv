@@ -64,3 +64,7 @@ nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-
 
 
 n_subsamples_pairwise_distance_comparison: 10000
+
+# all branches with length higher than this threshold will be pruned from the tree
+long_branch_threshold: 1 
+tip_branch_threshold: 0.1

@@ -27,10 +27,9 @@ rule all:
     input:
         fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb=expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
-        tree_nwk= expand(f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk", name=REGION_NAMES),
         tree_json=expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
-        distances= "results/pairwise_tip_distance_correlation_matrix.tsv",
-        distances_png= "results/pairwise_tip_distance_correlation_matrix.png"
+        joint_exclude="defaults/exclude.txt",
+        distances_correlation_matrix="pairwise_tip_distance_scatter_grid.patristic.png",
 
 
 
@@ -176,10 +175,51 @@ rule augur_tree:
         
 
 
+rule cut_outliers:
+    input:
+        tree_nwk = f"{OUTDIR}/{{name}}/{{name}}.tree.nwk",
+        metadata = f"{OUTDIR}/{{name}}/{{name}}_metadata.tsv",
+    output:
+        out_tree = f"{OUTDIR}/{{name}}/{{name}}.pruned.tree.nwk",
+        metadata = f"{OUTDIR}/{{name}}/{{name}}_metadata.pruned.tsv",
+        exclude = f"defaults/{{name}}_excluded_accessions.txt",
+    params:
+        long_branch_threshold = config["long_branch_threshold"],
+        tip_branch_threshold = config["tip_branch_threshold"],
+    shell:
+        """
+        python scripts/prune_trees.py \
+            --tree {input.tree_nwk} \
+            --metadata-in {input.metadata} \
+            --metadata-out {output.metadata} \
+            --cutoff_allbranches {params.long_branch_threshold} \
+            --cutoff_tips {params.tip_branch_threshold} \
+            --out-tree {output.out_tree} \
+            --exclude {output.exclude}
+        """
+
+
+rule joint_exclude_file:
+    input:
+        excludes=expand(f"defaults/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
+    output:
+        joint_exclude="defaults/exclude.txt",
+    shell:
+        """
+        cat defaults/*_excluded_accessions.txt \
+        | tr -s '[:space:]' '\n' \
+        | awk 'NF' \
+        | sort -u \
+        > {output.joint_exclude}
+
+        wc -l {output.joint_exclude}
+        echo "unique accessions written to {output.joint_exclude}"
+        """
+
 
 rule augur_refine:
     input:
-        tree      = f"{OUTDIR}" + "/{name}/{name}.tree.nwk",
+        tree      = f"{OUTDIR}" + "/{name}/{name}.pruned.tree.nwk",
         alignment = f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta",
     output:
         tree      = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
@@ -198,8 +238,8 @@ rule augur_refine:
 
 rule augur_export:
     input:
-        tree      = f"{OUTDIR}" + "/{name}/{name}.refined.tree.nwk",
-        metadata  = f"{OUTDIR}" + "/{name}/{name}_metadata.tsv",
+        tree = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
+        metadata  = f"{OUTDIR}" + "/{name}/{name}_metadata.pruned.tsv",
         config    = "defaults/auspice_config.json",
     output:
         json      = f"{OUTDIR}" + "/{name}/{name}.json",
@@ -233,7 +273,6 @@ rule augur_export:
 
 
 
-
 rule compare_trees:
     """
     compare trees from different regions (bare minimum starting point)
@@ -257,8 +296,12 @@ rule compare_pairwise_distances:
     input:
         trees = expand(f"{OUTDIR}" + "/{name}/{name}.tree.nwk", name=REGION_NAMES),
     output:
-        distances = "results/pairwise_tip_distance_correlation_matrix.tsv",
-        distances_png = "results/pairwise_tip_distance_correlation_matrix.png",
+        "pairwise_tip_distance_correlation_matrix.patristic.png",
+        "pairwise_tip_distance_correlation_matrix.topo.png",
+        "pairwise_tip_distance_scatter_grid.patristic.png",
+        "pairwise_tip_distance_correlation_matrix.patristic.tsv",
+        "pairwise_tip_distance_correlation_matrix.topo.tsv",
+        "pairwise_tip_distance_scatter_grid.topo.png",
     params:
         n_pairs = config.get("n_subsamples_pairwise_distance_comparison", 100),
     shell:
@@ -266,3 +309,7 @@ rule compare_pairwise_distances:
         mkdir -p results
         python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs}
         """
+
+
+
+
