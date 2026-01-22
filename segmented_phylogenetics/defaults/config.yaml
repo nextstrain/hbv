@@ -9,8 +9,8 @@ reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
 
-#genomic_regions: defaults/genomic_regions_genes.txt
-genomic_regions: defaults/genomic_regions_breakpoints_2005.txt
+genomic_regions: defaults/genomic_regions_genes.txt
+#genomic_regions: defaults/genomic_regions_breakpoints_2005.txt
 
 
 
@@ -68,3 +68,11 @@ n_subsamples_pairwise_distance_comparison: 10000
 # all branches with length higher than this threshold will be pruned from the tree
 long_branch_threshold: 1 
 tip_branch_threshold: 0.1
+
+
+
+treeknit:
+  n_subset: 10000
+  treeknit_seed: 1
+
+

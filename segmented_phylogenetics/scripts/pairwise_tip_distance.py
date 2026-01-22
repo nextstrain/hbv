@@ -159,8 +159,8 @@ def main():
     for metric, values_per_tree in (("patristic", pat_dists), ("topo", topo_dists)):
         corr_matrix = calculate_correlation(values_per_tree)
 
-        tsv_out = f"results/pairwise_tip_distance_correlation_matrix.{metric}.tsv"
-        png_out = f"results/pairwise_tip_distance_correlation_matrix.{metric}.png"
+        tsv_out = f"results/correlation_analysis/pairwise_tip_distance_correlation_matrix.{metric}.tsv"
+        png_out = f"results/correlation_analysis/pairwise_tip_distance_correlation_matrix.{metric}.png"
 
         with open(tsv_out, "w") as f:
             header = "\t" + "\t".join(os.path.basename(p) for p in args.trees)
@@ -172,7 +172,7 @@ def main():
         save_corr_heatmap(corr_matrix, labels, args.sample_pairs, png_out, metric)
 
         # ---- ADD THIS ----
-        grid_out = f"results/pairwise_tip_distance_scatter_grid.{metric}.png"
+        grid_out = f"results/correlation_analysis/pairwise_tip_distance_scatter_grid.{metric}.png"
         plot_correlation_grid(
             values_per_tree,
             labels,
