@@ -17,6 +17,12 @@ def region_names(path):
             names.append(line.split()[0])  # first column = name
     return names
 
+def make_tag(regions):
+    if set(regions) == {"C","P","S","X"}:
+        return "genes"
+    if set(regions) == {"segment1","segment2","segment3","segment4","segment5","segment6","segment7","segment8"}:
+        return "segments1-8"
+    return "_".join(regions)
 
 
 REGION_NAMES = region_names(config["genomic_regions"])
@@ -313,4 +319,4 @@ rule augur_export:
 
 
 # rules to compare differnt region trees to inform recombination via different metrics (partially have to be called individually)
- include: "rules/tree_comparisons.smk"
+include: "rules/tree_comparisons.smk"

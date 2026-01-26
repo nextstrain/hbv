@@ -13,26 +13,24 @@ OUTPUTS:
 
 """
 
+TAG = make_tag(REGION_NAMES)
+OUTDIR_CORR = f"results/correlation_analysis_{TAG}"
+
 
 rule compare_pairwise_distances:
-    """
-    Compare pairwise tip distances between trees from different genomic regions
-    """
     input:
-        trees = expand(f"{OUTDIR}" + "/{name}/{name}.tree.nwk", name=REGION_NAMES),
+        trees = expand(f"{OUTDIR}/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
     output:
-        "results/correlation_analysis/pairwise_tip_distance_correlation_matrix.patristic.png",
-        "results/correlation_analysis/pairwise_tip_distance_correlation_matrix.topo.png",
-        "results/correlation_analysis/pairwise_tip_distance_scatter_grid.patristic.png",
-        "results/correlation_analysis/pairwise_tip_distance_correlation_matrix.patristic.tsv",
-        "results/correlation_analysis/pairwise_tip_distance_correlation_matrix.topo.tsv",
-        "results/correlation_analysis/pairwise_tip_distance_scatter_grid.topo.png",
+        matrix = f"{OUTDIR_CORR}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
+        grid   = f"{OUTDIR_CORR}/corr_grid/grid_patristic_scatter.pdf",
     params:
         n_pairs = config.get("n_subsamples_pairwise_distance_comparison", 100),
+        outdir  = OUTDIR_CORR,
     shell:
-        """
-        mkdir -p results/correlation_analysis/
-        python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs}
+        r"""
+        set -euo pipefail
+        mkdir -p {params.outdir}/corr_matrix {params.outdir}/corr_grid
+        python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs} {params.outdir}
         """
 
 
@@ -56,18 +54,19 @@ rule compare_trees_RF_all:
                seg1=[a for a,b in PAIRS],
                seg2=[b for a,b in PAIRS])
     output:
-        f"results/compare_trees_RF_{REGION_TAG}.tsv"
+        f"results/compare_trees_RF_{TAG}.tsv"
 
     shell:
         r"""
         set -euo pipefail
         mkdir -p results
-        # keep header from first file, then append remaining without headers
         head -n 1 {input[0]} > {output}
         for f in {input}; do
             tail -n +2 "$f" >> {output}
         done
+        rm -rf results/rf
         """
+
 
 rule tree_knit_pair:
     input:
@@ -102,8 +101,19 @@ rule tree_knit_pair:
 
 rule treeknit_all:
     input:
-        expand("results/treeknit/{seg1}_{seg2}",zip,
+        individual=expand("results/treeknit/{seg1}_{seg2}/results_summary.txt",zip,
             seg1=[a for a,b in PAIRS],
             seg2=[b for a,b in PAIRS],
         )
- 
+    output:
+        summary=f"results/compare_trees_treeknit_{TAG}.csv"
+
+    shell: 
+        r"""
+        set -euo pipefail
+        rm -f {output.summary}
+        for f in {input.individual}; do
+            python scripts/treeknit_summary_to_csv.py "$f" "{output.summary}"
+        done        
+        """
+
