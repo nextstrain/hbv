@@ -1,0 +1,304 @@
+configfile: "defaults/config.yaml"
+
+#    Expcted inputs from ingest:
+#        sequences="../ingest/results/sequences.fasta",
+#        metadata="../ingest/results/metadata.tsv",
+#        alignment="../ingest/results/aligned.fasta",
+
+
+
+#TODO make this work for CDS specifically and not for genes! then keep same naming conventions as in nextclade
+
+rule all: 
+    input: 
+        sequences = "data/filtered/sequences.len_filtered.fasta",
+        alignment = "data/masked/alignment.len_filtered.P.fasta",
+        tree_nwk="data/P_masked_refined.tree.nwk",
+        metadata = "data/P_metadata.pruned.tsv",
+        node_data = "data/ancestral/P.json",
+        ancestral_sequences = "data/ancestral/P.fasta",
+        auspice_json = "data/P.json",
+
+
+
+
+rule copy:
+    input:
+        sequences = "../ingest/results/sequences.fasta",
+        metadata  = "../ingest/results/metadata.tsv",
+        alignment = "../ingest/results/aligned.fasta",
+    output:
+        sequences = "data/sequences.fasta",
+        metadata  = "data/metadata.tsv",
+        alignment = "data/alignment.fasta",
+    params:
+        dev = config.get("dev", False),
+        n   = config.get("dev_n", 100),
+        ref = config["reference"]["id"],
+    shell:
+        r"""
+        mkdir -p data
+        kept_ids="$(mktemp)"
+
+        if [ "{params.dev}" = "true" ] || [ "{params.dev}" = "True" ] || [ "{params.dev}" = "1" ]; then
+            (
+            seqkit grep -p "{params.ref}" {input.sequences} || true
+            seqkit head -n {params.n} {input.sequences}
+            ) | seqkit rmdup -s > {output.sequences}
+        else
+            cp {input.sequences} {output.sequences}
+        fi
+
+        seqkit seq -n {output.sequences} > "$kept_ids"
+        seqkit grep -f "$kept_ids" {input.alignment} > {output.alignment}
+        awk 'NR==FNR {{a[$1]=1; next}} FNR==1 || ($1 in a)' "$kept_ids" {input.metadata} > {output.metadata}
+
+        rm -f "$kept_ids"
+        """
+
+
+rule length_filter:
+    input:
+        sequences = "data/sequences.fasta",
+        metadata  = "data/metadata.tsv",
+        alignment = "data/alignment.fasta",
+    output:
+        sequences = "data/filtered/sequences.len_filtered.fasta",
+        alignment = "data/filtered/alignment.len_filtered.fasta",
+        metadata  = "data/filtered/metadata.len_filtered.tsv",
+    params:
+        min_length = config["min_length"],
+        max_length =config["max_length"],
+        length_filtering=config["length_filtering"],
+    shell:
+        r"""
+        mkdir -p data
+        kept_ids="$(mktemp)"
+
+        if [ "{params.length_filtering}" = "true" ] || [ "{params.length_filtering}" = "True" ] || [ "{params.length_filtering}" = "1" ]; then
+            seqkit seq -g -m={params.min_length} -M={params.max_length} {input.sequences} > {output.sequences}
+
+            seqkit seq -n {output.sequences} > "$kept_ids"
+
+            seqkit grep -f "$kept_ids" {input.alignment} > {output.alignment}
+
+            awk 'NR==FNR {{a[$1]=1; next}} FNR==1 || ($1 in a)' "$kept_ids" {input.metadata} > {output.metadata}
+        else
+            cp {input.sequences} {output.sequences}
+            cp {input.alignment} {output.alignment}
+            cp {input.metadata} {output.metadata}
+        fi
+
+        rm -f "$kept_ids"
+        """
+
+rule specify_genomic_regions_genes:
+    input:
+        ref_gb=config["reference"]["genbank"],
+        script="scripts/specify_genomic_regions_genes.py",
+    output:
+        regions="defaults/genomic_regions_genes.txt",
+    shell:
+        r"""
+        python {input.script} {input.ref_gb} {output.regions} 
+        """
+
+
+rule mask_gene:
+    input:
+        regions="defaults/genomic_regions_genes.txt",
+        alignment="data/filtered/alignment.len_filtered.fasta",
+    output:
+        alignment = "data/masked/alignment.len_filtered.{gene}.fasta",
+    params:
+        gene_mask=config["gene_mask"],
+        ref=config["reference"]["id"]
+    shell:
+        r"""
+        mkdir -p data/masked
+
+        read -r start end < <(
+        awk -v g="{params.gene_mask}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
+        )
+
+        L=$(seqkit grep -n -p "^{params.ref}$" "{input.alignment}" | seqkit seq -s | tr -d '.-' | wc -c | tr -d ' ')
+        maskfile="$(mktemp)"
+
+        if [ "$start" -le "$end" ]; then
+        # mask [1,start-1]
+        if [ "$start" -gt 1 ]; then
+            seq 1 $((start-1)) >> "$maskfile"
+        fi
+        # mask [end+1,L]
+        if [ "$end" -lt "$L" ]; then
+            seq $((end+1)) "$L" >> "$maskfile"
+        fi
+        else
+        # gene wraps -> mask [end+1, start-1]
+        seq $((end+1)) $((start-1)) >> "$maskfile"
+        fi
+
+        augur mask \
+        --sequences "{input.alignment}" \
+        --mask "$maskfile" \
+        --output "{output.alignment}"
+
+        rm -f "$maskfile"
+        """
+
+
+
+rule augur_tree:
+    input:
+        alignment = "data/masked/alignment.len_filtered.{gene}.fasta"
+    output:
+        tree = "data/{gene}_masked.tree.nwk",
+    threads: 4
+    shell:
+        """
+        augur tree \
+          --alignment {input.alignment} \
+          --method fasttree \
+          --output {output.tree}
+        """
+
+
+rule cut_outliers:
+    input:
+        tree_nwk="data/{gene}_masked.tree.nwk",
+        metadata="data/metadata.tsv",
+    output:
+        out_tree="data/{gene}_masked.pruned.tree.nwk",
+        metadata="data/{gene}_metadata.pruned.tsv",
+        exclude="data/{gene}_exclude.txt",
+    params:
+        long_branch_threshold=config["long_branch_threshold"],
+        tip_branch_threshold=config["tip_branch_threshold"],
+    shell:
+        r"""
+        python scripts/prune_trees.py \
+          --tree {input.tree_nwk} \
+          --metadata-in {input.metadata} \
+          --metadata-out {output.metadata} \
+          --cutoff_allbranches {params.long_branch_threshold} \
+          --cutoff_tips {params.tip_branch_threshold} \
+          --out-tree {output.out_tree} \
+          --exclude {output.exclude}
+
+        n=$(wc -l < {output.exclude})
+        echo "$n unique accessions in {output.exclude}"
+        """
+
+
+
+
+
+rule augur_refine:
+    input:
+        tree="data/{gene}_masked.tree.nwk",
+        alignment = "data/masked/alignment.len_filtered.{gene}.fasta"
+    output:
+        tree="data/{gene}_masked_refined.tree.nwk",
+    threads: 4
+    shell:
+        """
+        augur refine \
+          --tree {input.tree} \
+          --alignment {input.alignment} \
+          --root mid_point \
+          --output-tree {output.tree}
+        """
+
+
+# NOTE THAT THIS MAPPING INCLUDES PRE-REGIONS IN C AND S 
+rule alias_translations_for_augur:
+    input:
+        pol="../ingest/data/nextclade/cds_pol.fasta",
+        s="../ingest/data/nextclade/cds_envL.fasta",
+        c="../ingest/data/nextclade/cds_pre-capsid.fasta",
+    output:
+        p="../ingest/data/nextclade/cds_P.fasta",
+        S="../ingest/data/nextclade/cds_S.fasta",
+        C="../ingest/data/nextclade/cds_C.fasta",
+    shell:
+        r"""
+        cp {input.pol} {output.p}
+        cp {input.s}   {output.S}
+        cp {input.c}   {output.C}
+        """
+
+
+
+rule ancestral:
+    input:
+        tree="data/{gene}_masked_refined.tree.nwk",
+        alignment="data/filtered/alignment.len_filtered.fasta", # Using non-masked alignment for ancestral reconstruction
+        annotation= config["reference"]["gff"],
+        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]),
+        temp_p="../ingest/data/nextclade/cds_P.fasta",
+        temp_s="../ingest/data/nextclade/cds_S.fasta",
+        temp_c="../ingest/data/nextclade/cds_C.fasta",
+    output:
+        node_data = "data/ancestral/{gene}.json",
+        sequences = "data/ancestral/{gene}.fasta",
+    params: 
+        genes=" ".join(config["genes"]),
+        translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
+
+    threads: 4
+    shell:
+        r"""
+        augur ancestral \
+          --tree {input.tree} \
+          --alignment {input.alignment} \
+          --annotation {input.annotation} \
+          --genes {params.genes} \
+          --translations {params.translation_pattern} \
+          --output-node-data {output.node_data} \
+          --output-sequences {output.sequences} \
+
+        rm {input.temp_p} {input.temp_s} {input.temp_c}
+        """
+
+
+
+
+rule augur_export:
+    wildcard_constraints:
+        gene="P|S|C|X"  
+    input:
+        tree       ="data/{gene}_masked_refined.tree.nwk",
+        node_data = "data/ancestral/{gene}.json",
+        metadata   ="data/{gene}_metadata.pruned.tsv",
+        config     ="defaults/auspice_config.json",
+    output:
+        auspice_json = "data/{gene}.json",
+    threads: 1
+    shell:
+        """
+        augur export v2 \
+        --tree "{input.tree}" \
+        --node-data "{input.node_data}"  \
+        --metadata "{input.metadata}" \
+        --metadata-id-columns accession \
+        --auspice-config "{input.config}" \
+        --color-by-metadata \
+            genotype_genbank \
+            subgenotype_genbank \
+            clade_nextclade \
+            genotype \
+            taxon_id \
+            host \
+            is_lab_host \
+            region \
+            country \
+            division \
+            location \
+            year \
+            date \
+            strain \
+            isolate \
+        --output "{output.auspice_json}"
+        """
+
+

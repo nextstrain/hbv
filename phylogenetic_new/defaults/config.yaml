@@ -1,0 +1,25 @@
+reference:
+  id: NC_003977
+  genbank: ../ingest/defaults/NC_003977.gb
+  gff: "defaults/NC_003977.2_version_2026.gff"
+
+
+
+length_filtering: true
+min_length: 3000
+max_length: 3400
+
+
+dev: true
+dev_n: 100
+
+gene_mask: "P"
+
+
+genes: ["P", "S", "C", "X"]
+
+# all branches with length higher than this threshold will be pruned from the tree
+long_branch_threshold: 0.3
+tip_branch_threshold: 0.1
+
+

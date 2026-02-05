@@ -1,0 +1,5 @@
+# name	start	end	(1-based, inclusive; start>end means wrap-around)
+C	1816	2454
+P	2309	1625
+S	2850	837
+X	1376	1840
