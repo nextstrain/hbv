@@ -23,3 +23,9 @@ long_branch_threshold: 0.3
 tip_branch_threshold: 0.1
 
 
+
+
+single_build_genotypes: ["A", "B", "C", "D"]
+#all_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+# TODO FOR SOME STRAINS ALL SEQUENCES GET FILTERED, NEED SUBSAMPLING ONLY AFTER OTHER FILTERING STEPS! and check if problem is somewhere else potentially
+all_genotypes: ["A", "B", "C", "D", "E"]
