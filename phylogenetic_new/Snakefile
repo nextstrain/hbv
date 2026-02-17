@@ -12,30 +12,33 @@ MODES = ["basic", "stitched", "single-clade"]
 ALL_GTS = config["all_genotypes"]
 SINGLE_BUILD_GENOTYPES = config["single_build_genotypes"]
 
-include: "rules/filter_and_masking.smk"
+STITCHED_DIR = "results/stitched/{gene}_global"
 
+full_tree_targets = (
+    expand("auspice_datasets/{gene}_masked/full-tree.json", gene=GENE_MASKS)
+    if config.get("dev", False)
+    else []
+)
+
+include: "rules/filter_and_masking.smk"
 
 
 
 rule all: 
     input: 
-        #sequences = "data/filtered/sequences.len_filtered.fasta",
-        #alignment = "data/masked/alignment.len_filtered.P.fasta",
-        #tree_nwk="data/P_masked_refined.tree.nwk",
-        #metadata = "data/P_metadata.pruned.tsv",
-        #node_data = "data/ancestral/P.json",
-        #ancestral_sequences = "data/ancestral/P.fasta",
-        aln_basic=       expand("results/basic/all/{gene}.json", gene=GENE_MASKS),
-        aln_stitched=    expand("results/stitched/{g}/{gene}.json", g=ALL_GTS, gene=GENE_MASKS),
-        aln_single_clade=expand("results/single-clade/{g}/{gene}.json", g=SINGLE_BUILD_GENOTYPES, gene=GENE_MASKS),
-        stitched_collect_done = expand("results/stitched/{gene}_global/collect.done", gene=GENE_MASKS),
-        stitched_tree         = expand("results/stitched/{gene}_global/tree_raw.nwk", gene=GENE_MASKS),
+        main_clades   = expand("auspice_datasets/{gene}_masked/main-clades.json", gene=GENE_MASKS),
+        #single_clades = expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES),
+        #full_tree     = full_tree_targets
 
+
+
+
+# Reference sequence is to be included in the alignment but excluded from tree building to avoid it appearing in wrong individual clade-trees.
 rule augur_tree:
     input:
-        alignment = "results/{mode}/{key}/masked.{gene}.fasta",
+        alignment = "results/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     output:
-        tree = "results/{mode}/{key}/{gene}_masked.tree.nwk",
+        tree      = "results/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
     threads: 4
     shell:
         """
@@ -47,15 +50,18 @@ rule augur_tree:
 
 rule cut_outliers:
     input:
-        tree_nwk="results/{mode}/{key}/{gene}_masked.tree.nwk",
+        tree_nwk="results/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
         metadata="results/{mode}/{key}/filtered.tsv",
     output:
-        out_tree="results/{mode}/{key}/{gene}_masked.pruned.tree.nwk",
-        metadata="results/{mode}/{key}/{gene}_metadata.pruned.tsv",
-        exclude="results/{mode}/{key}/{gene}_exclude.txt",
+        out_tree="results/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
+        metadata="results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
+        exclude= "results/{mode}/{key}/{gene}_masked/{gene}_exclude.txt",
     params:
         long_branch_threshold=config["long_branch_threshold"],
         tip_branch_threshold=config["tip_branch_threshold"],
+        metadata_col="subgenotype_genbank", # for clade purity filtering,
+        minimal_monophyletic_purity=config["clade_purity"]["minimal_monophyletic_purity"] if config["clade_purity"]["use_as_filter"] else None,
+        maximal_monophyletic_fraction=config["clade_purity"]["clade_fraction"] if config["clade_purity"]["use_as_filter"] else None,
     shell:
         r"""
         python scripts/prune_trees.py \
@@ -65,7 +71,10 @@ rule cut_outliers:
           --cutoff_allbranches {params.long_branch_threshold} \
           --cutoff_tips {params.tip_branch_threshold} \
           --out-tree {output.out_tree} \
-          --exclude {output.exclude}
+          --exclude {output.exclude} \
+          --purity_metadata_col {params.metadata_col} \
+          --minimal_monophyletic_purity {params.minimal_monophyletic_purity} \
+          --maximal_monophyletic_fraction {params.maximal_monophyletic_fraction} \
 
         n=$(wc -l < {output.exclude})
         echo "$n unique accessions in {output.exclude}"
@@ -75,10 +84,10 @@ rule cut_outliers:
 
 rule augur_refine:
     input:
-        tree="results/{mode}/{key}/{gene}_masked.pruned.tree.nwk",
-        alignment = "results/{mode}/{key}/masked.{gene}.fasta"
+        tree      = "results/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
+        alignment = "results/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta"
     output:
-        tree="results/{mode}/{key}/{gene}_masked_refined.tree.nwk",
+        tree      = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
     threads: 4
     shell:
         """
@@ -93,33 +102,37 @@ rule augur_refine:
 # NOTE THAT THIS MAPPING INCLUDES PRE-REGIONS IN C AND S 
 rule alias_translations_for_augur:
     input:
+        dir="../ingest/data/nextclade",
         pol="../ingest/data/nextclade/cds_pol.fasta",
-        s="../ingest/data/nextclade/cds_envL.fasta",
-        c="../ingest/data/nextclade/cds_pre-capsid.fasta",
+    params: # for genes with muultiple transcripts 
+        s=config["gene_products_for_ancestral"]["S"], # "envL", "envM" or "envS"
+        c=config["gene_products_for_ancestral"]["C"], # "pre-capsid" or "capsid"
     output:
-        p=temp("../ingest/data/nextclade/cds_P.fasta"),
-        s=temp("../ingest/data/nextclade/cds_S.fasta"),
-        c=temp("../ingest/data/nextclade/cds_C.fasta")
+        p="../ingest/data/nextclade/cds_P.fasta", # maybe make those temp files...
+        s="../ingest/data/nextclade/cds_S.fasta",
+        c="../ingest/data/nextclade/cds_C.fasta"
     shell:
         r"""
         cp {input.pol} {output.p}
-        cp {input.s}   {output.s}
-        cp {input.c}   {output.c}
+        cp {input.dir}/cds_{params.s}.fasta {output.s}
+        cp {input.dir}/cds_{params.c}.fasta {output.c}
         """
 
 
-
+# TODO take ref sequence as root here for reconstruction as well?
 rule ancestral:
     input:
-        tree="results/{mode}/{key}/{gene}_masked_refined.tree.nwk",
+        tree=     "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         alignment="results/{mode}/{key}/filtered.fasta", # Using non-masked alignment for ancestral reconstruction
         annotation= config["reference"]["gff"],
-        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]), 
+        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]),
+        root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
+ 
     output:
-        node_data = "results/{mode}/{key}/ancestral/{gene}.json",
-        sequences = "results/{mode}/{key}/ancestral/{gene}.fasta",
+        node_data = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+        sequences = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
     params: 
-        genes=" ".join(config["genes"]),
+        genes=" ".join(config["ancestral_genes"]),
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
 
     threads: 4
@@ -133,6 +146,7 @@ rule ancestral:
           --translations {params.translation_pattern} \
           --output-node-data {output.node_data} \
           --output-sequences {output.sequences} \
+          --root-sequence {input.root}
 
         """
 
@@ -141,12 +155,12 @@ rule augur_export:
     wildcard_constraints:
         gene="P|S|C|X"  
     input:
-        tree       ="results/{mode}/{key}/{gene}_masked_refined.tree.nwk",
-        node_data = "results/{mode}/{key}/ancestral/{gene}.json",
-        metadata   ="results/{mode}/{key}/{gene}_metadata.pruned.tsv",
+        tree       ="results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        node_data = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+        metadata   ="results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
         config     ="defaults/auspice_config.json",
     output:
-        auspice_json = "results/{mode}/{key}/{gene}.json",
+        auspice_json = "results/{mode}/{key}/{gene}_masked/{gene}.json",
     threads: 1
     shell:
         """
@@ -177,17 +191,17 @@ rule augur_export:
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
-
+# Rules for stitching together trees from different genotypes into a single tree 
+#______________________________________________________________________________________________________________________________________________________________________________________________
 
 rule collect_trees_for_stitching:
     input:
         trees=lambda wc: expand(
-            "results/stitched/{g}/{gene}_masked_refined.tree.nwk",
+            "results/stitched/{g}/{gene}_masked/{gene}_masked_refined.tree.nwk",
             g=ALL_GTS, gene=[wc.gene]
         ),
         alns=lambda wc: expand(
-            "results/stitched/{g}/masked.{gene}.fasta",
+            "results/stitched/{g}/{gene}_masked/{gene}_masked_aln.fasta",
             g=ALL_GTS, gene=[wc.gene]
         ),
     output:
@@ -201,26 +215,282 @@ rule collect_trees_for_stitching:
         mkdir -p {output.trees_dir} {output.aln_dir}
 
         for g in {params.g_list}; do
-            cp "results/stitched/$g/{wildcards.gene}_masked_refined.tree.nwk" "{output.trees_dir}/$g.nwk"
-            cp "results/stitched/$g/masked.{wildcards.gene}.fasta"            "{output.aln_dir}/$g.fasta"
+            cp "results/stitched/$g/{wildcards.gene}_masked/{wildcards.gene}_masked_refined.tree.nwk" "{output.trees_dir}/$g.nwk"
+            cp "results/stitched/$g/{wildcards.gene}_masked/{wildcards.gene}_masked_aln.fasta" "{output.aln_dir}/$g.fasta"
         done
 
         touch {output.touch}
         """
 
 
+# TODO remove multiples of ref genome in tree when stitching together 
 rule group_trees:
     input:
         done="results/stitched/{gene}_global/collect.done"
     output:
-        stitched_tree="results/stitched/{gene}_global/tree_raw.nwk"
+        stitched_tree="results/stitched/{gene}_global/tree_raw.nwk",
     params:
         trees="results/stitched/{gene}_global/trees",
-        aln="results/stitched/{gene}_global/aln"
+        aln=  "results/stitched/{gene}_global/aln",
+        outdir=directory("results/stitched/{gene}_global"),
+        ref_id = config["reference"]["id"]
     shell:
         r"""
         python3 scripts/make_global_tree.py \
           --tree-dir {params.trees} \
           --alignment-dir {params.aln} \
-          --output {output.stitched_tree}
+          --output {output.stitched_tree} \
+          --outdir {params.outdir} \
+          --ref-id {params.ref_id}
+        """
+
+
+rule refine_stitched:
+    input:
+        tree = STITCHED_DIR + "/tree_raw.nwk",
+        metadata="data/filtered/metadata.len_filtered.tsv",
+    output:
+        tree = STITCHED_DIR + "/{gene}_tree.nwk",
+        node_data = STITCHED_DIR + "/node_data/{gene}_branch_lengths.json",
+    shell:
+        r"""
+        augur refine --tree {input.tree} --metadata {input.metadata} \
+                     --keep-root \
+                     --output-tree {output.tree} --output-node-data {output.node_data}
+        """
+
+
+
+rule clades_stitched:
+    input:
+        tree = STITCHED_DIR + "/{gene}_tree.nwk",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+    output:
+        clades = STITCHED_DIR + "/{gene}_clades.json",
+    params:
+         min_count = config["clade_settings"]["min_count_per_clade"],
+         branch_display = config["clade_settings"]["branch_display_mode"],
+         genotype_col = "genotype_genbank",
+         nextclade_label = "clade_genotype",
+    shell:
+        r"""        
+        python3 scripts/assign_clades.py \
+          --tree {input.tree} \
+          --metadata {input.metadata} \
+          --output {output.clades} \
+          --min-count {params.min_count} \
+          --subtype-col {params.genotype_col} \
+          --nextclade-label {params.nextclade_label} \
+          --branch_display {params.branch_display} \
+        """
+
+
+rule sub_clades_stitched:
+    input:
+        tree = STITCHED_DIR + "/{gene}_tree.nwk",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+        fallback_clades = STITCHED_DIR + "/{gene}_clades.json", 
+    output:
+        clades = STITCHED_DIR + "/{gene}_subclades.json",
+    params:
+         min_count = config["clade_settings"]["min_count_per_subclade"],
+         branch_display = config["clade_settings"]["branch_display_mode"],
+         genotype_col = "subgenotype_genbank",
+         fallback_genotype_col = "genotype_genbank", # in case subgenotype information is missing, use genotype information to assign to major clade
+         nextclade_label = "clade_subgenotype",
+         fallback_annotation_nextclade_label = "clade_genotype", # if subtype information is missing and genotype information is used as fallback, use the major clade as annotation for nextclade clades as well
+    shell:
+        r"""        
+        python3 scripts/assign_clades.py \
+          --tree {input.tree} \
+          --metadata {input.metadata} \
+          --output {output.clades} \
+          --min-count {params.min_count} \
+          --subtype-col {params.genotype_col} \
+          --nextclade-label {params.nextclade_label} \
+          --fallback-genotype-col {params.fallback_genotype_col} \
+          --fallback-annotation-file {input.fallback_clades} \
+          --fallback-annotation-nextclade-label {params.fallback_annotation_nextclade_label} \
+          --branch_display {params.branch_display} \
+
+        """
+
+    
+
+
+rule ancestral_stitched:
+    input:
+        tree = STITCHED_DIR + "/{gene}_tree.nwk",
+        aln=expand("results/stitched/{key}/filtered.fasta", key=ALL_GTS), # Using non-masked alignments for ancestral reconstruction
+        annotation= config["reference"]["gff"],
+        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]), 
+        root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
+
+    output:
+        node_data = STITCHED_DIR + "/node_data/{gene}_muts.json",
+    params:
+        genes=" ".join(config["ancestral_genes"]),
+        translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
+        outdir="results/stitched/{gene}_global",
+        ref_id= config["reference"]["id"],
+ 
+    shell:
+        r"""
+        set -euo pipefail
+
+        outdir="{params.outdir}"
+        mkdir -p "$outdir"
+
+        combined="$outdir/combined_nonmasked_aln.fasta"
+
+        awk -v ref="{params.ref_id}" '
+        /^>/ {{
+            is_ref = ($0 == ">" ref) 
+            if (is_ref && seen_ref) skip=1
+            else {{
+                skip=0
+                if (is_ref) seen_ref=1
+            }}
+        }}
+        !skip {{ print }}
+        ' {input.aln} > "$combined"
+
+        augur ancestral --tree {input.tree} --alignment "$combined" \
+                        --translations {params.translation_pattern} --genes {params.genes} \
+                        --output-node-data {output.node_data} \
+                        --annotation {input.annotation}  \
+                        --root-sequence {input.root} 
+        """
+
+
+#rule add_metadata_stitched:
+#    input:
+#        tree = STITCHED_DIR + "/{gene}_tree.nwk",
+#        metadata = "data/filtered/metadata.len_filtered.tsv",
+#    output:
+#        node_metadata = STITCHED_DIR + "/{gene}_node_metadata.json",
+#    run:
+#        metadata = pd.read_csv(input.metadata, sep="\t", index_col="strain").to_dict(orient="index")
+#        T = Phylo.read(input.tree, "newick")
+#        nodes = {}
+#        for node in T.get_terminals():
+#            m = metadata.get(node.name, {})
+#            nodes[node.name] = {
+#                "country": m.get("country"),
+#                "date": m.get("date"),
+#                "LANL_subtype": m.get("subtype"),
+#                "Strain_name": m.get("name"),
+#            }
+#        with open(output.node_metadata[0], "w") as f:
+#            json.dump({"nodes": nodes}, f)
+
+
+rule export_stitched:
+    wildcard_constraints:
+        gene="P|S|C|X"  
+    input:
+        tree = STITCHED_DIR + "/{gene}_tree.nwk",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+        config = "defaults/auspice_config_stitched.json", # Atm the exact same as auspice_config.json but could be configured differently
+        node_data = [
+            STITCHED_DIR + "/node_data/{gene}_branch_lengths.json",
+            STITCHED_DIR + "/node_data/{gene}_muts.json",
+            STITCHED_DIR + "/{gene}_subclades.json",
+            STITCHED_DIR + "/{gene}_clades.json",]
+            #STITCHED_DIR + "/{gene}_node_metadata.json",
+        
+    output:
+        auspice_json = STITCHED_DIR + "/{gene}.json",
+    threads: 1
+    shell:
+        """
+        augur export v2 \
+            --tree "{input.tree}" \
+            --node-data {input.node_data} \
+            --metadata "{input.metadata}" \
+            --metadata-id-columns accession \
+            --output "{output.auspice_json}" \
+            --auspice-config "{input.config}" \
+            --color-by-metadata \
+                genotype_genbank \
+                subgenotype_genbank \
+                clade_nextclade \
+                genotype \
+                taxon_id \
+                host \
+                is_lab_host \
+                region \
+                country \
+                division \
+                location \
+                year \
+                date \
+                strain \
+                isolate \
+            --minify-json \
+            --include-root-sequence-inline
+        """
+
+
+#______________________________________________________________________________________________________________________________________________________________________________________________
+
+
+rule create_auspice_view_full_tree:
+    input: 
+        main_clades="results/stitched/{gene}_global/{gene}.json",
+        full_tree="results/basic/all/{gene}_masked/{gene}.json",
+    output:
+        main_clades="auspice_datasets/{gene}_masked/main-clades.json",
+        full_tree="auspice_datasets/{gene}_masked/full-tree.json",
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+    shell:
+        r"""
+        mkdir -p auspice_datasets/{wildcards.gene}_masked
+        cp {input.main_clades} {output.main_clades}
+        cp {input.full_tree} {output.full_tree}
+        """
+
+rule create_auspice_view_single:
+    input:
+        json="results/single-clade/{key}/{gene}_masked/{gene}.json"
+    output:
+        single_clades="auspice_datasets/{gene}_masked/clade_{key}.json",
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+        key="|".join(SINGLE_BUILD_GENOTYPES),
+    shell:
+        r"""
+        mkdir -p auspice_datasets/{wildcards.gene}_masked
+        cp {input.json} {output.single_clades}
+        """
+
+
+
+
+
+#______________________________________________________________________________________________________________________________________________________________________________________________
+
+rule find_new_clades:
+    input:
+        tree="results/stitched/{gene}_global/{gene}.json",
+        metadata="data/filtered/metadata.len_filtered.tsv",
+    output:
+        clade_summary="results/{gene}_masked_stitched_clade_summary.tsv",
+    params:
+        #target="A",
+        genotype_cols="genotype_genbank subgenotype_genbank", 
+        id_col="accession",
+        min_purity=0.9,
+        min_child_purity=0.5,
+    shell:
+        r"""
+        python scripts/find_majority_clade.py \
+            --tree {input.tree} \
+            --metadata {input.metadata} \
+            --genotype-col {params.genotype_cols} \
+            --id-col {params.id_col} \
+            --min-purity {params.min_purity} \
+            --child-min-purity {params.min_child_purity} \
+            --output {output.clade_summary}
         """
