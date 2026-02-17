@@ -1,0 +1,43 @@
+{
+  "maintainers": [
+    { "name": "Jonas Amirar", "url": "https://github.com/" }
+  ],
+  "colorings": [
+    { "key": "strain", "title": "Strain", "type": "categorical" },
+    { "key": "isolate", "title": "Isolate", "type": "categorical" },
+    { "key": "date", "title": "Date", "type": "temporal" },
+    { "key": "year", "title": "Year", "type": "temporal" },
+    { "key": "region", "title": "Region", "type": "categorical" },
+    { "key": "country", "title": "Country", "type": "categorical" },
+    { "key": "division", "title": "Division", "type": "categorical" },
+    { "key": "location", "title": "Location", "type": "categorical" },
+    { "key": "host", "title": "Host", "type": "categorical" },
+    { "key": "is_lab_host", "title": "Is lab host", "type": "categorical" },
+    { "key": "genotype", "title": "Genotype", "type": "categorical" },
+    { "key": "taxon_id", "title": "Taxon ID", "type": "categorical" },
+    { "key": "genotype_genbank", "title": "Genotype (GenBank)", "type": "categorical" },
+    { "key": "subgenotype_genbank", "title": "Subgenotype (GenBank)", "type": "categorical" },
+    { "key": "clade_nextclade", "title": "Clade (Nextclade)", "type": "categorical" },
+    { "key": "clade_membership", "title": "Clade", "type": "categorical" }
+
+  ],
+  "filters": [
+    "genotype_genbank",
+    "subgenotype_genbank",
+    "clade_nextclade",
+    "genotype",
+    "taxon_id",
+    "region",
+    "country",
+    "host",
+    "is_lab_host",
+    "strain"
+  ],
+  "geo_resolutions": ["country", "region"],
+  "panels": ["tree", "map", "entropy"],
+  "display_defaults": {
+    "color_by": "clade_nextclade",
+    "geo_resolution": "country",
+    "distance_measure": "div"
+  }
+}

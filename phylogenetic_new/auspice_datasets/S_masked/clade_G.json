@@ -1,0 +1,3255 @@
+{
+  "version": "v2",
+  "meta": {
+    "updated": "2026-02-11",
+    "maintainers": [
+      {
+        "name": "Jonas Amirar",
+        "url": "https://github.com/"
+      }
+    ],
+    "display_defaults": {
+      "color_by": "clade_nextclade",
+      "geo_resolution": "country",
+      "distance_measure": "div"
+    },
+    "genome_annotations": {
+      "C": {
+        "end": 2454,
+        "seqid": "defaults/NC_003977.2_version_2026.gff",
+        "start": 1816,
+        "strand": "+",
+        "type": "gene"
+      },
+      "P": {
+        "end": 4807,
+        "seqid": "defaults/NC_003977.2_version_2026.gff",
+        "start": 2309,
+        "strand": "+",
+        "type": "gene"
+      },
+      "S": {
+        "end": 4019,
+        "seqid": "defaults/NC_003977.2_version_2026.gff",
+        "start": 2850,
+        "strand": "+",
+        "type": "gene"
+      },
+      "X": {
+        "end": 1840,
+        "seqid": "defaults/NC_003977.2_version_2026.gff",
+        "start": 1376,
+        "strand": "+",
+        "type": "gene"
+      },
+      "nuc": {
+        "end": 3182,
+        "start": 1,
+        "strand": "+",
+        "type": "source"
+      }
+    },
+    "colorings": [
+      {
+        "key": "gt",
+        "title": "Genotype",
+        "type": "categorical"
+      },
+      {
+        "key": "genotype_genbank",
+        "title": "Genotype (GenBank)",
+        "type": "categorical"
+      },
+      {
+        "key": "clade_nextclade",
+        "title": "Clade (Nextclade)",
+        "type": "categorical"
+      },
+      {
+        "key": "genotype",
+        "title": "Genotype",
+        "type": "categorical"
+      },
+      {
+        "key": "taxon_id",
+        "title": "Taxon ID",
+        "type": "categorical"
+      },
+      {
+        "key": "host",
+        "title": "Host",
+        "type": "categorical"
+      },
+      {
+        "key": "region",
+        "title": "Region",
+        "type": "categorical",
+        "scale": [
+          [
+            "Africa",
+            "#CEB541"
+          ],
+          [
+            "Europe",
+            "#E39B39"
+          ],
+          [
+            "South America",
+            "#E56C2F"
+          ],
+          [
+            "North America",
+            "#DC2F24"
+          ]
+        ]
+      },
+      {
+        "key": "country",
+        "title": "Country",
+        "type": "categorical"
+      },
+      {
+        "key": "division",
+        "title": "Division",
+        "type": "categorical"
+      },
+      {
+        "key": "year",
+        "title": "Year",
+        "type": "temporal"
+      },
+      {
+        "key": "date",
+        "title": "Date",
+        "type": "temporal"
+      },
+      {
+        "key": "strain",
+        "title": "Strain",
+        "type": "categorical"
+      },
+      {
+        "key": "isolate",
+        "title": "Isolate",
+        "type": "categorical"
+      }
+    ],
+    "filters": [
+      "genotype_genbank",
+      "subgenotype_genbank",
+      "clade_nextclade",
+      "genotype",
+      "taxon_id",
+      "region",
+      "country",
+      "host",
+      "is_lab_host",
+      "strain"
+    ],
+    "geo_resolutions": [
+      {
+        "key": "country",
+        "demes": {
+          "South Africa": {
+            "latitude": -28.8166235,
+            "longitude": 24.991639
+          },
+          "USA": {
+            "latitude": 38.916963,
+            "longitude": -98.891372
+          },
+          "Brazil": {
+            "latitude": -10.3333332,
+            "longitude": -53.1999999
+          },
+          "Venezuela": {
+            "latitude": 7.838891,
+            "longitude": -65.916409
+          },
+          "Mexico": {
+            "latitude": 19.4325301,
+            "longitude": -99.1332101
+          },
+          "Netherlands": {
+            "latitude": 52.1326,
+            "longitude": 5.2913
+          },
+          "Belgium": {
+            "latitude": 50.707735,
+            "longitude": 4.677726
+          },
+          "United Kingdom": {
+            "latitude": 54.242833,
+            "longitude": -2.088739
+          }
+        }
+      },
+      {
+        "key": "region",
+        "demes": {
+          "Europe": {
+            "latitude": 49.646237,
+            "longitude": 10.799454
+          },
+          "Africa": {
+            "latitude": 4.070194,
+            "longitude": 21.824559
+          },
+          "South America": {
+            "latitude": -13.083583,
+            "longitude": -58.470721
+          },
+          "North America": {
+            "latitude": 28.2367447,
+            "longitude": -97.738017
+          }
+        }
+      }
+    ],
+    "panels": [
+      "tree",
+      "map",
+      "entropy"
+    ]
+  },
+  "tree": {
+    "name": "NODE_0000000",
+    "node_attrs": {
+      "div": 0
+    },
+    "branch_attrs": {
+      "mutations": {}
+    },
+    "children": [
+      {
+        "name": "NC_003977",
+        "node_attrs": {
+          "div": 0.0670454,
+          "url": "https://www.ncbi.nlm.nih.gov/nuccore/NC_003977",
+          "accession": "NC_003977",
+          "author": {
+            "author": "Abraham et al.",
+            "value": "Abraham et al."
+          },
+          "strain": {
+            "value": "ayw"
+          },
+          "clade_nextclade": {
+            "value": "D"
+          },
+          "isolate": {
+            "value": "ayw"
+          },
+          "year": {
+            "value": "XXXX"
+          },
+          "genotype": {
+            "value": "Hepatitis B virus"
+          },
+          "taxon_id": {
+            "value": 10407
+          },
+          "date": {
+            "value": "XXXX-XX-XX"
+          }
+        },
+        "branch_attrs": {
+          "mutations": {
+            "nuc": [
+              "C3T",
+              "G10A",
+              "G22A",
+              "A27G",
+              "C42G",
+              "G45A",
+              "T48C",
+              "C98T",
+              "T104C",
+              "A113C",
+              "A115T",
+              "C117A",
+              "A150G",
+              "C152T",
+              "G192T",
+              "G289A",
+              "T290C",
+              "G291T",
+              "C292A",
+              "C302T",
+              "T308A",
+              "T344C",
+              "C348T",
+              "C369T",
+              "A402C",
+              "G483A",
+              "G498A",
+              "C501A",
+              "T507C",
+              "C516A",
+              "A520C",
+              "A521G",
+              "A522G",
+              "C530T",
+              "C535A",
+              "C546A",
+              "A548C",
+              "A564C",
+              "A576C",
+              "T621C",
+              "C632G",
+              "A638T",
+              "T659C",
+              "T669C",
+              "C726T",
+              "C737T",
+              "A767G",
+              "A776G",
+              "A793T",
+              "C834T",
+              "A854G",
+              "T866C",
+              "C869T",
+              "T870C",
+              "A884T",
+              "A890C",
+              "A897T",
+              "G901A",
+              "G902T",
+              "T905G",
+              "T908C",
+              "C928T",
+              "G932A",
+              "T938C",
+              "C942G",
+              "C951A",
+              "G953A",
+              "C959T",
+              "G963A",
+              "A974T",
+              "C989A",
+              "A1001T",
+              "A1002G",
+              "C1003T",
+              "C1019T",
+              "T1025C",
+              "C1034A",
+              "C1046T",
+              "C1052G",
+              "A1055G",
+              "A1064G",
+              "A1076T",
+              "G1080T",
+              "T1094C",
+              "T1112C",
+              "C1124G",
+              "A1137C",
+              "T1157C",
+              "A1158C",
+              "C1169A",
+              "T1208C",
+              "C1219T",
+              "C1223G",
+              "G1251T",
+              "T1252C",
+              "T1289C",
+              "C1308A",
+              "A1322C",
+              "C1323A",
+              "C1325T",
+              "T1328C",
+              "C1337T",
+              "T1340C",
+              "C1346T",
+              "T1352A",
+              "T1355C",
+              "G1358C",
+              "C1370G",
+              "T1409G",
+              "A1439G",
+              "A1451T",
+              "C1463T",
+              "C1466T",
+              "C1472T",
+              "T1475C",
+              "G1486C",
+              "C1490T",
+              "T1513G",
+              "G1514A",
+              "T1546A",
+              "T1607C",
+              "A1608G",
+              "A1615G",
+              "G1619A",
+              "A1622G",
+              "T1631C",
+              "C1632A",
+              "T1633C",
+              "T1636A",
+              "C1637A",
+              "A1638T",
+              "T1639A",
+              "C1640T",
+              "A1645C",
+              "C1649G",
+              "A1650T",
+              "G1651C",
+              "T1655C",
+              "G1675C",
+              "T1677C",
+              "T1678A",
+              "T1680C",
+              "T1681A",
+              "A1690G",
+              "G1695A",
+              "G1696C",
+              "G1697C",
+              "G1699T",
+              "A1703G",
+              "A1704C",
+              "G1714A",
+              "G1721T",
+              "T1723G",
+              "G1727A",
+              "C1728A",
+              "T1729A",
+              "G1732C",
+              "A1738G",
+              "A1741G",
+              "A1744G",
+              "C1747G",
+              "A1748G",
+              "T1750G",
+              "T1754A",
+              "C1756T",
+              "T1764A",
+              "C1767T",
+              "A1898G",
+              "G1947A",
+              "T1971C",
+              "C1974T",
+              "G1977T",
+              "T1980A",
+              "T1983A",
+              "T1986A",
+              "C1995A",
+              "C1998T",
+              "T2004C",
+              "T2011C",
+              "C2016T",
+              "T2023G",
+              "C2034T",
+              "T2035C",
+              "T2040G",
+              "G2049A",
+              "A2061T",
+              "G2082T",
+              "T2091G",
+              "G2094A",
+              "T2095C",
+              "G2097A",
+              "A2122G",
+              "A2142G",
+              "C2145T",
+              "T2151C",
+              "T2152C",
+              "G2154A",
+              "G2157A",
+              "T2172C",
+              "T2184C",
+              "T2185C",
+              "A2190G",
+              "A2191T",
+              "A2202C",
+              "C2220T",
+              "T2226C",
+              "G2235A",
+              "C2248A",
+              "T2250A",
+              "T2268C",
+              "T2292A",
+              "A2356C",
+              "C2371A",
+              "A2403G",
+              "G2431C",
+              "C2432A",
+              "C2438G",
+              "A2439G",
+              "T2441A",
+              "C2445T",
+              "C2470T",
+              "A2479G",
+              "G2488T",
+              "G2494T",
+              "A2507G",
+              "G2525C",
+              "C2531A",
+              "T2536A",
+              "T2539A",
+              "A2548T",
+              "G2560A",
+              "T2563C",
+              "A2575C",
+              "C2577A",
+              "T2578A",
+              "A2590G",
+              "G2596A",
+              "T2602A",
+              "A2611T",
+              "C2621A",
+              "A2629G",
+              "A2630C",
+              "C2633T",
+              "A2635G",
+              "G2636A",
+              "A2650G",
+              "T2655A",
+              "C2656T",
+              "C2662G",
+              "T2663G",
+              "C2664T",
+              "T2668C",
+              "A2683G",
+              "C2686T",
+              "A2689G",
+              "C2695T",
+              "G2701T",
+              "A2714C",
+              "G2717C",
+              "G2737A",
+              "C2740T",
+              "T2746C",
+              "T2755C",
+              "T2761A",
+              "C2777T",
+              "T2795A",
+              "C2797A",
+              "G2799A",
+              "T2806C",
+              "T2897C",
+              "C2909T",
+              "A2915C",
+              "A2931G",
+              "A2932C",
+              "C2933A",
+              "C2967A",
+              "A2978C",
+              "T2995C",
+              "C3010T",
+              "C3011G",
+              "G3014T",
+              "T3023A",
+              "A3026G",
+              "C3067T",
+              "A3072C",
+              "C3073A",
+              "T3113C",
+              "T3134C",
+              "C3137G",
+              "A3138C",
+              "C3140G",
+              "C3150T",
+              "A3152G",
+              "G3156A",
+              "G3160C"
+            ],
+            "C": [
+              "*28W",
+              "S70A",
+              "S74P",
+              "N116S",
+              "I126F",
+              "L145I",
+              "A206Q",
+              "P208R",
+              "A209E"
+            ],
+            "P": [
+              "E16D",
+              "D32G",
+              "H42N",
+              "Q44G",
+              "L45N",
+              "P46L",
+              "I67V",
+              "D73H",
+              "Q75K",
+              "T90K",
+              "K108Q",
+              "V110I",
+              "F116Y",
+              "N118K",
+              "S119V",
+              "N136H",
+              "V137L",
+              "S163T",
+              "R164H",
+              "S197P",
+              "P201S",
+              "I203L",
+              "Y207H",
+              "Q208R",
+              "Q209K",
+              "P220H",
+              "G224R",
+              "R235G",
+              "V236F",
+              "S239T",
+              "T240A",
+              "N255T",
+              "S269P",
+              "S276P",
+              "H277A",
+              "L278V",
+              "T281F",
+              "K282E",
+              "Q284H",
+              "L293F",
+              "C295N",
+              "S299N",
+              "G302R",
+              "G307R",
+              "S311P",
+              "H330L",
+              "L331I",
+              "Q336E",
+              "T342A",
+              "A356S",
+              "S388N",
+              "A389Y",
+              "I426L",
+              "D453N",
+              "D458N",
+              "H459N",
+              "Y461H",
+              "L464M",
+              "Q465P",
+              "N466D",
+              "S470Y",
+              "M480L",
+              "K484Q",
+              "Y556F",
+              "S591C",
+              "W592Y",
+              "T594S",
+              "T601I",
+              "Q606E",
+              "V613I",
+              "T626V",
+              "A652S",
+              "M671L",
+              "A698V",
+              "I699M",
+              "V709S",
+              "K732N",
+              "L733I",
+              "C787S",
+              "L796R",
+              "V807D",
+              "T828A",
+              "K830R"
+            ],
+            "S": [
+              "G3Q",
+              "N28A",
+              "I37N",
+              "P40T",
+              "A43D",
+              "V49A",
+              "T73I",
+              "T75Q",
+              "I97L",
+              "D103N",
+              "S104T",
+              "A115T",
+              "A119T",
+              "P144L",
+              "I146T",
+              "H149P",
+              "I150L",
+              "P162L",
+              "V208T",
+              "P209T",
+              "P212L",
+              "L214Q",
+              "I226T",
+              "K285R",
+              "T288M",
+              "P290T",
+              "N294T",
+              "A322G",
+              "Y324F",
+              "V331A",
+              "A357V",
+              "N367S",
+              "N370S",
+              "I376L"
+            ],
+            "X": [
+              "S12A",
+              "S22G",
+              "S26C",
+              "L30F",
+              "P31S",
+              "M33S",
+              "F34L",
+              "A36T",
+              "P39S",
+              "A47T",
+              "Y78R",
+              "A82T",
+              "M83V",
+              "T85A",
+              "S86H",
+              "H87Q",
+              "H88I",
+              "R91K",
+              "Q92V",
+              "F101S",
+              "V102A",
+              "G107D",
+              "V108L",
+              "K110A",
+              "A118K",
+              "N125E",
+              "S127I",
+              "M130K",
+              "T131V"
+            ]
+          },
+          "labels": {
+            "aa": "C: *28W, S70A, S74P, N116S, I126F, L145I, A206Q, P208R, A209E; P: E16D, D32G, H42N, Q44G, L45N, P46L, I67V, D73H, Q75K, T90K, K108Q, V110I, F116Y, N118K, S119V, N136H, V137L, S163T, R164H, S197P, P201S, I203L, Y207H, Q208R, Q209K, P220H, G224R, R235G, V236F, S239T, T240A, N255T, S269P, S276P, H277A, L278V, T281F, K282E, Q284H, L293F, C295N, S299N, G302R, G307R, S311P, H330L, L331I, Q336E, T342A, A356S, S388N, A389Y, I426L, D453N, D458N, H459N, Y461H, L464M, Q465P, N466D, S470Y, M480L, K484Q, Y556F, S591C, W592Y, T594S, T601I, Q606E, V613I, T626V, A652S, M671L, A698V, I699M, V709S, K732N, L733I, C787S, L796R, V807D, T828A, K830R; S: G3Q, N28A, I37N, P40T, A43D, V49A, T73I, T75Q, I97L, D103N, S104T, A115T, A119T, P144L, I146T, H149P, I150L, P162L, V208T, P209T, P212L, L214Q, I226T, K285R, T288M, P290T, N294T, A322G, Y324F, V331A, A357V, N367S, N370S, I376L; X: S12A, S22G, S26C, L30F, P31S, M33S, F34L, A36T, P39S, A47T, Y78R, A82T, M83V, T85A, S86H, H87Q, H88I, R91K, Q92V, F101S, V102A, G107D, V108L, K110A, A118K, N125E, S127I, M130K, T131V"
+          }
+        }
+      },
+      {
+        "name": "NODE_0000001",
+        "node_attrs": {
+          "div": 0.0049489
+        },
+        "branch_attrs": {
+          "mutations": {
+            "nuc": [
+              "T906A",
+              "G1628A",
+              "A1647G",
+              "T1755C",
+              "G1766A",
+              "C1775T",
+              "C1911T",
+              "T2123A",
+              "G2162A",
+              "C2169T",
+              "A2244C",
+              "T2441C",
+              "A2442T",
+              "T2758C",
+              "A2776T"
+            ],
+            "C": [
+              "V103N"
+            ],
+            "P": [
+              "K283R",
+              "E306Q",
+              "N474Q"
+            ],
+            "S": [
+              "L54P"
+            ],
+            "X": [
+              "M33P",
+              "H94Y",
+              "L116V",
+              "D119E"
+            ]
+          },
+          "labels": {
+            "aa": "C: V103N; P: K283R, E306Q, N474Q; S: L54P; X: M33P, H94Y, L116V, D119E"
+          }
+        },
+        "children": [
+          {
+            "name": "NODE_0000002",
+            "node_attrs": {
+              "div": 0.0246354
+            },
+            "branch_attrs": {
+              "mutations": {
+                "nuc": [
+                  "A9T",
+                  "T2079C",
+                  "T2842G",
+                  "C2856A",
+                  "A2857C",
+                  "C2867T",
+                  "A2868G",
+                  "C2869T",
+                  "C2870T",
+                  "A2871C",
+                  "G2872C",
+                  "C2900T",
+                  "A2912T",
+                  "A2919G",
+                  "A2924C",
+                  "A2928T",
+                  "C2930A",
+                  "T2954C",
+                  "A2959T",
+                  "C2968A",
+                  "A2977C",
+                  "A2985C",
+                  "T2996G",
+                  "C3011A"
+                ],
+                "P": [
+                  "D178E",
+                  "A183R",
+                  "H187C",
+                  "Q188S",
+                  "P198S",
+                  "S202C",
+                  "Q204R",
+                  "K206Q",
+                  "Y207L",
+                  "Q208K",
+                  "S216P",
+                  "Q217H",
+                  "R223S",
+                  "G224S",
+                  "Q226P",
+                  "W230G",
+                  "T281S",
+                  "P308S"
+                ],
+                "S": [
+                  "T7V",
+                  "S8P",
+                  "R24G",
+                  "T27S",
+                  "P40H",
+                  "K46Q"
+                ]
+              },
+              "labels": {
+                "aa": "P: D178E, A183R, H187C, Q188S, P198S, S202C, Q204R, K206Q, Y207L, Q208K, S216P, Q217H, R223S, G224S, Q226P, W230G, T281S, P308S; S: T7V, S8P, R24G, T27S, P40H, K46Q"
+              }
+            },
+            "children": [
+              {
+                "name": "KP274926",
+                "node_attrs": {
+                  "div": 0.0392225,
+                  "url": "https://www.ncbi.nlm.nih.gov/nuccore/KP274926",
+                  "accession": "KP274926",
+                  "author": {
+                    "author": "Mina et al.",
+                    "value": "Mina et al."
+                  },
+                  "strain": {
+                    "value": "GS-2"
+                  },
+                  "country": {
+                    "value": "Belgium"
+                  },
+                  "clade_nextclade": {
+                    "value": "G"
+                  },
+                  "isolate": {
+                    "value": "GS-2"
+                  },
+                  "year": {
+                    "value": "2002"
+                  },
+                  "host": {
+                    "value": "Homo sapiens"
+                  },
+                  "genotype": {
+                    "value": "Hepatitis B virus"
+                  },
+                  "taxon_id": {
+                    "value": 10407
+                  },
+                  "genotype_genbank": {
+                    "value": "G"
+                  },
+                  "region": {
+                    "value": "Europe"
+                  },
+                  "date": {
+                    "value": "2002-XX-XX"
+                  }
+                },
+                "branch_attrs": {
+                  "mutations": {
+                    "nuc": [
+                      "A27G",
+                      "A30G",
+                      "C57T",
+                      "G132C",
+                      "A941G",
+                      "G1004T",
+                      "T1010G",
+                      "A1481G",
+                      "C1819T",
+                      "T2040G",
+                      "A2554C",
+                      "C2769A",
+                      "G2770C",
+                      "G2772T",
+                      "T2776C",
+                      "A2783C",
+                      "A2794C",
+                      "T2795A",
+                      "C2797A",
+                      "T2806A",
+                      "A2809G",
+                      "T2815C",
+                      "A3032C",
+                      "C3035T",
+                      "C3036A",
+                      "C3067T",
+                      "C3069T",
+                      "A3071G",
+                      "A3074C",
+                      "T3077A",
+                      "T3078G",
+                      "C3081T",
+                      "G3084A",
+                      "A3088T",
+                      "G3092T",
+                      "T3113G"
+                    ],
+                    "C": [
+                      "Q2*"
+                    ],
+                    "P": [
+                      "A154D",
+                      "G155V",
+                      "K159Q",
+                      "S163T",
+                      "Q180H",
+                      "P243Y",
+                      "T254I",
+                      "N255D",
+                      "N256H",
+                      "F257S",
+                      "A258V",
+                      "S259N",
+                      "K260N",
+                      "A262S",
+                      "S269A"
+                    ],
+                    "S": [
+                      "G3T",
+                      "L63I",
+                      "T73I",
+                      "L77V",
+                      "P78S",
+                      "A79T",
+                      "N80I"
+                    ]
+                  },
+                  "labels": {
+                    "aa": "C: Q2*; P: A154D, G155V, K159Q, S163T, Q180H, P243Y, T254I, N255D, N256H, F257S, A258V, S259N, K260N, A262S, S269A; S: G3T, L63I, T73I, L77V, P78S, A79T, N80I"
+                  }
+                }
+              },
+              {
+                "name": "NODE_0000003",
+                "node_attrs": {
+                  "div": 0.0603779
+                },
+                "branch_attrs": {
+                  "mutations": {
+                    "nuc": [
+                      "G10C",
+                      "T13A",
+                      "C16T",
+                      "A17C",
+                      "C18T",
+                      "A20C",
+                      "G22C",
+                      "C28A",
+                      "A29G",
+                      "C36T",
+                      "A37C",
+                      "G38A",
+                      "A39G",
+                      "T41C",
+                      "G44T",
+                      "G46C",
+                      "G47A",
+                      "T48G",
+                      "C49T",
+                      "T50G",
+                      "T52A",
+                      "T56C",
+                      "T95C",
+                      "C101A",
+                      "T128C",
+                      "T130G",
+                      "T137C",
+                      "C149T",
+                      "A150G",
+                      "C151G",
+                      "A557T",
+                      "T583A",
+                      "C588T",
+                      "A618G",
+                      "T621C",
+                      "C834T",
+                      "T870C",
+                      "T875C",
+                      "T878C",
+                      "A884T",
+                      "T887C",
+                      "G888A",
+                      "T905A",
+                      "A917G",
+                      "A920T",
+                      "C923T",
+                      "C926T",
+                      "A927G",
+                      "C928T",
+                      "G932A",
+                      "A935G",
+                      "T938C",
+                      "A944C",
+                      "C951A",
+                      "G953A",
+                      "C959T",
+                      "A974T",
+                      "C989A",
+                      "C996A",
+                      "A1001T",
+                      "A1002G",
+                      "C1003T",
+                      "T1016C",
+                      "C1019T",
+                      "T1028A",
+                      "C1034A",
+                      "T1043A",
+                      "C1046T",
+                      "A1064G",
+                      "G1085A",
+                      "T1094C",
+                      "T1112C",
+                      "C1124A",
+                      "T1125A",
+                      "A1133G",
+                      "A1158C",
+                      "C1169T",
+                      "T1289C",
+                      "A1322G",
+                      "T1328C",
+                      "G1331A",
+                      "T1343C",
+                      "T1352C",
+                      "T1355G",
+                      "C1370G",
+                      "G1392A",
+                      "A1439G",
+                      "A1451C",
+                      "C1466T",
+                      "T1475C",
+                      "G1486C",
+                      "C1490T",
+                      "T1513A",
+                      "T1680G",
+                      "G1697A",
+                      "C1767T",
+                      "C1768T",
+                      "T1770A",
+                      "C1804T",
+                      "G1805T",
+                      "T1860C",
+                      "T2032G",
+                      "T2828A",
+                      "T2876C",
+                      "T3015C",
+                      "G3057T"
+                    ],
+                    "C": [
+                      "E75D"
+                    ],
+                    "P": [
+                      "S174T",
+                      "S190P",
+                      "V236A",
+                      "G250V",
+                      "L293F",
+                      "H294-",
+                      "C295-",
+                      "L296-",
+                      "P297-",
+                      "P298-",
+                      "S299-",
+                      "S300-",
+                      "A301-",
+                      "G302-",
+                      "S303-",
+                      "Q304-",
+                      "S305-",
+                      "Q306-",
+                      "G307-",
+                      "S308-",
+                      "V309-",
+                      "F310-",
+                      "S311P",
+                      "D325E",
+                      "L335R",
+                      "Q336E",
+                      "T342G",
+                      "F486Y",
+                      "R488W",
+                      "I498V",
+                      "V588I",
+                      "E598D",
+                      "T601V",
+                      "Q606H",
+                      "T626V",
+                      "C667S",
+                      "A756T",
+                      "C787S",
+                      "L796Q"
+                    ],
+                    "S": [
+                      "F56L",
+                      "A70S",
+                      "T114-",
+                      "A115-",
+                      "F116-",
+                      "H117-",
+                      "Q118-",
+                      "A119-",
+                      "L120-",
+                      "Q121-",
+                      "D122-",
+                      "P123-",
+                      "R124-",
+                      "V125-",
+                      "R126-",
+                      "G127-",
+                      "L128-",
+                      "Y129-",
+                      "F130-",
+                      "V143A",
+                      "T145N",
+                      "F154S",
+                      "S155A",
+                      "I157T",
+                      "A161V",
+                      "P162A",
+                      "Y297F",
+                      "S306T"
+                    ],
+                    "X": [
+                      "C6Y",
+                      "S22G",
+                      "S26R",
+                      "P31S",
+                      "F34L",
+                      "A36T",
+                      "P39S",
+                      "V108M",
+                      "T131I",
+                      "F132Y",
+                      "A144S"
+                    ]
+                  },
+                  "labels": {
+                    "aa": "C: E75D; P: S174T, S190P, V236A, G250V, L293F, H294-, C295-, L296-, P297-, P298-, S299-, S300-, A301-, G302-, S303-, Q304-, S305-, Q306-, G307-, S308-, V309-, F310-, S311P, D325E, L335R, Q336E, T342G, F486Y, R488W, I498V, V588I, E598D, T601V, Q606H, T626V, C667S, A756T, C787S, L796Q; S: F56L, A70S, T114-, A115-, F116-, H117-, Q118-, A119-, L120-, Q121-, D122-, P123-, R124-, V125-, R126-, G127-, L128-, Y129-, F130-, V143A, T145N, F154S, S155A, I157T, A161V, P162A, Y297F, S306T; X: C6Y, S22G, S26R, P31S, F34L, A36T, P39S, V108M, T131I, F132Y, A144S"
+                  }
+                },
+                "children": [
+                  {
+                    "name": "JQ707470",
+                    "node_attrs": {
+                      "div": 0.0603779,
+                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/JQ707470",
+                      "accession": "JQ707470",
+                      "author": {
+                        "author": "Thai et al.",
+                        "value": "Thai et al."
+                      },
+                      "strain": {
+                        "value": "MC3_C34"
+                      },
+                      "country": {
+                        "value": "USA"
+                      },
+                      "clade_nextclade": {
+                        "value": "G"
+                      },
+                      "isolate": {
+                        "value": "MC3_C34"
+                      },
+                      "year": {
+                        "value": "2001"
+                      },
+                      "host": {
+                        "value": "Homo sapiens"
+                      },
+                      "genotype": {
+                        "value": "Hepatitis B virus"
+                      },
+                      "taxon_id": {
+                        "value": 10407
+                      },
+                      "genotype_genbank": {
+                        "value": "G"
+                      },
+                      "region": {
+                        "value": "North America"
+                      },
+                      "date": {
+                        "value": "2001-02-14"
+                      }
+                    },
+                    "branch_attrs": {
+                      "mutations": {
+                        "C": [
+                          "S73A"
+                        ],
+                        "X": [
+                          "V102G"
+                        ]
+                      },
+                      "labels": {
+                        "aa": "C: S73A; X: V102G"
+                      }
+                    }
+                  },
+                  {
+                    "name": "JQ707459",
+                    "node_attrs": {
+                      "div": 0.0620965,
+                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/JQ707459",
+                      "accession": "JQ707459",
+                      "author": {
+                        "author": "Thai et al.",
+                        "value": "Thai et al."
+                      },
+                      "strain": {
+                        "value": "MC3_C12"
+                      },
+                      "country": {
+                        "value": "USA"
+                      },
+                      "clade_nextclade": {
+                        "value": "G"
+                      },
+                      "isolate": {
+                        "value": "MC3_C12"
+                      },
+                      "year": {
+                        "value": "2001"
+                      },
+                      "host": {
+                        "value": "Homo sapiens"
+                      },
+                      "genotype": {
+                        "value": "Hepatitis B virus"
+                      },
+                      "taxon_id": {
+                        "value": 10407
+                      },
+                      "genotype_genbank": {
+                        "value": "G"
+                      },
+                      "region": {
+                        "value": "North America"
+                      },
+                      "date": {
+                        "value": "2001-02-14"
+                      }
+                    },
+                    "branch_attrs": {
+                      "mutations": {
+                        "nuc": [
+                          "C1343T",
+                          "A1576T",
+                          "G1680T",
+                          "T1768C",
+                          "G2032T",
+                          "A2447G",
+                          "G2903A",
+                          "A3087G"
+                        ],
+                        "C": [
+                          "Q211R"
+                        ],
+                        "P": [
+                          "N47D",
+                          "V199I",
+                          "K260R",
+                          "D817V"
+                        ],
+                        "S": [
+                          "N80D"
+                        ]
+                      },
+                      "labels": {
+                        "aa": "C: Q211R; P: N47D, V199I, K260R, D817V; S: N80D"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "NODE_0000004",
+            "node_attrs": {
+              "div": 0.0216536
+            },
+            "branch_attrs": {
+              "mutations": {
+                "nuc": [
+                  "C6T",
+                  "C12A",
+                  "G31A",
+                  "G38A",
+                  "T48C",
+                  "C57T",
+                  "A81G",
+                  "C83T",
+                  "A87G",
+                  "G132C",
+                  "A941G",
+                  "G1004T",
+                  "T1010G",
+                  "A1481G",
+                  "G1559T",
+                  "A2554C",
+                  "T2828A",
+                  "T2861C",
+                  "C2927T",
+                  "C2960A",
+                  "C2969T",
+                  "A2978G",
+                  "A3002C",
+                  "T3004A",
+                  "C3005T",
+                  "G3008A",
+                  "G3057T",
+                  "A3087G",
+                  "A3122G",
+                  "T3149A"
+                ],
+                "C": [
+                  "E75D"
+                ],
+                "P": [
+                  "S174T",
+                  "S185P",
+                  "Q218K",
+                  "I232L",
+                  "R233W",
+                  "A234T",
+                  "G250V",
+                  "K260R",
+                  "K272E",
+                  "H294Y",
+                  "C295S",
+                  "L296I",
+                  "A301T",
+                  "G302K",
+                  "N319D",
+                  "K321E"
+                ],
+                "S": [
+                  "G3L",
+                  "I37K",
+                  "A43E",
+                  "F52Y",
+                  "A70S",
+                  "N80D",
+                  "D122N",
+                  "R124K",
+                  "T139I"
+                ],
+                "X": [
+                  "A62S"
+                ]
+              },
+              "labels": {
+                "aa": "C: E75D; P: S174T, S185P, Q218K, I232L, R233W, A234T, G250V, K260R, K272E, H294Y, C295S, L296I, A301T, G302K, N319D, K321E; S: G3L, I37K, A43E, F52Y, A70S, N80D, D122N, R124K, T139I; X: A62S"
+              }
+            },
+            "children": [
+              {
+                "name": "KF779267",
+                "node_attrs": {
+                  "div": 0.0230482,
+                  "url": "https://www.ncbi.nlm.nih.gov/nuccore/KF779267",
+                  "accession": "KF779267",
+                  "author": {
+                    "author": "Ramachandran et al.",
+                    "value": "Ramachandran et al."
+                  },
+                  "strain": {
+                    "value": "JFA3956"
+                  },
+                  "country": {
+                    "value": "USA"
+                  },
+                  "clade_nextclade": {
+                    "value": "G"
+                  },
+                  "isolate": {
+                    "value": "JFA3956"
+                  },
+                  "year": {
+                    "value": "2000"
+                  },
+                  "genotype": {
+                    "value": "Hepatitis B virus"
+                  },
+                  "taxon_id": {
+                    "value": 10407
+                  },
+                  "genotype_genbank": {
+                    "value": "G"
+                  },
+                  "region": {
+                    "value": "North America"
+                  },
+                  "date": {
+                    "value": "2000-XX-XX"
+                  }
+                },
+                "branch_attrs": {
+                  "mutations": {
+                    "nuc": [
+                      "G589A",
+                      "T1138G",
+                      "T1598A",
+                      "C1599A",
+                      "T1600G",
+                      "G1601T",
+                      "C1604T",
+                      "A1793T",
+                      "A1794G",
+                      "A1795G",
+                      "T1796G",
+                      "T1800C",
+                      "C1801T",
+                      "G1803T",
+                      "C1804A",
+                      "C1806G",
+                      "A1807G",
+                      "C1809A",
+                      "A1810T",
+                      "C1812G",
+                      "C1814T",
+                      "C1815A",
+                      "A1816G",
+                      "T1817A",
+                      "G1818A",
+                      "T1826G",
+                      "T1827C",
+                      "C1830T",
+                      "C1831A",
+                      "C1833G",
+                      "T1834-",
+                      "G1835-",
+                      "C1836-",
+                      "C1837-",
+                      "T1838-",
+                      "A1839-",
+                      "A1840-",
+                      "T1841-",
+                      "C1842-",
+                      "A1843-",
+                      "T1844-",
+                      "C1845-",
+                      "T1846-",
+                      "C1847-",
+                      "T1848-",
+                      "T1849-",
+                      "G1850-",
+                      "T1851-",
+                      "T1852-",
+                      "C1853-",
+                      "A1854-",
+                      "T1855-",
+                      "G1856-",
+                      "T1857-",
+                      "C1858-",
+                      "C1859-",
+                      "T1860-",
+                      "A1861-",
+                      "C1862-",
+                      "T1863-",
+                      "G1864-",
+                      "T1865-",
+                      "T1866-",
+                      "C1867-",
+                      "A1868-",
+                      "A1869-",
+                      "G1870-",
+                      "C1871-",
+                      "C1872-",
+                      "T1873-",
+                      "C1874-",
+                      "C1875-",
+                      "A1876-",
+                      "A1877-",
+                      "G1878-",
+                      "C1879-",
+                      "T1880-",
+                      "G1881-",
+                      "T1882-",
+                      "G1883-",
+                      "C1884-",
+                      "C1885-",
+                      "T1886-",
+                      "T1887-",
+                      "G1888-",
+                      "G1889-",
+                      "G1890-",
+                      "T1891-",
+                      "G1893C",
+                      "A1898T",
+                      "G1899T",
+                      "A1903T",
+                      "G1905A",
+                      "C2367T",
+                      "C2398G",
+                      "G2399C",
+                      "A2400C",
+                      "A2401T",
+                      "G2402T",
+                      "A2403C",
+                      "T2406C",
+                      "C2411A",
+                      "A2713G",
+                      "A2915C"
+                    ],
+                    "C": [
+                      "M1E",
+                      "F4C",
+                      "L6M",
+                      "C7-",
+                      "L8-",
+                      "I9-",
+                      "I10-",
+                      "S11-",
+                      "C12-",
+                      "S13-",
+                      "C14-",
+                      "P15-",
+                      "T16-",
+                      "V17-",
+                      "Q18-",
+                      "A19-",
+                      "S20-",
+                      "K21-",
+                      "L22-",
+                      "C23-",
+                      "L24-",
+                      "G25-",
+                      "W26-"
+                    ],
+                    "P": [
+                      "P20L",
+                      "D30E",
+                      "E31P",
+                      "D32S",
+                      "L33P",
+                      "R35S",
+                      "I203L",
+                      "R488Q",
+                      "M671R",
+                      "L825S"
+                    ],
+                    "S": [
+                      "G308R"
+                    ],
+                    "X": [
+                      "S75K",
+                      "A76S",
+                      "R77C"
+                    ]
+                  },
+                  "labels": {
+                    "aa": "C: M1E, F4C, L6M, C7-, L8-, I9-, I10-, S11-, C12-, S13-, C14-, P15-, T16-, V17-, Q18-, A19-, S20-, K21-, L22-, C23-, L24-, G25-, W26-; P: P20L, D30E, E31P, D32S, L33P, R35S, I203L, R488Q, M671R, L825S; S: G308R; X: S75K, A76S, R77C"
+                  }
+                }
+              },
+              {
+                "name": "NODE_0000005",
+                "node_attrs": {
+                  "div": 0.0235341
+                },
+                "branch_attrs": {
+                  "mutations": {
+                    "nuc": [
+                      "T2079C",
+                      "G2882A",
+                      "T2889C"
+                    ],
+                    "P": [
+                      "G192R",
+                      "L194P"
+                    ],
+                    "S": [
+                      "F14L"
+                    ]
+                  },
+                  "labels": {
+                    "aa": "P: G192R, L194P; S: F14L"
+                  }
+                },
+                "children": [
+                  {
+                    "name": "NODE_0000006",
+                    "node_attrs": {
+                      "div": 0.0235342
+                    },
+                    "branch_attrs": {
+                      "mutations": {
+                        "X": [
+                          "S62A"
+                        ]
+                      },
+                      "labels": {
+                        "aa": "X: S62A"
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "KF779357",
+                        "node_attrs": {
+                          "div": 0.0284531,
+                          "url": "https://www.ncbi.nlm.nih.gov/nuccore/KF779357",
+                          "accession": "KF779357",
+                          "author": {
+                            "author": "Ramachandran et al.",
+                            "value": "Ramachandran et al."
+                          },
+                          "strain": {
+                            "value": "PNF5187"
+                          },
+                          "country": {
+                            "value": "USA"
+                          },
+                          "clade_nextclade": {
+                            "value": "G"
+                          },
+                          "isolate": {
+                            "value": "PNF5187"
+                          },
+                          "year": {
+                            "value": "2004"
+                          },
+                          "genotype": {
+                            "value": "Hepatitis B virus"
+                          },
+                          "taxon_id": {
+                            "value": 10407
+                          },
+                          "genotype_genbank": {
+                            "value": "G"
+                          },
+                          "region": {
+                            "value": "North America"
+                          },
+                          "date": {
+                            "value": "2004-XX-XX"
+                          }
+                        },
+                        "branch_attrs": {
+                          "mutations": {
+                            "nuc": [
+                              "C101A",
+                              "T212A",
+                              "T217G",
+                              "A229T",
+                              "C232T",
+                              "T659C",
+                              "A1280T",
+                              "C1284A",
+                              "T1285G",
+                              "T1559G",
+                              "T1677C",
+                              "T1680C",
+                              "T1681A",
+                              "A1690G",
+                              "G1695A",
+                              "G1696C",
+                              "G1697C",
+                              "G1699T",
+                              "A1703G",
+                              "A1704C",
+                              "G1714A",
+                              "C1717T",
+                              "T1723G",
+                              "G1727A",
+                              "C1728A",
+                              "T1729A",
+                              "G1732C",
+                              "A1738G",
+                              "A1741G",
+                              "A1744G",
+                              "C1747G",
+                              "A1748G",
+                              "T1750G",
+                              "T1754A",
+                              "C1755T",
+                              "C1756T",
+                              "T1764A",
+                              "A1766G",
+                              "C1767T",
+                              "T1775C",
+                              "A1793T",
+                              "A1794G",
+                              "A1795G",
+                              "T1796G",
+                              "T1800C",
+                              "C1801T",
+                              "G1803T",
+                              "C1804A",
+                              "C1806G",
+                              "A1807G",
+                              "C1809A",
+                              "A1810T",
+                              "C1812G",
+                              "C1814T",
+                              "C1815A",
+                              "A1816G",
+                              "T1817A",
+                              "G1818A",
+                              "T1826G",
+                              "T1827C",
+                              "C1830T",
+                              "C1831A",
+                              "C1833G",
+                              "T1834-",
+                              "G1835-",
+                              "C1836-",
+                              "C1837-",
+                              "T1838-",
+                              "A1839-",
+                              "A1840-",
+                              "T1841-",
+                              "C1842-",
+                              "A1843-",
+                              "T1844-",
+                              "C1845-",
+                              "T1846-",
+                              "C1847-",
+                              "T1848-",
+                              "T1849-",
+                              "G1850-",
+                              "T1851-",
+                              "T1852-",
+                              "C1853-",
+                              "A1854-",
+                              "T1855-",
+                              "G1856-",
+                              "T1857-",
+                              "C1858-",
+                              "C1859-",
+                              "T1860-",
+                              "A1861-",
+                              "C1862-",
+                              "T1863-",
+                              "G1864-",
+                              "T1865-",
+                              "T1866-",
+                              "C1867-",
+                              "A1868-",
+                              "A1869-",
+                              "G1870-",
+                              "C1871-",
+                              "C1872-",
+                              "T1873-",
+                              "C1874-",
+                              "C1875-",
+                              "A1876-",
+                              "A1877-",
+                              "G1878-",
+                              "C1879-",
+                              "T1880-",
+                              "G1881-",
+                              "T1882-",
+                              "G1883-",
+                              "C1884-",
+                              "C1885-",
+                              "T1886-",
+                              "T1887-",
+                              "G1888-",
+                              "G1889-",
+                              "G1890-",
+                              "T1891-",
+                              "G1893C",
+                              "A1898T",
+                              "G1899T",
+                              "A1903T",
+                              "G1905A",
+                              "T2109C"
+                            ],
+                            "C": [
+                              "M1E",
+                              "F4C",
+                              "L6M",
+                              "C7-",
+                              "L8-",
+                              "I9-",
+                              "I10-",
+                              "S11-",
+                              "C12-",
+                              "S13-",
+                              "C14-",
+                              "P15-",
+                              "T16-",
+                              "V17-",
+                              "Q18-",
+                              "A19-",
+                              "S20-",
+                              "K21-",
+                              "L22-",
+                              "C23-",
+                              "L24-",
+                              "G25-",
+                              "W26-"
+                            ],
+                            "P": [
+                              "D325E",
+                              "L364R",
+                              "N368I",
+                              "P369L",
+                              "E718D",
+                              "L720R"
+                            ],
+                            "S": [
+                              "T145N",
+                              "F182Y",
+                              "L184V",
+                              "I188F",
+                              "L189F",
+                              "V331A"
+                            ],
+                            "X": [
+                              "F101S",
+                              "V102A",
+                              "G107D",
+                              "V108L",
+                              "K110A",
+                              "A118K",
+                              "E119D",
+                              "N125E",
+                              "S127I",
+                              "M130K",
+                              "T131V"
+                            ]
+                          },
+                          "labels": {
+                            "aa": "C: M1E, F4C, L6M, C7-, L8-, I9-, I10-, S11-, C12-, S13-, C14-, P15-, T16-, V17-, Q18-, A19-, S20-, K21-, L22-, C23-, L24-, G25-, W26-; P: D325E, L364R, N368I, P369L, E718D, L720R; S: T145N, F182Y, L184V, I188F, L189F, V331A; X: F101S, V102A, G107D, V108L, K110A, A118K, E119D, N125E, S127I, M130K, T131V"
+                          }
+                        }
+                      },
+                      {
+                        "name": "KR230749",
+                        "node_attrs": {
+                          "div": 0.0251722,
+                          "url": "https://www.ncbi.nlm.nih.gov/nuccore/KR230749",
+                          "accession": "KR230749",
+                          "author": {
+                            "author": "Ganova-Raeva et al.",
+                            "value": "Ganova-Raeva et al."
+                          },
+                          "strain": {
+                            "value": "ENDV06GG"
+                          },
+                          "country": {
+                            "value": "United Kingdom"
+                          },
+                          "clade_nextclade": {
+                            "value": "G"
+                          },
+                          "isolate": {
+                            "value": "ENDV06GG"
+                          },
+                          "year": {
+                            "value": "2006"
+                          },
+                          "host": {
+                            "value": "Homo sapiens"
+                          },
+                          "genotype": {
+                            "value": "Hepatitis B virus"
+                          },
+                          "taxon_id": {
+                            "value": 10407
+                          },
+                          "genotype_genbank": {
+                            "value": "G"
+                          },
+                          "region": {
+                            "value": "Europe"
+                          },
+                          "date": {
+                            "value": "2006-XX-XX"
+                          }
+                        },
+                        "branch_attrs": {
+                          "mutations": {
+                            "nuc": [
+                              "T211G",
+                              "G589A",
+                              "T1138G",
+                              "T1559G",
+                              "C2621-",
+                              "G2622-",
+                              "A2623-",
+                              "A2624-",
+                              "G2625-",
+                              "A2626-",
+                              "T2627-",
+                              "T2628-",
+                              "A2629-",
+                              "A2630C",
+                              "A2698G",
+                              "C2699-",
+                              "C2700-",
+                              "G2701-",
+                              "T2707C"
+                            ],
+                            "P": [
+                              "R105-",
+                              "R106-",
+                              "L107-",
+                              "K108Q",
+                              "P131-",
+                              "V362G",
+                              "R488Q",
+                              "M671R"
+                            ],
+                            "S": [
+                              "F182V",
+                              "G308R"
+                            ]
+                          },
+                          "labels": {
+                            "aa": "P: R105-, R106-, L107-, K108Q, P131-, V362G, R488Q, M671R; S: F182V, G308R"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "name": "NODE_0000007",
+                    "node_attrs": {
+                      "div": 0.0235342
+                    },
+                    "branch_attrs": {
+                      "mutations": {
+                        "nuc": [
+                          "C1819T"
+                        ]
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "NODE_0000008",
+                        "node_attrs": {
+                          "div": 0.0235342
+                        },
+                        "branch_attrs": {
+                          "mutations": {
+                            "C": [
+                              "Q2*"
+                            ]
+                          },
+                          "labels": {
+                            "aa": "C: Q2*"
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "KF767450",
+                            "node_attrs": {
+                              "div": 0.0235342,
+                              "url": "https://www.ncbi.nlm.nih.gov/nuccore/KF767450",
+                              "accession": "KF767450",
+                              "author": {
+                                "author": "van der Kuyl et al.",
+                                "value": "van der Kuyl et al."
+                              },
+                              "strain": {
+                                "value": "patient_23"
+                              },
+                              "country": {
+                                "value": "Netherlands"
+                              },
+                              "clade_nextclade": {
+                                "value": "G"
+                              },
+                              "isolate": {
+                                "value": "patient_23"
+                              },
+                              "year": {
+                                "value": "2002"
+                              },
+                              "host": {
+                                "value": "Homo sapiens"
+                              },
+                              "genotype": {
+                                "value": "Hepatitis B virus"
+                              },
+                              "taxon_id": {
+                                "value": 10407
+                              },
+                              "genotype_genbank": {
+                                "value": "G"
+                              },
+                              "region": {
+                                "value": "Europe"
+                              },
+                              "date": {
+                                "value": "2002-11-01"
+                              }
+                            },
+                            "branch_attrs": {
+                              "mutations": {
+                                "nuc": [
+                                  "G1486A",
+                                  "G2045C",
+                                  "T2109C"
+                                ],
+                                "C": [
+                                  "C77S"
+                                ],
+                                "P": [
+                                  "C787Y"
+                                ]
+                              },
+                              "labels": {
+                                "aa": "C: C77S; P: C787Y"
+                              }
+                            }
+                          },
+                          {
+                            "name": "NODE_0000009",
+                            "node_attrs": {
+                              "div": 0.0235342
+                            },
+                            "branch_attrs": {
+                              "mutations": {}
+                            },
+                            "children": [
+                              {
+                                "name": "NODE_0000010",
+                                "node_attrs": {
+                                  "div": 0.0235342
+                                },
+                                "branch_attrs": {
+                                  "mutations": {}
+                                },
+                                "children": [
+                                  {
+                                    "name": "KF219922",
+                                    "node_attrs": {
+                                      "div": 0.0326231,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/KF219922",
+                                      "accession": "KF219922",
+                                      "author": {
+                                        "author": "Briones Pena et al.",
+                                        "value": "Briones Pena et al."
+                                      },
+                                      "strain": {
+                                        "value": "HBV201302"
+                                      },
+                                      "country": {
+                                        "value": "Mexico"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "HBV201302"
+                                      },
+                                      "year": {
+                                        "value": "2012"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "genotype_genbank": {
+                                        "value": "G"
+                                      },
+                                      "region": {
+                                        "value": "North America"
+                                      },
+                                      "date": {
+                                        "value": "2012-05-XX"
+                                      },
+                                      "division": {
+                                        "value": "City"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "T704G",
+                                          "C734T",
+                                          "C737T",
+                                          "G750T",
+                                          "A773G",
+                                          "A776G",
+                                          "C813T",
+                                          "T822G",
+                                          "A830C",
+                                          "C834T",
+                                          "T842A",
+                                          "C845T",
+                                          "A855T",
+                                          "A857G",
+                                          "A873C",
+                                          "A890C",
+                                          "T905G",
+                                          "T908G",
+                                          "A914C",
+                                          "A917G",
+                                          "C923T",
+                                          "C926T",
+                                          "A927G",
+                                          "C928T",
+                                          "A929G",
+                                          "G932T",
+                                          "T938C",
+                                          "G941A",
+                                          "C942G",
+                                          "A944T",
+                                          "T947C",
+                                          "G953C",
+                                          "C959T",
+                                          "T962C",
+                                          "T965A",
+                                          "C968T",
+                                          "G971A",
+                                          "A974C",
+                                          "A986G",
+                                          "C989T",
+                                          "A1001T",
+                                          "A1002G",
+                                          "C1003T",
+                                          "T1004G",
+                                          "G1010T",
+                                          "T1016C",
+                                          "C1019T",
+                                          "T1022A",
+                                          "T1025C",
+                                          "C1034T",
+                                          "C1052T",
+                                          "T1053C",
+                                          "A1055C",
+                                          "A1064G",
+                                          "A1070C",
+                                          "A1076T",
+                                          "C1077A",
+                                          "A1079C",
+                                          "A1095G",
+                                          "C1096T",
+                                          "T1112C",
+                                          "A1158C",
+                                          "C1169A",
+                                          "G1175T",
+                                          "C1223T",
+                                          "T1241C",
+                                          "T1289A",
+                                          "T1298C",
+                                          "C1308A",
+                                          "A1319G",
+                                          "T1324G",
+                                          "C1325T",
+                                          "T1328C",
+                                          "G1331A",
+                                          "T1340C",
+                                          "T1343C",
+                                          "C1346T",
+                                          "T1352C",
+                                          "T1364C",
+                                          "A1376G",
+                                          "A1385G",
+                                          "C1871G",
+                                          "C1879A",
+                                          "A1903C",
+                                          "T1910G",
+                                          "T1911C",
+                                          "A1936T",
+                                          "G1947A",
+                                          "G1953A",
+                                          "T3039C"
+                                        ],
+                                        "C": [
+                                          "A19G",
+                                          "L22M",
+                                          "M30L",
+                                          "T41S"
+                                        ],
+                                        "P": [
+                                          "F244S",
+                                          "V542L",
+                                          "L566V",
+                                          "R577W",
+                                          "N583H",
+                                          "T601V",
+                                          "Q602H",
+                                          "Q606D",
+                                          "T626V",
+                                          "T657V",
+                                          "L733R"
+                                        ],
+                                        "S": [
+                                          "F346C",
+                                          "S356L",
+                                          "A357V",
+                                          "M361I",
+                                          "Y369C",
+                                          "N370S",
+                                          "Y388S"
+                                        ],
+                                        "X": [
+                                          "M1V",
+                                          "R4G"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "C: A19G, L22M, M30L, T41S; P: F244S, V542L, L566V, R577W, N583H, T601V, Q602H, Q606D, T626V, T657V, L733R; S: F346C, S356L, A357V, M361I, Y369C, N370S, Y388S; X: M1V, R4G"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "KY004112",
+                                    "node_attrs": {
+                                      "div": 0.0292877,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/KY004112",
+                                      "accession": "KY004112",
+                                      "author": {
+                                        "author": "Smuts et al.",
+                                        "value": "Smuts et al."
+                                      },
+                                      "strain": {
+                                        "value": "P-2014"
+                                      },
+                                      "country": {
+                                        "value": "South Africa"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "P-2014"
+                                      },
+                                      "year": {
+                                        "value": "2014"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "genotype_genbank": {
+                                        "value": "G"
+                                      },
+                                      "region": {
+                                        "value": "Africa"
+                                      },
+                                      "date": {
+                                        "value": "2014-12-04"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "A638T",
+                                          "A647C",
+                                          "A1766G",
+                                          "T2023G",
+                                          "C2036T",
+                                          "T2109C",
+                                          "G2431A",
+                                          "G2976A",
+                                          "A2977G",
+                                          "G2978A",
+                                          "C2980G",
+                                          "A2982C"
+                                        ],
+                                        "C": [
+                                          "S70A",
+                                          "S74F",
+                                          "A206T"
+                                        ],
+                                        "P": [
+                                          "R223K",
+                                          "G224R",
+                                          "Q225P"
+                                        ],
+                                        "S": [
+                                          "E43R",
+                                          "A44G",
+                                          "N45H",
+                                          "Y324F",
+                                          "E327A"
+                                        ],
+                                        "X": [
+                                          "T131A"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "C: S70A, S74F, A206T; P: R223K, G224R, Q225P; S: E43R, A44G, N45H, Y324F, E327A; X: T131A"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "NODE_0000011",
+                                "node_attrs": {
+                                  "div": 0.0235342
+                                },
+                                "branch_attrs": {
+                                  "mutations": {}
+                                },
+                                "children": [
+                                  {
+                                    "name": "GU563556",
+                                    "node_attrs": {
+                                      "div": 0.0235342,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/GU563556",
+                                      "accession": "GU563556",
+                                      "author": {
+                                        "author": "Pourkarim et al.",
+                                        "value": "Pourkarim et al."
+                                      },
+                                      "strain": {
+                                        "value": "BV-55"
+                                      },
+                                      "country": {
+                                        "value": "Belgium"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "BV-55"
+                                      },
+                                      "year": {
+                                        "value": "2000"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "genotype_genbank": {
+                                        "value": "G"
+                                      },
+                                      "region": {
+                                        "value": "Europe"
+                                      },
+                                      "date": {
+                                        "value": "2000-XX-XX"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "T1559G",
+                                          "T1797G",
+                                          "T1819C",
+                                          "T2040G"
+                                        ],
+                                        "C": [
+                                          "*2Q",
+                                          "D75E"
+                                        ],
+                                        "X": [
+                                          "S62A",
+                                          "L141W"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "C: *2Q, D75E; X: S62A, L141W"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "KJ194508",
+                                    "node_attrs": {
+                                      "div": 0.0235342,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/KJ194508",
+                                      "accession": "KJ194508",
+                                      "author": {
+                                        "author": "Cotten et al.",
+                                        "value": "Cotten et al."
+                                      },
+                                      "strain": {
+                                        "value": "HBV_Amsterdam_2_1994"
+                                      },
+                                      "country": {
+                                        "value": "Netherlands"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "HBV_Amsterdam_2_1994"
+                                      },
+                                      "year": {
+                                        "value": "1994"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "region": {
+                                        "value": "Europe"
+                                      },
+                                      "date": {
+                                        "value": "1994-12-08"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "A1376C",
+                                          "G1697A",
+                                          "C2079T"
+                                        ],
+                                        "X": [
+                                          "M1L",
+                                          "V108M"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "X: M1L, V108M"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "KY004111",
+                                    "node_attrs": {
+                                      "div": 0.0235342,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/KY004111",
+                                      "accession": "KY004111",
+                                      "author": {
+                                        "author": "Smuts et al.",
+                                        "value": "Smuts et al."
+                                      },
+                                      "strain": {
+                                        "value": "M-2015"
+                                      },
+                                      "country": {
+                                        "value": "South Africa"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "M-2015"
+                                      },
+                                      "year": {
+                                        "value": "2015"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "genotype_genbank": {
+                                        "value": "G"
+                                      },
+                                      "region": {
+                                        "value": "Africa"
+                                      },
+                                      "date": {
+                                        "value": "2015-03-18"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "T2023G",
+                                          "C2036T",
+                                          "T2109C",
+                                          "G2431A"
+                                        ],
+                                        "C": [
+                                          "S70A",
+                                          "S74F",
+                                          "A206T"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "C: S70A, S74F, A206T"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "KX264500",
+                                    "node_attrs": {
+                                      "div": 0.0235342,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/KX264500",
+                                      "accession": "KX264500",
+                                      "author": {
+                                        "author": "Chen et al.",
+                                        "value": "Chen et al."
+                                      },
+                                      "strain": {
+                                        "value": "G-aej"
+                                      },
+                                      "country": {
+                                        "value": "Brazil"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "G-aej"
+                                      },
+                                      "year": {
+                                        "value": "2013"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "genotype_genbank": {
+                                        "value": "G"
+                                      },
+                                      "region": {
+                                        "value": "South America"
+                                      },
+                                      "date": {
+                                        "value": "2013-11-XX"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {}
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "NODE_0000012",
+                        "node_attrs": {
+                          "div": 0.023814
+                        },
+                        "branch_attrs": {
+                          "mutations": {
+                            "nuc": [
+                              "C1767T"
+                            ],
+                            "P": [
+                              "F310S"
+                            ]
+                          },
+                          "labels": {
+                            "aa": "P: F310S"
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "NODE_0000013",
+                            "node_attrs": {
+                              "div": 0.0254591
+                            },
+                            "branch_attrs": {
+                              "mutations": {
+                                "nuc": [
+                                  "T55-",
+                                  "T56-",
+                                  "T57-",
+                                  "G932A",
+                                  "G1486A",
+                                  "G1697A",
+                                  "C1768T",
+                                  "C1804T",
+                                  "G1805T",
+                                  "T1819C",
+                                  "T1860C",
+                                  "C1968T",
+                                  "G2019-",
+                                  "G2020-",
+                                  "A2021-",
+                                  "A2022-",
+                                  "T2023-",
+                                  "C2024-",
+                                  "C2025-",
+                                  "T2026-",
+                                  "T2027-",
+                                  "A2028-",
+                                  "G2029-",
+                                  "A2030-",
+                                  "G2031-",
+                                  "T2032-",
+                                  "C2033-",
+                                  "C2034-",
+                                  "T2035-",
+                                  "C2036-",
+                                  "T2037-",
+                                  "G2038-",
+                                  "A2039-",
+                                  "T2040-",
+                                  "C2160T",
+                                  "C2554A",
+                                  "T2936C",
+                                  "C3010T"
+                                ],
+                                "C": [
+                                  "E69-",
+                                  "S70-",
+                                  "L71-",
+                                  "E72-",
+                                  "S73-",
+                                  "S74-",
+                                  "D75-"
+                                ],
+                                "P": [
+                                  "S210P",
+                                  "S311-"
+                                ],
+                                "S": [
+                                  "P54L",
+                                  "F130-"
+                                ],
+                                "X": [
+                                  "V108M",
+                                  "T131I",
+                                  "A144S"
+                                ]
+                              },
+                              "labels": {
+                                "aa": "C: E69-, S70-, L71-, E72-, S73-, S74-, D75-; P: S210P, S311-; S: P54L, F130-; X: V108M, T131I, A144S"
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "JQ707454",
+                                "node_attrs": {
+                                  "div": 0.0254591,
+                                  "url": "https://www.ncbi.nlm.nih.gov/nuccore/JQ707454",
+                                  "accession": "JQ707454",
+                                  "author": {
+                                    "author": "Thai et al.",
+                                    "value": "Thai et al."
+                                  },
+                                  "strain": {
+                                    "value": "MC1_C8"
+                                  },
+                                  "country": {
+                                    "value": "USA"
+                                  },
+                                  "clade_nextclade": {
+                                    "value": "G"
+                                  },
+                                  "isolate": {
+                                    "value": "MC1_C8"
+                                  },
+                                  "year": {
+                                    "value": "1998"
+                                  },
+                                  "host": {
+                                    "value": "Homo sapiens"
+                                  },
+                                  "genotype": {
+                                    "value": "Hepatitis B virus"
+                                  },
+                                  "taxon_id": {
+                                    "value": 10407
+                                  },
+                                  "genotype_genbank": {
+                                    "value": "G"
+                                  },
+                                  "region": {
+                                    "value": "North America"
+                                  },
+                                  "date": {
+                                    "value": "1998-09-30"
+                                  }
+                                },
+                                "branch_attrs": {
+                                  "mutations": {
+                                    "P": [
+                                      "C787Y"
+                                    ]
+                                  },
+                                  "labels": {
+                                    "aa": "P: C787Y"
+                                  }
+                                }
+                              },
+                              {
+                                "name": "JQ707431",
+                                "node_attrs": {
+                                  "div": 0.0262809,
+                                  "url": "https://www.ncbi.nlm.nih.gov/nuccore/JQ707431",
+                                  "accession": "JQ707431",
+                                  "author": {
+                                    "author": "Thai et al.",
+                                    "value": "Thai et al."
+                                  },
+                                  "strain": {
+                                    "value": "MC1_C2"
+                                  },
+                                  "country": {
+                                    "value": "USA"
+                                  },
+                                  "clade_nextclade": {
+                                    "value": "G"
+                                  },
+                                  "isolate": {
+                                    "value": "MC1_C2"
+                                  },
+                                  "year": {
+                                    "value": "1998"
+                                  },
+                                  "host": {
+                                    "value": "Homo sapiens"
+                                  },
+                                  "genotype": {
+                                    "value": "Hepatitis B virus"
+                                  },
+                                  "taxon_id": {
+                                    "value": 10407
+                                  },
+                                  "genotype_genbank": {
+                                    "value": "G"
+                                  },
+                                  "region": {
+                                    "value": "North America"
+                                  },
+                                  "date": {
+                                    "value": "1998-09-30"
+                                  }
+                                },
+                                "branch_attrs": {
+                                  "mutations": {
+                                    "nuc": [
+                                      "G752A",
+                                      "A1486G",
+                                      "T2160C",
+                                      "T2348C"
+                                    ],
+                                    "S": [
+                                      "W362*"
+                                    ]
+                                  },
+                                  "labels": {
+                                    "aa": "S: W362*"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "NODE_0000014",
+                            "node_attrs": {
+                              "div": 0.0243515
+                            },
+                            "branch_attrs": {
+                              "mutations": {
+                                "nuc": [
+                                  "T55C",
+                                  "A1638C",
+                                  "G1647A"
+                                ],
+                                "S": [
+                                  "F130L"
+                                ],
+                                "X": [
+                                  "H88P",
+                                  "R91K"
+                                ]
+                              },
+                              "labels": {
+                                "aa": "S: F130L; X: H88P, R91K"
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "KM998716",
+                                "node_attrs": {
+                                  "div": 0.0243515,
+                                  "url": "https://www.ncbi.nlm.nih.gov/nuccore/KM998716",
+                                  "accession": "KM998716",
+                                  "author": {
+                                    "author": "Fragoso-Fonseca et al.",
+                                    "value": "Fragoso-Fonseca et al."
+                                  },
+                                  "strain": {
+                                    "value": "InDRE1106"
+                                  },
+                                  "country": {
+                                    "value": "Mexico"
+                                  },
+                                  "clade_nextclade": {
+                                    "value": "G"
+                                  },
+                                  "isolate": {
+                                    "value": "InDRE1106"
+                                  },
+                                  "year": {
+                                    "value": "2011"
+                                  },
+                                  "host": {
+                                    "value": "Homo sapiens"
+                                  },
+                                  "genotype": {
+                                    "value": "Hepatitis B virus"
+                                  },
+                                  "taxon_id": {
+                                    "value": 10407
+                                  },
+                                  "genotype_genbank": {
+                                    "value": "G"
+                                  },
+                                  "region": {
+                                    "value": "North America"
+                                  },
+                                  "date": {
+                                    "value": "2011-XX-XX"
+                                  }
+                                },
+                                "branch_attrs": {
+                                  "mutations": {
+                                    "nuc": [
+                                      "T1770A",
+                                      "T2109C",
+                                      "A2422C"
+                                    ],
+                                    "C": [
+                                      "Q2*"
+                                    ],
+                                    "X": [
+                                      "T131I",
+                                      "F132Y"
+                                    ]
+                                  },
+                                  "labels": {
+                                    "aa": "C: Q2*; X: T131I, F132Y"
+                                  }
+                                }
+                              },
+                              {
+                                "name": "NODE_0000015",
+                                "node_attrs": {
+                                  "div": 0.0243515
+                                },
+                                "branch_attrs": {
+                                  "mutations": {}
+                                },
+                                "children": [
+                                  {
+                                    "name": "JQ707678",
+                                    "node_attrs": {
+                                      "div": 0.0259863,
+                                      "url": "https://www.ncbi.nlm.nih.gov/nuccore/JQ707678",
+                                      "accession": "JQ707678",
+                                      "author": {
+                                        "author": "Thai et al.",
+                                        "value": "Thai et al."
+                                      },
+                                      "strain": {
+                                        "value": "S11_47"
+                                      },
+                                      "country": {
+                                        "value": "USA"
+                                      },
+                                      "clade_nextclade": {
+                                        "value": "G"
+                                      },
+                                      "isolate": {
+                                        "value": "S11_47"
+                                      },
+                                      "year": {
+                                        "value": "2003"
+                                      },
+                                      "host": {
+                                        "value": "Homo sapiens"
+                                      },
+                                      "genotype": {
+                                        "value": "Hepatitis B virus"
+                                      },
+                                      "taxon_id": {
+                                        "value": 10407
+                                      },
+                                      "genotype_genbank": {
+                                        "value": "G"
+                                      },
+                                      "region": {
+                                        "value": "North America"
+                                      },
+                                      "date": {
+                                        "value": "2003-04-04"
+                                      }
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "C385T",
+                                          "G743C",
+                                          "C841A",
+                                          "G932A",
+                                          "C1151T",
+                                          "C1226A",
+                                          "C1638A",
+                                          "T1767C",
+                                          "C1804T",
+                                          "G1805T",
+                                          "T1819C",
+                                          "T1860C"
+                                        ],
+                                        "P": [
+                                          "S420F",
+                                          "M539I",
+                                          "P572H"
+                                        ],
+                                        "S": [
+                                          "W359S"
+                                        ],
+                                        "X": [
+                                          "P88H",
+                                          "A144S"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "P: S420F, M539I, P572H; S: W359S; X: P88H, A144S"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "NODE_0000016",
+                                    "node_attrs": {
+                                      "div": 0.0259899
+                                    },
+                                    "branch_attrs": {
+                                      "mutations": {
+                                        "nuc": [
+                                          "T669A",
+                                          "A741G",
+                                          "A1647G"
+                                        ],
+                                        "P": [
+                                          "L515M",
+                                          "M539V"
+                                        ],
+                                        "S": [
+                                          "I358M"
+                                        ],
+                                        "X": [
+                                          "K91R"
+                                        ]
+                                      },
+                                      "labels": {
+                                        "aa": "P: L515M, M539V; S: I358M; X: K91R"
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "KF414679",
+                                        "node_attrs": {
+                                          "div": 0.0292741,
+                                          "url": "https://www.ncbi.nlm.nih.gov/nuccore/KF414679",
+                                          "accession": "KF414679",
+                                          "author": {
+                                            "author": "Jaspe et al.",
+                                            "value": "Jaspe et al."
+                                          },
+                                          "strain": {
+                                            "value": "B213"
+                                          },
+                                          "country": {
+                                            "value": "Venezuela"
+                                          },
+                                          "clade_nextclade": {
+                                            "value": "G"
+                                          },
+                                          "isolate": {
+                                            "value": "B213"
+                                          },
+                                          "year": {
+                                            "value": "2005"
+                                          },
+                                          "host": {
+                                            "value": "Homo sapiens"
+                                          },
+                                          "genotype": {
+                                            "value": "Hepatitis B virus"
+                                          },
+                                          "taxon_id": {
+                                            "value": 10407
+                                          },
+                                          "genotype_genbank": {
+                                            "value": "G"
+                                          },
+                                          "region": {
+                                            "value": "South America"
+                                          },
+                                          "date": {
+                                            "value": "2005-05-24"
+                                          }
+                                        },
+                                        "branch_attrs": {
+                                          "mutations": {
+                                            "nuc": [
+                                              "C341T",
+                                              "T384G",
+                                              "G589A",
+                                              "C726T",
+                                              "T1767C",
+                                              "T1819C"
+                                            ],
+                                            "P": [
+                                              "S420A",
+                                              "R488Q"
+                                            ],
+                                            "S": [
+                                              "P225L",
+                                              "C239W",
+                                              "G308R"
+                                            ]
+                                          },
+                                          "labels": {
+                                            "aa": "P: S420A, R488Q; S: P225L, C239W, G308R"
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "name": "NODE_0000017",
+                                        "node_attrs": {
+                                          "div": 0.0259899
+                                        },
+                                        "branch_attrs": {
+                                          "mutations": {
+                                            "P": [
+                                              "V508L"
+                                            ],
+                                            "S": [
+                                              "E327D"
+                                            ]
+                                          },
+                                          "labels": {
+                                            "aa": "P: V508L; S: E327D"
+                                          }
+                                        },
+                                        "children": [
+                                          {
+                                            "name": "GU565217",
+                                            "node_attrs": {
+                                              "div": 0.0276258,
+                                              "url": "https://www.ncbi.nlm.nih.gov/nuccore/GU565217",
+                                              "accession": "GU565217",
+                                              "author": {
+                                                "author": "Zaaijer et al.",
+                                                "value": "Zaaijer et al."
+                                              },
+                                              "strain": {
+                                                "value": "CLB-DonX"
+                                              },
+                                              "country": {
+                                                "value": "Netherlands"
+                                              },
+                                              "clade_nextclade": {
+                                                "value": "G"
+                                              },
+                                              "isolate": {
+                                                "value": "CLB-DonX"
+                                              },
+                                              "year": {
+                                                "value": "2007"
+                                              },
+                                              "host": {
+                                                "value": "Homo sapiens"
+                                              },
+                                              "genotype": {
+                                                "value": "Hepatitis B virus"
+                                              },
+                                              "taxon_id": {
+                                                "value": 10407
+                                              },
+                                              "genotype_genbank": {
+                                                "value": "G"
+                                              },
+                                              "region": {
+                                                "value": "Europe"
+                                              },
+                                              "date": {
+                                                "value": "2007-XX-XX"
+                                              }
+                                            },
+                                            "branch_attrs": {
+                                              "mutations": {
+                                                "nuc": [
+                                                  "G648T",
+                                                  "G1486A",
+                                                  "C1638A",
+                                                  "C1667A",
+                                                  "T1767C",
+                                                  "T1819G",
+                                                  "T2109C",
+                                                  "T2451A",
+                                                  "G2768A",
+                                                  "A3055C"
+                                                ],
+                                                "C": [
+                                                  "Q2E",
+                                                  "C212*"
+                                                ],
+                                                "P": [
+                                                  "V48D",
+                                                  "A154T",
+                                                  "C787Y"
+                                                ],
+                                                "S": [
+                                                  "Q69P"
+                                                ],
+                                                "X": [
+                                                  "P88H",
+                                                  "L98I",
+                                                  "C148W"
+                                                ]
+                                              },
+                                              "labels": {
+                                                "aa": "C: Q2E, C212*; P: V48D, A154T, C787Y; S: Q69P; X: P88H, L98I, C148W"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "name": "KF767451",
+                                            "node_attrs": {
+                                              "div": 0.0276337,
+                                              "url": "https://www.ncbi.nlm.nih.gov/nuccore/KF767451",
+                                              "accession": "KF767451",
+                                              "author": {
+                                                "author": "van der Kuyl et al.",
+                                                "value": "van der Kuyl et al."
+                                              },
+                                              "strain": {
+                                                "value": "patient_27"
+                                              },
+                                              "country": {
+                                                "value": "Netherlands"
+                                              },
+                                              "clade_nextclade": {
+                                                "value": "G"
+                                              },
+                                              "isolate": {
+                                                "value": "patient_27"
+                                              },
+                                              "year": {
+                                                "value": "2003"
+                                              },
+                                              "host": {
+                                                "value": "Homo sapiens"
+                                              },
+                                              "genotype": {
+                                                "value": "Hepatitis B virus"
+                                              },
+                                              "taxon_id": {
+                                                "value": 10407
+                                              },
+                                              "genotype_genbank": {
+                                                "value": "G"
+                                              },
+                                              "region": {
+                                                "value": "Europe"
+                                              },
+                                              "date": {
+                                                "value": "2003-12-22"
+                                              }
+                                            },
+                                            "branch_attrs": {
+                                              "mutations": {
+                                                "nuc": [
+                                                  "C55-",
+                                                  "T56-",
+                                                  "T57-",
+                                                  "G648C",
+                                                  "A776G",
+                                                  "G1697A",
+                                                  "T1770A",
+                                                  "T2289G",
+                                                  "C2291T",
+                                                  "A2611G"
+                                                ],
+                                                "C": [
+                                                  "Q2*",
+                                                  "P159L"
+                                                ],
+                                                "P": [
+                                                  "S311-"
+                                                ],
+                                                "S": [
+                                                  "L130-",
+                                                  "N370S"
+                                                ],
+                                                "X": [
+                                                  "V108M",
+                                                  "T131I",
+                                                  "F132Y"
+                                                ]
+                                              },
+                                              "labels": {
+                                                "aa": "C: Q2*, P159L; P: S311-; S: L130-, N370S; X: V108M, T131I, F132Y"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
