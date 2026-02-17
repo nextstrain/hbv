@@ -9,9 +9,9 @@ rule length_filter:
         alignment = "data/filtered/alignment.len_filtered.fasta",
         metadata  = "data/filtered/metadata.len_filtered.tsv",
     params:
-        min_length = config["min_length"],
-        max_length =config["max_length"],
-        length_filtering=config["length_filtering"],
+        length_filtering = config["length_filtering"]["use_as_filter"],
+        min_length       = config["length_filtering"]["min_length"],
+        max_length       = config["length_filtering"]["max_length"],
     shell:
         r"""
         mkdir -p data
@@ -39,48 +39,66 @@ rule length_filter:
 ## Currently the settings in the nextclade dataset need to be looked at as 
 ## around 40% of all sequences (including the entirety of some genotypes)
 ## have QC=bad mainly due to frameshifts and stop codons.
-# TODO include dev and nextclade build back here 
-
-def args_for(mode, key):
-    # dev subsampling
+# TODO include nextclade build back here 
+def define_filters(mode, key):
     dev = str(config.get("dev", False)).lower() in ("1", "true", "yes")
     dev_n = int(config.get("dev_n", 100))
     max_n = dev_n if dev else 4000
 
-    if mode == "basic":
-        # no genotype query, just (optional) balanced subsampling
-        return f"--group-by year --subsample-max-sequences {max_n}"
+    query_exprs = []
 
-    if mode == "stitched" or mode=="single-clade":
-        # per-genotype query + balanced subsampling
-        build = key
-        if build == "C":
-            query = """--query "(clade_nextclade=='C') | (clade_nextclade=='C_re')\""""
+    if mode in ("stitched", "single-clade"):
+        if key == "C":
+            query_exprs.append('(clade_nextclade=="C") | (clade_nextclade=="C_re")')
         else:
-            query = f"""--query "clade_nextclade=='{build}'\""""
-        return f"{query} --group-by year --subsample-max-sequences {max_n}"
+            query_exprs.append(f'clade_nextclade=="{key}"')
 
-    #elif wildcards.build == "dev":
-    #    return "--group-by genotype_genbank --subsample-max-sequences 500"
+        if config.get("subgenotype_filtering", False) and key in ["A", "B", "C", "D", "F"]: #"I"
+            query_exprs.append('subgenotype_genbank.notnull() & (subgenotype_genbank != "")')
+
+    elif mode != "basic":
+        raise Exception("Unknown build parameter")
+
+
+    if config.get("filter_genbank_vs_nextclade", False):
+        query_exprs.append('genotype_genbank.notnull() & (genotype_genbank != "") & clade_nextclade.notnull() & (clade_nextclade != "")')
+        if mode in ("stitched", "single-clade"):
+            if key == "C":
+                query_exprs.append('genotype_genbank == "C"')
+            else:
+                query_exprs.append('genotype_genbank == clade_nextclade')
+
+    args = []
+
+    if query_exprs:
+        combined = " & ".join(f"({q})" for q in query_exprs)
+        args.append(f"--query '{combined}'")
+
+    args.append(f"--group-by year --subsample-max-sequences {max_n}")
+
+    return " ".join(args)
+
     #elif wildcards.build == "nextclade-tree":
     #    return "--group-by genotype_genbank --subsample-max-sequences 2000"
     #elif wildcards.build == "nextclade-sequences":
     #    return "--group-by genotype_genbank --subsample-max-sequences 25"
 
-    raise Exception("Unknown build parameter")
 
 
-# TODO include more here
+
+# TODO right now this is empty! 
 rule include_file:
     output:
         file="results/{mode}/{key}/include.txt",
     params:
-        ref=lambda wc: config["reference"]["id"],
+        #ref=lambda wc: config["reference"]["id"],
     shell:
         r"""
         mkdir -p results/{wildcards.mode}/{wildcards.key}
-        printf "%s\n" "{params.ref}" > {output.file}
+        touch {output.file}
         """
+        #printf "%s\n" "{params.ref}" > {output.file}
+
 
 
 rule filter_by_clade:
@@ -93,7 +111,7 @@ rule filter_by_clade:
         alignment="results/{mode}/{key}/filtered.fasta",
         metadata="results/{mode}/{key}/filtered.tsv",
     params:
-        args=lambda wc: args_for(wc.mode, wc.key),
+        args=lambda wc: define_filters(wc.mode, wc.key),
     wildcard_constraints:
         mode="basic|stitched|single-clade",
         key="all|" + "|".join(ALL_GTS),
@@ -131,21 +149,38 @@ rule mask_gene:
         regions="defaults/genomic_regions_genes.txt",
         alignment="results/{mode}/{key}/filtered.fasta",
     output:
-        alignment="results/{mode}/{key}/masked.{gene}.fasta",
+        alignment="results/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     params:
-        gene_mask=config["gene_mask"],
         ref=config["reference"]["id"]
     wildcard_constraints:
-        gene="|".join(config["genes"]),
+        gene="|".join(config["gene_mask"]),
     shell:
         r"""
         mkdir -p data/masked
 
         read -r start end < <(
-        awk -v g="{params.gene_mask}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
+        awk -v g="{wildcards.gene}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
         )
 
-        L=$(seqkit grep -n -p "^{params.ref}$" "{input.alignment}" | seqkit seq -s | tr -d '.-' | wc -c | tr -d ' ')
+        L=$(seqkit grep -n -p "^{params.ref}$" "{input.alignment}" \
+            | seqkit seq -s \
+            | head -n1 \
+            | tr -d '\n' \
+            | wc -c \
+            | tr -d ' ')
+
+        if [ -z "$L" ]; then
+        L=$(seqkit seq -s "{input.alignment}" \
+            | head -n1 \
+            | tr -d '\n' \
+            | wc -c \
+            | tr -d ' ')
+        fi
+
+        if [ -z "$L" ]; then
+        echo "mask_gene: could not determine alignment length" >&2
+        exit 1
+        fi
         maskfile="$(mktemp)"
 
         if [ "$start" -le "$end" ]; then
