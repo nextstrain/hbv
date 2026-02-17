@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from ete3 import Tree
+from numpy import size
 
 
 def suppress_unary_nodes(t):
@@ -91,6 +92,68 @@ def prune_long_tips_iteratively(t: Tree, cutoff_tips: float, excl_fh=None):
         assert all(len(node.children) != 1 for node in t.traverse()), \
             "Unary node detected after tip pruning"
 
+def prune_via_purity(t: Tree, maximal_monophyletic_fraction: int, minimal_monophyletic_purity: float, metadata_col: str, metadata_in: str, excl_fh=None ):
+    # load metadata once
+    max_phylogenetic_size_abs = maximal_monophyletic_fraction * len(t.get_leaf_names()) 
+    with open(metadata_in) as fin:
+        header = fin.readline().rstrip("\n").split("\t")
+        idx = header.index(metadata_col)
+
+        meta = dict(
+            (f[0], f[idx])
+            for f in (line.rstrip("\n").split("\t") for line in fin if line.strip())
+        )
+
+    removed = set()
+
+    while True:
+        clades = []
+        for node in t.traverse():
+            if node.is_leaf() or node.is_root():
+                continue
+            if (size(node.get_leaf_names()) <= max_phylogenetic_size_abs and (not node.is_root()) and size(node.up.get_leaf_names()) > max_phylogenetic_size_abs):
+                clades.append(node)
+
+        if not clades: return t, removed
+
+        discarded = set()
+
+        for clade in clades:
+            leaf_names = clade.get_leaf_names()
+
+            counts = {}
+            total = 0
+            for nm in leaf_names:
+                v = meta.get(nm, "")
+                if v in ("", None): continue
+                counts[v] = counts.get(v, 0) + 1
+                total += 1
+            if total == 0: continue
+
+            bad_types = {v for v, c in counts.items() if (c / total) < minimal_monophyletic_purity}
+            if not bad_types: continue
+
+            for nm in leaf_names:
+                if meta.get(nm, "") in bad_types:
+                    discarded.add(nm)
+
+        if not discarded:
+            return t, removed
+
+        for leaf in list(t.iter_leaves()):
+            if leaf.name in discarded:
+                leaf.detach()
+                suppress_unary_nodes(t)
+                t = suppress_unary_root(t)
+
+        if excl_fh is not None:
+            excl_fh.write(" ".join(sorted(discarded)) + "\n")
+
+        removed |= discarded
+
+        assert all(len(node.children) != 1 for node in t.traverse()), \
+            "Unary node detected after purity pruning"
+
 
 def prune_metadata(metadata_in: str, metadata_out: str, removed: set):
     with open(metadata_in) as fin:
@@ -139,6 +202,9 @@ parser.add_argument("--out-tree", required=True)
 parser.add_argument("--exclude", required=True)
 parser.add_argument("--cutoff_allbranches", type=float, required=True)
 parser.add_argument("--cutoff_tips", type=float, default=None)
+parser.add_argument("--maximal_monophyletic_fraction", type=float, required=False)
+parser.add_argument("--minimal_monophyletic_purity", type=float, required=False)
+parser.add_argument("--purity_metadata_col", type=str, required=False)
 args = parser.parse_args()
 
 t = Tree(args.tree, format=1)
@@ -162,6 +228,17 @@ if args.cutoff_tips is not None:
         kept_tree, removed_via_tips = prune_long_tips_iteratively(
             kept_tree, args.cutoff_tips, excl_fh
         )
+removed_via_monophyly = set()
+if args.maximal_monophyletic_fraction is not None and args.minimal_monophyletic_purity is not None:
+    with open(args.exclude, "a") as excl_fh:
+        kept_tree, removed_via_monophyly = prune_via_purity(
+            kept_tree,
+            args.maximal_monophyletic_fraction,
+            args.minimal_monophyletic_purity,
+            args.purity_metadata_col,
+            args.metadata_in,
+            excl_fh
+        )
 
 # final sanity
 assert all(l.name not in (None, "") for l in kept_tree.iter_leaves()), \
@@ -172,18 +249,20 @@ if kept_tree.name in (None, ""):
 
 kept_tree.write(outfile=args.out_tree, format=1)
 
-removed_all = removed_via_all | removed_via_tips
+removed_all = removed_via_all | removed_via_tips | removed_via_monophyly
 prune_metadata(args.metadata_in, args.metadata_out, removed_all)
 
 excluded_via_all = len(removed_via_all)
 excluded_via_tips = len(removed_via_tips)
+excluded_via_monophyly = len(removed_via_monophyly)
 
 print(
     f"[{Path(args.tree).name}] "
-    f"Excluded {excluded_via_all} via long internal branches > {args.cutoff_allbranches}"
-    + (f" and {excluded_via_tips} via terminal branches > {args.cutoff_tips}"
+    f"Excluded: \n   {excluded_via_all} via long internal branches > {args.cutoff_allbranches},"
+    + (f" \n + {excluded_via_tips} via terminal branches > {args.cutoff_tips}"
        if args.cutoff_tips is not None else "")
-    + f" out of {total} total tips"
+    + f"  \n + {excluded_via_monophyly} to enforce purity of {args.minimal_monophyletic_purity} of monophyletic clades with up to {int(args.maximal_monophyletic_fraction * total)} tips"
+    + f"  \n out of {total} total tips"
 )
 
 plot_log_tip_length_distribution(
