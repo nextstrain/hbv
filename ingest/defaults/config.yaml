@@ -19,7 +19,8 @@ genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']
 
 ncbi_taxon_id: 3431302
 
-subset_n: 100
+dev: false 
+dev_n: 100
 
 ncbi_datasets_fields:
   - accession
