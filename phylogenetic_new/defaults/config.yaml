@@ -18,7 +18,8 @@ length_filtering:
   max_length: 3400
 
 # Defines whether only sequenes with a known subgenotype will be sampled for the phylogeny and nextclade dataset
-subgenotype_filtering: true
+subgenotype_filtering_fulltree: true
+subgenotype_filtering_singleclade: false
 
 
 # all branches with length higher than this threshold will be pruned from the tree

@@ -72,7 +72,9 @@ def define_filters(mode, key):
         else:
             query_exprs.append(f'clade_nextclade=="{key}"')
 
-        if config.get("subgenotype_filtering", False) and key in ["A", "B", "C", "D", "F"]: #"I"
+        if mode=="stitched" and config.get("subgenotype_filtering_fulltree", False) and key in ["A", "B", "C", "D", "F"]: #"I"
+            query_exprs.append('subgenotype_genbank.notnull() & (subgenotype_genbank != "")')
+        if mode=="single-clade" and config.get("subgenotype_filtering_singleclade", False) and key in ["A", "B", "C", "D", "F"]: #"I"
             query_exprs.append('subgenotype_genbank.notnull() & (subgenotype_genbank != "")')
 
     elif mode != "basic":
