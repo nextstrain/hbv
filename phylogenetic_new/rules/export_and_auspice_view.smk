@@ -9,9 +9,11 @@ rule augur_export:
             RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_clades.json",
         ],
         metadata = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
-        config = "defaults/auspice_config.json",
+        config = config["auspice"]["auspice_config"],
     output:
         auspice_json = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}.json",
+    params: 
+        colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
     threads: 1
     shell:
         """
@@ -21,13 +23,8 @@ rule augur_export:
         --metadata "{input.metadata}" \
         --metadata-id-columns accession \
         --auspice-config "{input.config}" \
-        --color-by-metadata \
-            "HBV Type" \
-            "HBV Subtype" \
-            region \
-            country \
-            division \
-            date \
+        --color-by-metadata {params.colours}\
+        --minify-json \
         --output "{output.auspice_json}"
         """
 
@@ -40,7 +37,7 @@ rule export_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
-        config = "defaults/auspice_config.json",
+        config = config["auspice"]["auspice_config"],
         node_data = [
             STITCHED_DIR + "/node_data/{gene}_branch_lengths.json",
             STITCHED_DIR + "/node_data/{gene}_muts.json",
@@ -50,6 +47,8 @@ rule export_stitched:
         
     output:
         auspice_json = STITCHED_DIR + "/{gene}.json",
+    params: 
+        colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
     threads: 1
     shell:
         """
@@ -60,16 +59,11 @@ rule export_stitched:
             --metadata-id-columns accession \
             --output "{output.auspice_json}" \
             --auspice-config "{input.config}" \
-            --color-by-metadata \
-                "HBV Type" \
-                "HBV Subtype" \
-                region \
-                country \
-                division \
-                date \
+            --color-by-metadata {params.colours}\
             --minify-json \
             --include-root-sequence-inline
         """
+
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
