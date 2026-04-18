@@ -155,22 +155,28 @@ rule format_ncbi_datasets_ndjson:
         """
 
 
-# Temporary rule for subsetting dataset for development only
-rule subset_ndjson_n:
+rule ncbi_active:
     input:
         ndjson="data/ncbi.ndjson"
     output:
-        ndjson="data/ncbi.subset{n}.ndjson",
+        ACTIVE_NDJSON
     params:
-        n=lambda wc: config["subset_n"],
+        dev=config.get("dev", False),
+        n=config.get("dev_n", 100),
+        ref=config["reference_accession"],
     shell:
         r"""
-        (
-          grep '"accession"[[:space:]]*:[[:space:]]*"NC_003977"' {input.ndjson} || true
-          head -n {params.n} {input.ndjson}
-        ) | awk '!seen[$0]++' > {output.ndjson}
-        """
+        mkdir -p data
 
+        if [ "{params.dev}" = "true" ] || [ "{params.dev}" = "True" ] || [ "{params.dev}" = "1" ]; then
+          (
+            grep '"accession"[[:space:]]*:[[:space:]]*"{params.ref}"' {input.ndjson} || true
+            head -n {params.n} {input.ndjson}
+          ) | awk '!seen[$0]++' > {output}
+        else
+          cp {input.ndjson} {output}
+        fi
+        """
 
 
 
