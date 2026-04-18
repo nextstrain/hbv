@@ -12,7 +12,6 @@ configfile: "defaults/config.yaml"
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
-
 GENE_MASKS = config["gene_mask"]
 MODES = ["basic", "stitched", "single-clade"]
 ALL_GTS = config["all_genotypes"]
@@ -23,10 +22,11 @@ STITCHED_DIR = "results/stitched/{gene}_global"
 
 
 # Single genotype trees and basic non-stitched tree only for development mode
-single_clade_targets = 
-    expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES
+single_clade_targets = (
+    expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES)
     if config.get("dev", False)
-    else [])
+    else []
+)
 
 full_tree_target = (
     expand("auspice_datasets/{gene}_masked/full-tree.json", gene=GENE_MASKS)
@@ -36,7 +36,6 @@ full_tree_target = (
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
-
 rule all: 
     input: 
         main_clades   = expand("auspice_datasets/{gene}_masked/main-clades.json", gene=GENE_MASKS),
@@ -45,8 +44,6 @@ rule all:
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
-
 # Length filtering, other filter steps that specifcy the different builds, and gene masking
 include: "rules/filter_and_masking.smk"
 # Augur tree, pruning problematic clades, refinement and ancestral reconstruction
