@@ -1,6 +1,16 @@
 workflow: nextclade
+version: "2026_04_jonas"
 
-# All HBV genes
+nextclade_tree_build: "stitched/P_global/P.json"
+nextclade_buildname: "stitched_P_masked"
+
+example_sequences:
+  n: 30
+  recombinant_fraction: 0.3
+  sampling: "curated" # select from ["curated", "randomly"], "curated" samples evenly across genotypes and QC status
+
+
+# All HBV genes 
 genes: ["P", "S", "C", "X"]
 
 # Reference sequence 
