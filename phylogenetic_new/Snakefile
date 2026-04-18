@@ -4,6 +4,7 @@
 #        metadata="../ingest/results/metadata.tsv",
 #        alignment="../ingest/results/aligned.fasta",
 #______________________________________________________________________________________________________________________________________________________________________________________________
+from os.path import join
 
 
 if not workflow.overwrite_configfiles:
@@ -11,18 +12,46 @@ if not workflow.overwrite_configfiles:
         "No config provided, using defaults/config_nextstrain.yaml.\n"
         "For nextclade workflow run: snakemake --configfile defaults/config_nextclade.yaml"
     )
-
 configfile: "defaults/config_nextstrain.yaml"
+
+if config["dev"]:
+    print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
 GENE_MASKS = config["gene_mask"]
-MODES = ["basic", "stitched", "single-clade"]
+ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if config.get("dev", False) else config["ancestral_genes"]["prod"]
+
 ALL_GTS = config["all_genotypes"]
 SINGLE_BUILD_GENOTYPES = config["single_build_genotypes"]
-STITCHED_DIR = "results/stitched/{gene}_global"
-ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if config.get("dev", False) else config["ancestral_genes"]["prod"]
+
+MODES = ["basic", "stitched", "single-clade"]
+
+RESULTS = join("results", config["workflow"])
+STITCHED_DIR = RESULTS + "/stitched/{gene}_global"
+
+# Nextclade: 
+
+DATASET_DIR = join(
+    "../nextclade_datasets/references",
+    config["reference"]["id"],
+    "versions",
+    config["version"],
+    config["nextclade_buildname"],
+    ""
+)
+
+DATASET_FILES = [
+    "pathogen.json",
+    "sequences.fasta",
+    "genome_annotation.gff3",
+    "README.md",
+    "CHANGELOG.md",
+    "tree.json",
+    "reference.fasta"
+]
+
+
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
 
@@ -39,13 +68,27 @@ full_tree_target = (
     else []
 )
 
+
+print(DATASET_DIR + "tree.json")
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
-rule all: 
-    input: 
-        main_clades   = expand("auspice_datasets/{gene}_masked/main-clades.json", gene=GENE_MASKS),
-        single_clades = single_clade_targets,
-        full_tree     = full_tree_target
+wf = config.get("workflow")
+
+if wf == "nextstrain":
+    rule all:
+        input:
+            main_clades=expand("auspice_datasets/{gene}_masked/main-clades.json", gene=GENE_MASKS),
+            single_clades=single_clade_targets,
+            full_tree=full_tree_target
+
+elif wf == "nextclade":
+    rule all:
+        input:
+            datasets=expand(DATASET_DIR + "{file}", file=DATASET_FILES),
+            tests=expand(DATASET_DIR + "test_output")
+
+else: 
+    raise ValueError(f"Unknown workflow: {wf}")
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
@@ -59,3 +102,24 @@ include: "rules/stitching_workflow.smk"
 include: "rules/clade_assignment.smk"
 # Augur export and creating auspice datasets 
 include: "rules/export_and_auspice_view.smk"
+# Generates Nextclade dataset (if nextclade config is used)
+if config.get("workflow") == "nextclade":
+    include: "rules/nextclade_dataset.smk"
+
+
+
+#______________________________________________________________________________________________________________________________________________________________________________________________
+
+
+rule clean:
+    params:
+        paths=[RESULTS]
+    shell:
+        "rm -rfv {params.paths}"
+
+
+rule cleanall:
+    params:
+        paths=["results", "auspice_datasets", "data"]
+    shell:
+        "rm -rfv {params.paths}"
