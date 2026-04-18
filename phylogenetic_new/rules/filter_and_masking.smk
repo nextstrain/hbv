@@ -14,7 +14,7 @@ rule length_filter:
         max_length       = config["length_filtering"]["max_length"],
     shell:
         r"""
-        mkdir -p data
+        # mkdir -p data
         kept_ids="$(mktemp)"
 
         if [ "{params.length_filtering}" = "true" ] || [ "{params.length_filtering}" = "True" ] || [ "{params.length_filtering}" = "1" ]; then
@@ -34,6 +34,22 @@ rule length_filter:
         rm -f "$kept_ids"
         """
 
+
+
+# rule correct_subgenotypes:
+#     input:
+#         metadata="data/filtered/metadata.len_filtered.tsv",
+#         mapping="defaults/subgenotype_correction.tsv",
+#         script="scripts/subgenotype_mapping.py"
+#     output:
+#         metadata="data/filtered/metadata.len_subtype_filtered.tsv"
+#     shell:
+#         """
+#         python {input.script} \
+#             --metadata-in {input.metadata} \
+#             --mapping {input.mapping} \
+#             --metadata-out {output.metadata}
+#         """
 
 ## TODO - there are a number of nextclade QC status' we can filter on here.
 ## Currently the settings in the nextclade dataset need to be looked at as 
@@ -68,13 +84,16 @@ def define_filters(mode, key):
             else:
                 query_exprs.append('genotype_genbank == clade_nextclade')
 
-    args = []
 
+    if config.get("augur_custom_filter"):
+        query_exprs.append(config["augur_custom_filter"])    
+
+    args = []
     if query_exprs:
         combined = " & ".join(f"({q})" for q in query_exprs)
         args.append(f"--query '{combined}'")
-
-    args.append(f"--group-by year --subsample-max-sequences {max_n}")
+    
+    args.append(f"--group-by year region --subsample-max-sequences {max_n}") 
 
     return " ".join(args)
 
@@ -86,18 +105,18 @@ def define_filters(mode, key):
 
 
 
-# TODO right now this is empty! 
-rule include_file:
-    output:
-        file="results/{mode}/{key}/include.txt",
-    params:
-        #ref=lambda wc: config["reference"]["id"],
-    shell:
-        r"""
-        mkdir -p results/{wildcards.mode}/{wildcards.key}
-        touch {output.file}
-        """
-        #printf "%s\n" "{params.ref}" > {output.file}
+# # TODO right now this is empty! 
+# rule include_file:
+#     output:
+#         file="results/{mode}/{key}/include.txt",
+#     params:
+#         #ref=lambda wc: config["reference"]["id"],
+#     shell:
+#         r"""
+#         mkdir -p results/{wildcards.mode}/{wildcards.key}
+#         touch {output.file}
+#         """
+#         #printf "%s\n" "{params.ref}" > {output.file}
 
 
 
@@ -105,27 +124,27 @@ rule filter_by_clade:
     input:
         alignment="data/filtered/alignment.len_filtered.fasta",
         metadata="data/filtered/metadata.len_filtered.tsv",
-        include = "results/{mode}/{key}/include.txt",   
+        #include = "results/{mode}/{key}/include.txt",   
         #exclude = "defaults/exclude.txt",
     output:
         alignment="results/{mode}/{key}/filtered.fasta",
         metadata="results/{mode}/{key}/filtered.tsv",
     params:
-        args=lambda wc: define_filters(wc.mode, wc.key),
+        args=lambda wc: define_filters(wc.mode, wc.key), # accept wc , in function get mode key
     wildcard_constraints:
         mode="basic|stitched|single-clade",
         key="all|" + "|".join(ALL_GTS),
     shell:
         r"""
-        mkdir -p results/{wildcards.mode}/{wildcards.key}
+        # mkdir -p results/{wildcards.mode}/{wildcards.key}
         augur filter \
           --sequences {input.alignment} --metadata {input.metadata} \
           --metadata-id-columns accession \
-          --include {input.include} \
           {params.args} \
           --output-sequences {output.alignment} \
           --output-metadata {output.metadata} 
         """
+        #--include {input.include} \
 
 #____________________________________________________________________________________________________________________________________________________________________________________________
 
@@ -143,7 +162,6 @@ rule specify_genomic_regions_genes:
 
 #TODO make this work for CDS specifically and not for genes! then keep same naming conventions as in nextclade
 
-# TODO have this work for other genes as well in different builds (e.g. S)
 rule mask_gene:
     input:
         regions="defaults/genomic_regions_genes.txt",
@@ -156,7 +174,7 @@ rule mask_gene:
         gene="|".join(config["gene_mask"]),
     shell:
         r"""
-        mkdir -p data/masked
+        # mkdir -p data/masked
 
         read -r start end < <(
         awk -v g="{wildcards.gene}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
