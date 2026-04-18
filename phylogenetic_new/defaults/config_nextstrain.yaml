@@ -1,3 +1,5 @@
+workflow: nextstrain
+
 # All HBV genes
 genes: ["P", "S", "C", "X"]
 

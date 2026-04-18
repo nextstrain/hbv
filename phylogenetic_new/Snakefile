@@ -6,8 +6,13 @@
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
 
-#if config file not defined else snakemake --configfile
-configfile: "defaults/config.yaml"
+if not workflow.overwrite_configfiles:
+    print(
+        "No config provided, using defaults/config_nextstrain.yaml.\n"
+        "For nextclade workflow run: snakemake --configfile defaults/config_nextclade.yaml"
+    )
+
+configfile: "defaults/config_nextstrain.yaml"
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
