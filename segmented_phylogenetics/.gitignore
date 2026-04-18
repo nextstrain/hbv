@@ -1,0 +1,5 @@
+defaults/X02763_to_NC_003977_map.tsv
+defaults/genomic_regions_breakpoints_2005.txt
+defaults/genomic_regions_breakpoints_2005.txt
+defaults/*_excluded_accessions.txt
+../ingest_old/
