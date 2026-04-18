@@ -9,6 +9,15 @@ example_sequences:
   recombinant_fraction: 0.3
   sampling: "curated" # select from ["curated", "randomly"], "curated" samples evenly across genotypes and QC status
 
+auspice:
+  auspice_config: "defaults/auspice_config_nextclade.json"
+  color_by_metadata:
+    - "HBV Type"
+    - "HBV Subtype"
+    - region
+    - country
+    - date
+
 
 # All HBV genes 
 genes: ["P", "S", "C", "X"]

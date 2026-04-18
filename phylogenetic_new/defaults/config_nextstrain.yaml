@@ -9,6 +9,16 @@ reference:
   genbank: ../ingest/defaults/NC_003977.gb
   gff: "defaults/NC_003977.2_version_2026.gff"
 
+auspice:
+  auspice_config: "defaults/auspice_config_nextstrain.json"
+  color_by_metadata:
+    - "HBV Type"
+    - "HBV Subtype"
+    - region
+    - country
+    - division
+    - date
+
 #__________________________________________________________________________________________________________ FILTERING CRITERIA __________________________________________________________________________________________________________
 
 augur_custom_filter: 'year > "1977" & (is_lab_host != True) & host == "Homo sapiens"'  # First sequenced genome is 1978, not sure if the earlier ones are old samples and relieable
