@@ -26,15 +26,21 @@ def format_field_map(field_map: dict[str, str]) -> str:
 
 rule curate_genbank_metadata:
     input:
-        ndjson = "data/genbank.ndjson"
+        ndjson = "data/genbank.ndjson",
+        geolocations = "defaults/geoLocationRules.tsv",
+        mapping = "defaults/subgenotype_correction.tsv",
+
     output:
         metadata = "data/curated-genbank-metadata.tsv",
         sequences = "data/curated-genbank-sequences.fasta",
+        
     params:
-        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
+        metadata_columns = ['name', 'accession', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
         "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
         "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
-        "QC_frame_shifts","QC_stop_codons"]
+        "QC_frame_shifts","QC_stop_codons"],
+        tmp_metadata = "data/curated-genbank-metadata.raw.tsv"
+
     shell:
         # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
         # vendored/apply-geolocation-rules 
@@ -46,8 +52,16 @@ rule curate_genbank_metadata:
             | scripts/add-year.py \
             | augur curate passthru \
                 --output-seq-field sequence --output-id-field accession \
-                --output-metadata {output.metadata} --output-fasta {output.sequences}
+                --output-metadata {params.tmp_metadata} --output-fasta {output.sequences}
+        
+        python "scripts/subgenotype_mapping.py" \
+            --metadata-in {params.tmp_metadata} \
+            --mapping {input.mapping} \
+            --metadata-out {output.metadata}
+
         """
+
+
 
 
 
@@ -60,7 +74,10 @@ rule curate_genbank_metadata:
 # separate files: a metadata TSV and a sequences FASTA.
 rule curate_ncbi:
     input:
-        sequences_ndjson="data/ncbi.ndjson",
+        #sequences_ndjson="data/ncbi.ndjson",
+        sequences_ndjson=ACTIVE_NDJSON,
+        geolocations = "defaults/geoLocationRules.tsv"
+
     output:
         metadata = "data/curated-metadata.tsv",
         sequences = "data/curated-sequences.fasta",
@@ -118,6 +135,11 @@ rule curate_ncbi:
                 --output-id-field {params.id_field} \
                 --output-seq-field {params.sequence_field}
         """
+
+
+
+
+
 
 
 rule add_metadata_columns:
