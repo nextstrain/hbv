@@ -111,7 +111,7 @@ rule ancestral:
         node_data = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
         sequences = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
     params: 
-        genes=" ".join(config["ancestral_genes"]),
+        genes=" ".join(ANCESTRAL_GENES),
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
 
     threads: 4

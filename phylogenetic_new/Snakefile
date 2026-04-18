@@ -17,7 +17,7 @@ MODES = ["basic", "stitched", "single-clade"]
 ALL_GTS = config["all_genotypes"]
 SINGLE_BUILD_GENOTYPES = config["single_build_genotypes"]
 STITCHED_DIR = "results/stitched/{gene}_global"
-
+ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if config.get("dev", False) else config["ancestral_genes"]["prod"]
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
 

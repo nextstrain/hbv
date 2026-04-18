@@ -79,7 +79,7 @@ rule ancestral_stitched:
     output:
         node_data = STITCHED_DIR + "/node_data/{gene}_muts.json",
     params:
-        genes=" ".join(config["ancestral_genes"]),
+        genes=" ".join(ANCESTRAL_GENES),
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
         outdir="results/stitched/{gene}_global",
         ref_id= config["reference"]["id"],

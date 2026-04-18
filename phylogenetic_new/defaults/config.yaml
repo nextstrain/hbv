@@ -52,14 +52,16 @@ n_totaltree: 3000
 n_stitched_parts: 800
 dev: true
 dev_n_ingest: 300
-dev_n_totaltree: 300
+dev_n_totaltree: 100
 dev_n_stitched_parts: 50
 
 # Defines which exact transcript to use for the acestral reconstruction,
 gene_products_for_ancestral:
   S: "envL"                    #can be either: "envL", "envM" or "envS"
   C: "pre-capsid"              #can be either: "pre-capsid" or "capsid"
-ancestral_genes: ["P"] #["P", "S", "C", "X"]  # If length filtering is disabled or not strict, ancestral reconstruction might not work for all genes, as some sequences might be too short. Perform ancestral reconstruction for longer genes (P > S> C > X).
+ancestral_genes: # If length filtering is disabled or not strict, ancestral reconstruction might not work for all genes, as some sequences might be too short. Perform ancestral reconstruction for longer genes (P > S> C > X).
+  prod: ["P", "S", "C", "X"]
+  dev: ["X"] #Testing reconstruction on 1 gene speeds runtime up significantly 
 
 # Defines which genes to use for the phylogenetic reconstruction. Ideally P or S with lowest recombination burden (Note that ancestral reconstruction will be performed for all genes) 
 gene_mask: ["P"]
