@@ -58,7 +58,10 @@ rule length_filter:
 # TODO include nextclade build back here 
 def define_filters(mode, key):
     dev = str(config.get("dev", False)).lower() in ("1", "true", "yes")
-    dev_n = int(config.get("dev_n", 100))
+    
+    
+
+    dev_n = int(config .get("dev_n_stitched_parts", 500)) if mode == "stitched" else int(config .get("dev_n_totaltree", 2000))
     max_n = dev_n if dev else 4000
 
     query_exprs = []

@@ -48,7 +48,8 @@ clade_settings:
 
 # Development mode defines supplementary targets, dev_n is number of sequences per build to use in dev mode
 dev: true
-dev_n: 500
+dev_n_totaltree: 2000
+dev_n_stitched_parts: 500
 
 # Defines which exact transcript to use for the acestral reconstruction,
 gene_products_for_ancestral:
