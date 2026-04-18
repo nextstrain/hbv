@@ -437,21 +437,48 @@ rule export_stitched:
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
 
-rule create_auspice_view_full_tree:
-    input: 
+rule create_auspice_view_main_clades:
+    input:
         main_clades="results/stitched/{gene}_global/{gene}.json",
-        full_tree="results/basic/all/{gene}_masked/{gene}.json",
     output:
         main_clades="auspice_datasets/{gene}_masked/main-clades.json",
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+    shell:
+        r"""
+        cp {input.main_clades} {output.main_clades}
+        """
+
+
+rule create_auspice_view_full_tree:
+    input:
+        full_tree="results/basic/all/{gene}_masked/{gene}.json",
+    output:
         full_tree="auspice_datasets/{gene}_masked/full-tree.json",
     wildcard_constraints:
         gene="|".join(config["gene_mask"]),
     shell:
         r"""
-        # mkdir -p auspice_datasets/{wildcards.gene}_masked
-        cp {input.main_clades} {output.main_clades}
         cp {input.full_tree} {output.full_tree}
         """
+
+
+
+# rule create_auspice_view_full_tree:
+#     input: 
+#         main_clades="results/stitched/{gene}_global/{gene}.json",
+#         full_tree="results/basic/all/{gene}_masked/{gene}.json",
+#     output:
+#         main_clades="auspice_datasets/{gene}_masked/main-clades.json",
+#         full_tree="auspice_datasets/{gene}_masked/full-tree.json",
+#     wildcard_constraints:
+#         gene="|".join(config["gene_mask"]),
+#     shell:
+#         r"""
+#         # mkdir -p auspice_datasets/{wildcards.gene}_masked
+#         cp {input.main_clades} {output.main_clades}
+#         cp {input.full_tree} {output.full_tree}
+#         """
 
 rule create_auspice_view_single:
     input:
@@ -466,6 +493,9 @@ rule create_auspice_view_single:
         # mkdir -p auspice_datasets/{wildcards.gene}_masked
         cp {input.json} {output.single_clades}
         """
+
+
+
 
 
 
