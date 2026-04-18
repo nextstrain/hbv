@@ -7,6 +7,7 @@ and defines its default outputs.
 # Use default configuration values. Override with Snakemake's --configfile/--config options.
 configfile: "defaults/config.yaml"
 
+ACTIVE_NDJSON = "data/ncbi.active.ndjson"
 
 
 # This is the default rule that Snakemake will run when there are no specified targets.
