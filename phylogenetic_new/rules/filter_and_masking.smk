@@ -39,15 +39,16 @@ rule length_filter:
 ## Currently the settings in the nextclade dataset need to be looked at as 
 ## around 40% of all sequences (including the entirety of some genotypes)
 ## have QC=bad mainly due to frameshifts and stop codons.
-# TODO include nextclade build back here 
+
+
+
 def define_filters(mode, key):
     
     # Subsample based on dev mode and build     
     if str(config.get("dev", False)).lower() in ("1", "true", "yes"):
-        max_n = int(config .get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config .get("dev_n_totaltree", 500))
-    else: 
-        max_n = int(config .get("n_stitched_parts", 800)      if mode == "stitched" else int(config .get("n_totaltree", 3000))
-
+        max_n = int(config.get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config.get("dev_n_totaltree", 500))
+    else:
+        max_n = int(config.get("n_stitched_parts", 800)) if mode == "stitched" else int(config.get("n_totaltree", 3000))
 
     query_exprs = []
 
@@ -93,6 +94,9 @@ def define_filters(mode, key):
     #    return "--group-by genotype_genbank --subsample-max-sequences 25"
 
 
+def get_filter_args(wc):
+    return define_filters(wc.mode, wc.key)
+
 
 
 # # TODO right now this is empty! 
@@ -120,7 +124,7 @@ rule filter_by_clade:
         alignment="results/{mode}/{key}/filtered.fasta",
         metadata="results/{mode}/{key}/filtered.tsv",
     params:
-        args=lambda wc: define_filters(wc.mode, wc.key), # accept wc , in function get mode key
+        args=get_filter_args
     wildcard_constraints:
         mode="basic|stitched|single-clade",
         key="all|" + "|".join(ALL_GTS),
