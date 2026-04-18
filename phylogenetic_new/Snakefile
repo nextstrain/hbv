@@ -4,7 +4,7 @@
 #        metadata="../ingest/results/metadata.tsv",
 #        alignment="../ingest/results/aligned.fasta",
 
-
+#if config file not defined else snakemake --configfile
 configfile: "defaults/config.yaml"
 
 GENE_MASKS = config["gene_mask"]
@@ -27,8 +27,8 @@ include: "rules/filter_and_masking.smk"
 rule all: 
     input: 
         main_clades   = expand("auspice_datasets/{gene}_masked/main-clades.json", gene=GENE_MASKS),
-        #single_clades = expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES),
-        #full_tree     = full_tree_targets
+        single_clades = expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES),
+        full_tree     = full_tree_targets
 
 
 
@@ -48,37 +48,50 @@ rule augur_tree:
           --output {output.tree}
         """
 
-rule cut_outliers:
+
+# TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however. 
+rule prune_tree:
     input:
         tree_nwk="results/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
         metadata="results/{mode}/{key}/filtered.tsv",
+        script="scripts/prune_trees.py"
     output:
         out_tree="results/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
         metadata="results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
         exclude= "results/{mode}/{key}/{gene}_masked/{gene}_exclude.txt",
     params:
-        long_branch_threshold=config["long_branch_threshold"],
-        tip_branch_threshold=config["tip_branch_threshold"],
+        long_branch_threshold = config["long_branch_threshold"],
+        tip_branch_threshold  = config["tip_branch_threshold"],
         metadata_col="subgenotype_genbank", # for clade purity filtering,
-        minimal_monophyletic_purity=config["clade_purity"]["minimal_monophyletic_purity"] if config["clade_purity"]["use_as_filter"] else None,
-        maximal_monophyletic_fraction=config["clade_purity"]["clade_fraction"] if config["clade_purity"]["use_as_filter"] else None,
+
+        purity_args=(
+            f"--purity_metadata_col subgenotype_genbank "
+            f"--minimal_monophyletic_purity {config['clade_purity']['minimal_monophyletic_purity']} "
+            f"--maximal_monophyletic_fraction {config['clade_purity']['clade_fraction']}"
+            if config["clade_purity"]["use_as_filter"] else ""
+        ),
+
+        minclade_args=(
+            f"--minclade_metadata_cols genotype_genbank subgenotype_genbank "
+            f"--prune_min_counts {config['clade_settings']['min_count_per_clade']} {config['clade_settings']['min_count_per_subclade']}"
+            if config["clade_settings"]["min_count_mode"] == "use_for_pruning" else ""
+        ),
     shell:
         r"""
-        python scripts/prune_trees.py \
+        python {input.script} \
           --tree {input.tree_nwk} \
-          --metadata-in {input.metadata} \
-          --metadata-out {output.metadata} \
+          --metadata_in {input.metadata} \
+          --metadata_out {output.metadata} \
           --cutoff_allbranches {params.long_branch_threshold} \
           --cutoff_tips {params.tip_branch_threshold} \
-          --out-tree {output.out_tree} \
+          --out_tree {output.out_tree} \
           --exclude {output.exclude} \
-          --purity_metadata_col {params.metadata_col} \
-          --minimal_monophyletic_purity {params.minimal_monophyletic_purity} \
-          --maximal_monophyletic_fraction {params.maximal_monophyletic_fraction} \
-
-        n=$(wc -l < {output.exclude})
+          {params.purity_args} \
+          {params.minclade_args}     
+        
+        n=$(tr ' ' '\n' < {output.exclude} | sed '/^$/d' | sort -u | wc -l)
         echo "$n unique accessions in {output.exclude}"
-        """
+        """       
 
 
 
@@ -171,21 +184,13 @@ rule augur_export:
         --metadata-id-columns accession \
         --auspice-config "{input.config}" \
         --color-by-metadata \
-            genotype_genbank \
-            subgenotype_genbank \
-            clade_nextclade \
+            "HBV Type" \
+            "HBV Subtype" \
             genotype \
-            taxon_id \
-            host \
-            is_lab_host \
             region \
             country \
             division \
-            location \
-            year \
             date \
-            strain \
-            isolate \
         --output "{output.auspice_json}"
         """
 
@@ -222,8 +227,6 @@ rule collect_trees_for_stitching:
         touch {output.touch}
         """
 
-
-# TODO remove multiples of ref genome in tree when stitching together 
 rule group_trees:
     input:
         done="results/stitched/{gene}_global/collect.done"
@@ -265,54 +268,62 @@ rule clades_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
+        script = "scripts/assign_clades.py"   
     output:
         clades = STITCHED_DIR + "/{gene}_clades.json",
     params:
          min_count = config["clade_settings"]["min_count_per_clade"],
-         branch_display = config["clade_settings"]["branch_display_mode"],
+         min_count_mode = config["clade_settings"]["min_count_mode"],
+         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,        
+         branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest",False) else "",
          genotype_col = "genotype_genbank",
-         nextclade_label = "clade_genotype",
+         nextclade_label = "HBV Type",
     shell:
         r"""        
-        python3 scripts/assign_clades.py \
+        python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
           --output {output.clades} \
           --min-count {params.min_count} \
+          --min-count-mode {params.min_count_mode} \
           --subtype-col {params.genotype_col} \
-          --nextclade-label {params.nextclade_label} \
-          --branch_display {params.branch_display} \
-        """
-
+          --nextclade-label "{params.nextclade_label}" \
+          {params.only_monophyletic_flag} \
+          {params.branch_display_flag}       
+         """
 
 rule sub_clades_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
         fallback_clades = STITCHED_DIR + "/{gene}_clades.json", 
+        script = "scripts/assign_clades.py"
     output:
         clades = STITCHED_DIR + "/{gene}_subclades.json",
     params:
          min_count = config["clade_settings"]["min_count_per_subclade"],
-         branch_display = config["clade_settings"]["branch_display_mode"],
+         min_count_mode = config["clade_settings"]["min_count_mode"],
+         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,        
+         branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest",False) else "",
          genotype_col = "subgenotype_genbank",
          fallback_genotype_col = "genotype_genbank", # in case subgenotype information is missing, use genotype information to assign to major clade
-         nextclade_label = "clade_subgenotype",
-         fallback_annotation_nextclade_label = "clade_genotype", # if subtype information is missing and genotype information is used as fallback, use the major clade as annotation for nextclade clades as well
+         nextclade_label = "HBV Subtype",
+         fallback_annotation_nextclade_label = "HBV Type", # if subtype information is missing and genotype information is used as fallback, use the major clade as annotation for nextclade clades as well
     shell:
         r"""        
-        python3 scripts/assign_clades.py \
+        python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
           --output {output.clades} \
           --min-count {params.min_count} \
+          --min-count-mode {params.min_count_mode} \
           --subtype-col {params.genotype_col} \
-          --nextclade-label {params.nextclade_label} \
+          --nextclade-label "{params.nextclade_label}" \
           --fallback-genotype-col {params.fallback_genotype_col} \
           --fallback-annotation-file {input.fallback_clades} \
-          --fallback-annotation-nextclade-label {params.fallback_annotation_nextclade_label} \
-          --branch_display {params.branch_display} \
-
+          --fallback-annotation-nextclade-label "{params.fallback_annotation_nextclade_label}" \
+          {params.only_monophyletic_flag} \
+          {params.branch_display_flag}
         """
 
     
@@ -339,7 +350,7 @@ rule ancestral_stitched:
         set -euo pipefail
 
         outdir="{params.outdir}"
-        mkdir -p "$outdir"
+        # mkdir -p "$outdir"
 
         combined="$outdir/combined_nonmasked_aln.fasta"
 
@@ -412,21 +423,12 @@ rule export_stitched:
             --output "{output.auspice_json}" \
             --auspice-config "{input.config}" \
             --color-by-metadata \
-                genotype_genbank \
-                subgenotype_genbank \
-                clade_nextclade \
-                genotype \
-                taxon_id \
-                host \
-                is_lab_host \
+                "HBV Type" \
+                "HBV Subtype" \
                 region \
                 country \
                 division \
-                location \
-                year \
                 date \
-                strain \
-                isolate \
             --minify-json \
             --include-root-sequence-inline
         """
@@ -446,7 +448,7 @@ rule create_auspice_view_full_tree:
         gene="|".join(config["gene_mask"]),
     shell:
         r"""
-        mkdir -p auspice_datasets/{wildcards.gene}_masked
+        # mkdir -p auspice_datasets/{wildcards.gene}_masked
         cp {input.main_clades} {output.main_clades}
         cp {input.full_tree} {output.full_tree}
         """
@@ -461,7 +463,7 @@ rule create_auspice_view_single:
         key="|".join(SINGLE_BUILD_GENOTYPES),
     shell:
         r"""
-        mkdir -p auspice_datasets/{wildcards.gene}_masked
+        # mkdir -p auspice_datasets/{wildcards.gene}_masked
         cp {input.json} {output.single_clades}
         """
 
@@ -471,26 +473,26 @@ rule create_auspice_view_single:
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
-rule find_new_clades:
-    input:
-        tree="results/stitched/{gene}_global/{gene}.json",
-        metadata="data/filtered/metadata.len_filtered.tsv",
-    output:
-        clade_summary="results/{gene}_masked_stitched_clade_summary.tsv",
-    params:
-        #target="A",
-        genotype_cols="genotype_genbank subgenotype_genbank", 
-        id_col="accession",
-        min_purity=0.9,
-        min_child_purity=0.5,
-    shell:
-        r"""
-        python scripts/find_majority_clade.py \
-            --tree {input.tree} \
-            --metadata {input.metadata} \
-            --genotype-col {params.genotype_cols} \
-            --id-col {params.id_col} \
-            --min-purity {params.min_purity} \
-            --child-min-purity {params.min_child_purity} \
-            --output {output.clade_summary}
-        """
+# rule find_new_clades:
+#     input:
+#         tree="results/stitched/{gene}_global/{gene}.json",
+#         metadata="data/filtered/metadata.len_filtered.tsv",
+#     output:
+#         clade_summary="results/{gene}_masked_stitched_clade_summary.tsv",
+#     params:
+#         #target="A",
+#         genotype_cols="genotype_genbank subgenotype_genbank", 
+#         id_col="accession",
+#         min_purity=0.9,
+#         min_child_purity=0.5,
+#     shell:
+#         r"""
+#         python scripts/find_majority_clade.py \
+#             --tree {input.tree} \
+#             --metadata {input.metadata} \
+#             --genotype-col {params.genotype_cols} \
+#             --id-col {params.id_col} \
+#             --min-purity {params.min_purity} \
+#             --child-min-purity {params.min_child_purity} \
+#             --output {output.clade_summary}
+#         """
