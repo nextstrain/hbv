@@ -2,9 +2,9 @@
 # Reference sequence is to be included in the alignment but excluded from tree building to avoid it appearing in wrong individual clade-trees.
 rule augur_tree:
     input:
-        alignment = "results/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
+        alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     output:
-        tree      = "results/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
+        tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
     threads: 4
     shell:
         """
@@ -18,13 +18,13 @@ rule augur_tree:
 # TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however. 
 rule prune_tree:
     input:
-        tree_nwk="results/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
-        metadata="results/{mode}/{key}/filtered.tsv",
+        tree_nwk=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
+        metadata=RESULTS + "/{mode}/{key}/filtered.tsv",
         script="scripts/prune_trees.py"
     output:
-        out_tree="results/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
-        metadata="results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
-        exclude= "results/{mode}/{key}/{gene}_masked/{gene}_exclude.txt",
+        out_tree=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
+        metadata=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
+        exclude= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_exclude.txt",
     params:
         long_branch_threshold = config["long_branch_threshold"],
         tip_branch_threshold  = config["tip_branch_threshold"],
@@ -63,10 +63,10 @@ rule prune_tree:
 
 rule augur_refine:
     input:
-        tree      = "results/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
-        alignment = "results/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta"
+        tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
+        alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta"
     output:
-        tree      = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
     threads: 4
     shell:
         """
@@ -101,15 +101,15 @@ rule alias_translations_for_augur:
 # TODO take ref sequence as root here for reconstruction as well?
 rule ancestral:
     input:
-        tree=     "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
-        alignment="results/{mode}/{key}/filtered.fasta", # Using non-masked alignment for ancestral reconstruction
+        tree=     RESULTS +  "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        alignment= RESULTS + "/{mode}/{key}/filtered.fasta", # Using non-masked alignment for ancestral reconstruction
         annotation= config["reference"]["gff"],
         translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]),
         root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
  
     output:
-        node_data = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
-        sequences = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
+        node_data = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+        sequences = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
     params: 
         genes=" ".join(ANCESTRAL_GENES),
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",

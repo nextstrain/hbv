@@ -118,11 +118,11 @@ rule filter_by_clade:
     input:
         alignment="data/filtered/alignment.len_filtered.fasta",
         metadata="data/filtered/metadata.len_filtered.tsv",
-        #include = "results/{mode}/{key}/include.txt",   
+        #include = RESULTS + "/{mode}/{key}/include.txt",   
         #exclude = "defaults/exclude.txt",
     output:
-        alignment="results/{mode}/{key}/filtered.fasta",
-        metadata="results/{mode}/{key}/filtered.tsv",
+        alignment=RESULTS + "/{mode}/{key}/filtered.fasta",
+        metadata=RESULTS + "/{mode}/{key}/filtered.tsv",
     params:
         args=get_filter_args
     wildcard_constraints:
@@ -154,14 +154,12 @@ rule specify_genomic_regions_genes:
         python {input.script} {input.ref_gb} {output.regions} 
         """
 
-#TODO make this work for CDS specifically and not for genes! then keep same naming conventions as in nextclade
-
 rule mask_gene:
     input:
         regions="defaults/genomic_regions_genes.txt",
-        alignment="results/{mode}/{key}/filtered.fasta",
+        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
     output:
-        alignment="results/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
+        alignment= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     params:
         ref=config["reference"]["id"]
     wildcard_constraints:

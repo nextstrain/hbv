@@ -5,17 +5,17 @@
 rule collect_trees_for_stitching:
     input:
         trees=lambda wc: expand(
-            "results/stitched/{g}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+            RESULTS + "/stitched/{g}/{gene}_masked/{gene}_masked_refined.tree.nwk",
             g=ALL_GTS, gene=[wc.gene]
         ),
         alns=lambda wc: expand(
-            "results/stitched/{g}/{gene}_masked/{gene}_masked_aln.fasta",
+            RESULTS + "/stitched/{g}/{gene}_masked/{gene}_masked_aln.fasta",
             g=ALL_GTS, gene=[wc.gene]
         ),
     output:
-        trees_dir=directory("results/stitched/{gene}_global/trees"),
-        aln_dir=directory("results/stitched/{gene}_global/aln"),
-        touch="results/stitched/{gene}_global/collect.done",
+        trees_dir=directory(RESULTS + "/stitched/{gene}_global/trees"),
+        aln_dir=directory(RESULTS + "/stitched/{gene}_global/aln"),
+        touch=RESULTS + "/stitched/{gene}_global/collect.done",
     params:
         g_list=" ".join(ALL_GTS)
     shell:
@@ -23,22 +23,21 @@ rule collect_trees_for_stitching:
         mkdir -p {output.trees_dir} {output.aln_dir}
 
         for g in {params.g_list}; do
-            cp "results/stitched/$g/{wildcards.gene}_masked/{wildcards.gene}_masked_refined.tree.nwk" "{output.trees_dir}/$g.nwk"
-            cp "results/stitched/$g/{wildcards.gene}_masked/{wildcards.gene}_masked_aln.fasta" "{output.aln_dir}/$g.fasta"
+            cp {RESULTS}/stitched/$g/{wildcards.gene}_masked/{wildcards.gene}_masked_refined.tree.nwk "{output.trees_dir}/$g.nwk"
+            cp {RESULTS}/stitched/$g/{wildcards.gene}_masked/{wildcards.gene}_masked_aln.fasta "{output.aln_dir}/$g.fasta"
         done
 
         touch {output.touch}
         """
-
 rule group_trees:
     input:
-        done="results/stitched/{gene}_global/collect.done"
+        done=RESULTS + "/stitched/{gene}_global/collect.done"
     output:
-        stitched_tree="results/stitched/{gene}_global/tree_raw.nwk",
+        stitched_tree=RESULTS + "/stitched/{gene}_global/tree_raw.nwk"
     params:
-        trees="results/stitched/{gene}_global/trees",
-        aln=  "results/stitched/{gene}_global/aln",
-        outdir=directory("results/stitched/{gene}_global"),
+        trees=RESULTS + "/stitched/{gene}_global/trees",
+        aln=RESULTS + "/stitched/{gene}_global/aln",
+        outdir=directory(RESULTS + "/stitched/{gene}_global"),
         ref_id = config["reference"]["id"]
     shell:
         r"""
@@ -71,7 +70,7 @@ rule refine_stitched:
 rule ancestral_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
-        aln=expand("results/stitched/{key}/filtered.fasta", key=ALL_GTS), # Using non-masked alignments for ancestral reconstruction
+        aln=expand(RESULTS + "/stitched/{key}/filtered.fasta", key=ALL_GTS),  # Using non-masked alignments for ancestral reconstruction
         annotation= config["reference"]["gff"],
         translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]), 
         root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
@@ -81,7 +80,7 @@ rule ancestral_stitched:
     params:
         genes=" ".join(ANCESTRAL_GENES),
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
-        outdir="results/stitched/{gene}_global",
+        outdir=RESULTS + "/stitched/{gene}_global",
         ref_id= config["reference"]["id"],
  
     shell:

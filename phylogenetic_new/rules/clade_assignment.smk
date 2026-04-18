@@ -71,11 +71,11 @@ rule sub_clades_stitched:
 
 rule clades_non_stitched:
     input:
-        tree = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        tree = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
         script = "scripts/assign_clades.py"
     output:
-        clades = "results/{mode}/{key}/{gene}_masked/{gene}_clades.json"
+        clades = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_clades.json"
     params:
         min_count = config["clade_settings"]["min_count_per_clade"],
         min_count_mode = config["clade_settings"]["min_count_mode"],
@@ -100,12 +100,12 @@ rule clades_non_stitched:
 
 rule sub_clades_non_stitched:
     input:
-        tree = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        tree = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
-        fallback_clades = "results/{mode}/{key}/{gene}_masked/{gene}_clades.json",
+        fallback_clades = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_clades.json",
         script = "scripts/assign_clades.py"
     output:
-        clades = "results/{mode}/{key}/{gene}_masked/{gene}_subclades.json"
+        clades = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_subclades.json"
     params:
         min_count = config["clade_settings"]["min_count_per_subclade"],
         min_count_mode = config["clade_settings"]["min_count_mode"],

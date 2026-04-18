@@ -2,16 +2,16 @@ rule augur_export:
     wildcard_constraints:
         gene="P|S|C|X"
     input:
-        tree = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        tree = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         node_data = [
-            "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
-            "results/{mode}/{key}/{gene}_masked/{gene}_subclades.json",
-            "results/{mode}/{key}/{gene}_masked/{gene}_clades.json",
+            RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+            RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_subclades.json",
+            RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_clades.json",
         ],
-        metadata = "results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
+        metadata = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
         config = "defaults/auspice_config.json",
     output:
-        auspice_json = "results/{mode}/{key}/{gene}_masked/{gene}.json",
+        auspice_json = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}.json",
     threads: 1
     shell:
         """
@@ -78,7 +78,7 @@ rule export_stitched:
 
 rule create_auspice_view_main_clades:
     input:
-        main_clades="results/stitched/{gene}_global/{gene}.json",
+        main_clades= RESULTS + "/stitched/{gene}_global/{gene}.json",
     output:
         main_clades="auspice_datasets/{gene}_masked/main-clades.json",
     wildcard_constraints:
@@ -91,7 +91,7 @@ rule create_auspice_view_main_clades:
 
 rule create_auspice_view_full_tree:
     input:
-        full_tree="results/basic/all/{gene}_masked/{gene}.json",
+        full_tree= RESULTS + "/basic/all/{gene}_masked/{gene}.json",
     output:
         full_tree="auspice_datasets/{gene}_masked/full-tree.json",
     wildcard_constraints:
@@ -103,7 +103,7 @@ rule create_auspice_view_full_tree:
 
 rule create_auspice_view_single:
     input:
-        json="results/single-clade/{key}/{gene}_masked/{gene}.json"
+        json=RESULTS + "/single-clade/{key}/{gene}_masked/{gene}.json"
     output:
         single_clades="auspice_datasets/{gene}_masked/clade_{key}.json",
     wildcard_constraints:
