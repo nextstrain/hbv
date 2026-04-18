@@ -155,6 +155,90 @@ def prune_via_purity(t: Tree, maximal_monophyletic_fraction: int, minimal_monoph
             "Unary node detected after purity pruning"
 
 
+def prune_via_min_counts(t: Tree, metadata_in: str, metadata_col: str, min_count: int, excl_fh=None):
+    # leaf -> label
+    with open(metadata_in) as fin:
+        header = fin.readline().rstrip("\n").split("\t")
+        idx = header.index(metadata_col)
+        leaf_to_label = {
+            fields[0]: fields[idx]
+            for fields in (
+                line.rstrip("\n").split("\t")
+                for line in fin
+                if line.strip()
+            )
+        }
+
+    node_to_label = {lf.name: leaf_to_label.get(lf.name, "other") for lf in t.iter_leaves()}
+    SKIP = {None, "", "NA", "other"}
+    labels = {node_to_label.get(lf.name) for lf in t.iter_leaves()} - SKIP
+
+    to_remove_all = set()
+
+    def compute_counts_for_label(label):
+        for cl in t.traverse("postorder"):
+            if cl.is_leaf():
+                is_lab = (node_to_label.get(cl.name) == label)
+                cl._n_label = 1 if is_lab else 0
+                cl._n_other = 0 if is_lab else 1
+            else:
+                cl._n_label = sum(ch._n_label for ch in cl.children)
+                cl._n_other = sum(ch._n_other for ch in cl.children)
+
+    def cleanup_counts():
+        for cl in t.traverse():
+            if hasattr(cl, "_n_label"):
+                del cl._n_label
+            if hasattr(cl, "_n_other"):
+                del cl._n_other
+
+    def find_one_small_maximal_pure_clade(label):
+        # assumes counts already computed
+        for cl in t.traverse("preorder"):
+            if cl.is_root():
+                continue
+            if cl._n_label > 0 and cl._n_other == 0:
+                parent = cl.up
+                parent_pure = (
+                    parent is not None
+                    and getattr(parent, "_n_label", 0) > 0
+                    and getattr(parent, "_n_other", 0) == 0
+                )
+                if (not parent_pure) and cl._n_label < min_count:
+                    return cl
+        return None
+
+    # keep pruning until no more events (recompute children-labels after each prune)
+    # clades to prune are computed dynamically to avoid overpruning (e.g. not prune all branches of impure catterpillar tree)
+    changed = True
+    while changed:
+        changed = False
+
+        # refresh labels from current tree (optional)
+        labels = {node_to_label.get(lf.name) for lf in t.iter_leaves()} - SKIP
+
+        for label in labels:
+            compute_counts_for_label(label) # reassess monophyly of clades
+            cl = find_one_small_maximal_pure_clade(label) # finds next clade to remove, if exists
+
+            if cl is not None:
+                leaves = cl.get_leaf_names()
+                to_remove_all.update([nm for nm in leaves if nm not in (None, "")])
+                if excl_fh is not None and leaves:
+                    excl_fh.write(" ".join(sorted(leaves)) + "\n")
+
+                cl.detach()  # remove whole clade 
+                suppress_unary_nodes(t)
+                t = suppress_unary_root(t)
+
+                cleanup_counts()
+                changed = True
+                break  # restart from scratch with fresh topology
+
+            cleanup_counts()
+
+    return t, to_remove_all
+
 def prune_metadata(metadata_in: str, metadata_out: str, removed: set):
     with open(metadata_in) as fin:
         header = fin.readline()
@@ -196,16 +280,24 @@ def plot_log_tip_length_distribution(t, out_png, bins=200):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--tree", required=True)
-parser.add_argument("--metadata-in", required=True)
-parser.add_argument("--metadata-out", required=True)
-parser.add_argument("--out-tree", required=True)
+parser.add_argument("--metadata_in", required=True)
+parser.add_argument("--metadata_out", required=True)
+parser.add_argument("--out_tree", required=True)
 parser.add_argument("--exclude", required=True)
 parser.add_argument("--cutoff_allbranches", type=float, required=True)
 parser.add_argument("--cutoff_tips", type=float, default=None)
 parser.add_argument("--maximal_monophyletic_fraction", type=float, required=False)
 parser.add_argument("--minimal_monophyletic_purity", type=float, required=False)
-parser.add_argument("--purity_metadata_col", type=str, required=False)
+parser.add_argument("--purity_metadata_col", type=str, default=None)
+parser.add_argument("--minclade_metadata_cols", nargs="+", default=None)
+parser.add_argument("--prune_min_counts", nargs="+", required=False)
 args = parser.parse_args()
+
+if args.minclade_metadata_cols is not None and len(args.prune_min_counts) != len(args.minclade_metadata_cols):
+        raise ValueError(
+            f"--prune_min_counts ({len(args.prune_min_counts)}) must match "
+            f"--minclade_metadata-cols ({len(args.minclade_metadata_cols)})"
+        )
 
 t = Tree(args.tree, format=1)
 total = len(t.get_leaf_names())
@@ -227,7 +319,8 @@ if args.cutoff_tips is not None:
     with open(args.exclude, "a") as excl_fh:
         kept_tree, removed_via_tips = prune_long_tips_iteratively(
             kept_tree, args.cutoff_tips, excl_fh
-        )
+    )
+        
 removed_via_monophyly = set()
 if args.maximal_monophyletic_fraction is not None and args.minimal_monophyletic_purity is not None:
     with open(args.exclude, "a") as excl_fh:
@@ -237,10 +330,22 @@ if args.maximal_monophyletic_fraction is not None and args.minimal_monophyletic_
             args.minimal_monophyletic_purity,
             args.purity_metadata_col,
             args.metadata_in,
-            excl_fh
+            excl_fh,
         )
 
-# final sanity
+removed_via_minimal_clades = set()
+if args.minclade_metadata_cols and args.prune_min_counts:
+    for col, min_count in zip(args.minclade_metadata_cols, args.prune_min_counts):
+        with open(args.exclude, "a") as excl_fh:
+            kept_tree, removed_now = prune_via_min_counts(
+                kept_tree,
+                args.metadata_in,
+                col,              # metadata column
+                int(min_count),        # min count for this column
+                excl_fh
+            )
+        removed_via_minimal_clades |= removed_now
+
 assert all(l.name not in (None, "") for l in kept_tree.iter_leaves()), \
     "Unnamed leaf present"
 
@@ -249,23 +354,26 @@ if kept_tree.name in (None, ""):
 
 kept_tree.write(outfile=args.out_tree, format=1)
 
-removed_all = removed_via_all | removed_via_tips | removed_via_monophyly
+removed_all = removed_via_all | removed_via_tips | removed_via_monophyly | removed_via_minimal_clades
 prune_metadata(args.metadata_in, args.metadata_out, removed_all)
 
 excluded_via_all = len(removed_via_all)
 excluded_via_tips = len(removed_via_tips)
 excluded_via_monophyly = len(removed_via_monophyly)
+excluded_via_minimal_clades = len(removed_via_minimal_clades)
 
 print(
     f"[{Path(args.tree).name}] "
-    f"Excluded: \n   {excluded_via_all} via long internal branches > {args.cutoff_allbranches},"
-    + (f" \n + {excluded_via_tips} via terminal branches > {args.cutoff_tips}"
+    f"Excluded tips: \n   {excluded_via_all} via long internal branches length> {args.cutoff_allbranches},"
+    + (f"\n + {excluded_via_tips} via terminal branches length > {args.cutoff_tips}"
        if args.cutoff_tips is not None else "")
-    + f"  \n + {excluded_via_monophyly} to enforce purity of {args.minimal_monophyletic_purity} of monophyletic clades with up to {int(args.maximal_monophyletic_fraction * total)} tips"
-    + f"  \n out of {total} total tips"
+    + (f"\n + {excluded_via_monophyly} to enforce purity of {args.minimal_monophyletic_purity} "
+       f"of monophyletic clades with up to {int(args.maximal_monophyletic_fraction * total)} tips"
+       if args.maximal_monophyletic_fraction is not None and args.minimal_monophyletic_purity is not None else "")
+    + (f"\n + {excluded_via_minimal_clades} to enforce monophylactic clades with a minimum of tips of {args.prune_min_counts}"
+       f" with annotation  {args.minclade_metadata_cols} respectively"
+       if args.prune_min_counts is not None and args.minclade_metadata_cols is not None else "")
+    + f"\n out of {total} total tips"
 )
 
-plot_log_tip_length_distribution(
-    kept_tree,
-    f"results/tip_length_distr/{Path(args.tree).stem}.tip_length_loglog.png"
-)
+#plot_log_tip_length_distribution(kept_tree, f"results/tip_length_distr/{Path(args.tree).stem}.tip_length_loglog.png")
