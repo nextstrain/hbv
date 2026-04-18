@@ -164,36 +164,6 @@ rule ancestral:
         """
 
 
-rule augur_export:
-    wildcard_constraints:
-        gene="P|S|C|X"  
-    input:
-        tree       ="results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
-        node_data = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
-        metadata   ="results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
-        config     ="defaults/auspice_config.json",
-    output:
-        auspice_json = "results/{mode}/{key}/{gene}_masked/{gene}.json",
-    threads: 1
-    shell:
-        """
-        augur export v2 \
-        --tree "{input.tree}" \
-        --node-data "{input.node_data}"  \
-        --metadata "{input.metadata}" \
-        --metadata-id-columns accession \
-        --auspice-config "{input.config}" \
-        --color-by-metadata \
-            "HBV Type" \
-            "HBV Subtype" \
-            genotype \
-            region \
-            country \
-            division \
-            date \
-        --output "{output.auspice_json}"
-        """
-
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
 # Rules for stitching together trees from different genotypes into a single tree 
@@ -402,7 +372,7 @@ rule export_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
-        config = "defaults/auspice_config_stitched.json", # Atm the exact same as auspice_config.json but could be configured differently
+        config = "defaults/auspice_config.json",
         node_data = [
             STITCHED_DIR + "/node_data/{gene}_branch_lengths.json",
             STITCHED_DIR + "/node_data/{gene}_muts.json",
@@ -461,7 +431,6 @@ rule create_auspice_view_full_tree:
         r"""
         cp {input.full_tree} {output.full_tree}
         """
-
 
 
 # rule create_auspice_view_full_tree:
@@ -525,4 +494,134 @@ rule create_auspice_view_single:
 #             --min-purity {params.min_purity} \
 #             --child-min-purity {params.min_child_purity} \
 #             --output {output.clade_summary}
+#         """
+
+
+
+
+
+rule clades_per_build:
+    input:
+        tree = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+        script = "scripts/assign_clades.py"
+    output:
+        clades = "results/{mode}/{key}/{gene}_masked/{gene}_clades.json"
+    params:
+        min_count = config["clade_settings"]["min_count_per_clade"],
+        min_count_mode = config["clade_settings"]["min_count_mode"],
+        only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "",
+        branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest", False) else "",
+        genotype_col = "genotype_genbank",
+        nextclade_label = "HBV Type",
+    shell:
+        r"""
+        python3 {input.script} \
+          --tree {input.tree} \
+          --metadata {input.metadata} \
+          --output {output.clades} \
+          --min-count {params.min_count} \
+          --min-count-mode {params.min_count_mode} \
+          --subtype-col {params.genotype_col} \
+          --nextclade-label "{params.nextclade_label}" \
+          {params.only_monophyletic_flag} \
+          {params.branch_display_flag}
+        """
+
+
+rule sub_clades_per_build:
+    input:
+        tree = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+        fallback_clades = "results/{mode}/{key}/{gene}_masked/{gene}_clades.json",
+        script = "scripts/assign_clades.py"
+    output:
+        clades = "results/{mode}/{key}/{gene}_masked/{gene}_subclades.json"
+    params:
+        min_count = config["clade_settings"]["min_count_per_subclade"],
+        min_count_mode = config["clade_settings"]["min_count_mode"],
+        only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "",
+        branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest", False) else "",
+        genotype_col = "subgenotype_genbank",
+        fallback_genotype_col = "genotype_genbank",
+        nextclade_label = "HBV Subtype",
+        fallback_annotation_nextclade_label = "HBV Type",
+    shell:
+        r"""
+        python3 {input.script} \
+          --tree {input.tree} \
+          --metadata {input.metadata} \
+          --output {output.clades} \
+          --min-count {params.min_count} \
+          --min-count-mode {params.min_count_mode} \
+          --subtype-col {params.genotype_col} \
+          --nextclade-label "{params.nextclade_label}" \
+          --fallback-genotype-col {params.fallback_genotype_col} \
+          --fallback-annotation-file {input.fallback_clades} \
+          --fallback-annotation-nextclade-label "{params.fallback_annotation_nextclade_label}" \
+          {params.only_monophyletic_flag} \
+          {params.branch_display_flag}
+        """
+rule augur_export:
+    wildcard_constraints:
+        gene="P|S|C|X"
+    input:
+        tree = "results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        node_data = [
+            "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+            "results/{mode}/{key}/{gene}_masked/{gene}_subclades.json",
+            "results/{mode}/{key}/{gene}_masked/{gene}_clades.json",
+        ],
+        metadata = "results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
+        config = "defaults/auspice_config.json",
+    output:
+        auspice_json = "results/{mode}/{key}/{gene}_masked/{gene}.json",
+    threads: 1
+    shell:
+        """
+        augur export v2 \
+        --tree "{input.tree}" \
+        --node-data {input.node_data} \
+        --metadata "{input.metadata}" \
+        --metadata-id-columns accession \
+        --auspice-config "{input.config}" \
+        --color-by-metadata \
+            "HBV Type" \
+            "HBV Subtype" \
+            region \
+            country \
+            division \
+            date \
+        --output "{output.auspice_json}"
+        """
+
+
+# rule augur_export:
+#     wildcard_constraints:
+#         gene="P|S|C|X"  
+#     input:
+#         tree       ="results/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+#         node_data = "results/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+#         metadata   ="results/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
+#         config     ="defaults/auspice_config.json",
+#     output:
+#         auspice_json = "results/{mode}/{key}/{gene}_masked/{gene}.json",
+#     threads: 1
+#     shell:
+#         """
+#         augur export v2 \
+#         --tree "{input.tree}" \
+#         --node-data "{input.node_data}"  \
+#         --metadata "{input.metadata}" \
+#         --metadata-id-columns accession \
+#         --auspice-config "{input.config}" \
+#         --color-by-metadata \
+#             "HBV Type" \
+#             "HBV Subtype" \
+#             genotype \
+#             region \
+#             country \
+#             division \
+#             date \
+#         --output "{output.auspice_json}"
 #         """
