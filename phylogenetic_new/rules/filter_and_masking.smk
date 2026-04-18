@@ -35,34 +35,19 @@ rule length_filter:
         """
 
 
-
-# rule correct_subgenotypes:
-#     input:
-#         metadata="data/filtered/metadata.len_filtered.tsv",
-#         mapping="defaults/subgenotype_correction.tsv",
-#         script="scripts/subgenotype_mapping.py"
-#     output:
-#         metadata="data/filtered/metadata.len_subtype_filtered.tsv"
-#     shell:
-#         """
-#         python {input.script} \
-#             --metadata-in {input.metadata} \
-#             --mapping {input.mapping} \
-#             --metadata-out {output.metadata}
-#         """
-
 ## TODO - there are a number of nextclade QC status' we can filter on here.
 ## Currently the settings in the nextclade dataset need to be looked at as 
 ## around 40% of all sequences (including the entirety of some genotypes)
 ## have QC=bad mainly due to frameshifts and stop codons.
 # TODO include nextclade build back here 
 def define_filters(mode, key):
-    dev = str(config.get("dev", False)).lower() in ("1", "true", "yes")
     
-    
+    # Subsample based on dev mode and build     
+    if str(config.get("dev", False)).lower() in ("1", "true", "yes"):
+        max_n = int(config .get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config .get("dev_n_totaltree", 500))
+    else: 
+        max_n = int(config .get("n_stitched_parts", 800)      if mode == "stitched" else int(config .get("n_totaltree", 3000))
 
-    dev_n = int(config .get("dev_n_stitched_parts", 500)) if mode == "stitched" else int(config .get("dev_n_totaltree", 2000))
-    max_n = dev_n if dev else 4000
 
     query_exprs = []
 

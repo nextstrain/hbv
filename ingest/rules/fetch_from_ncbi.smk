@@ -162,11 +162,11 @@ rule ncbi_active:
         ACTIVE_NDJSON
     params:
         dev=config.get("dev", False),
-        n=config.get("dev_n", 100),
+        n=config.get("dev_n_ingest", 100),
         ref=config["reference_accession"],
     shell:
         r"""
-        mkdir -p data
+        # mkdir -p data
 
         if [ "{params.dev}" = "true" ] || [ "{params.dev}" = "True" ] || [ "{params.dev}" = "1" ]; then
           (
