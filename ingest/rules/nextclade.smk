@@ -23,8 +23,8 @@ https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 """
 
 
-# TO DO: WRITE RULE DATASET GET THAT GETS IT FROM PROPER REPO INSTEAD OF FROM PRIOR INGEST RROCEDURE
-# Example: Adapted from MPox:
+# TODO: upload dataset and add rule get_nextclade_dataset that properly fetches dataset instead of getting it from dataset folder
+
 #rule get_nextclade_dataset:
 #    output:
 #        "data/hbv.zip",  
@@ -46,14 +46,15 @@ https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 
 rule nextclade:
     """
-    Nextclade v3 is used to align all genomes using a reference dataset and infer genotypes ("clade_nextclade")
+    Nextclade v3 is used to align all genomes using a reference dataset, perform QC and infer genotypes ("clade_nextclade")
+    We can output a preliminary tree here but do not need to for this pipeline. 
     Note that the minimum seed match rate is specified in the dataset itself.
+    Note that QC metrics are not used for filtering yet. 
     """
     input:
-        sequences = "results/sequences.fasta",    # MAYBE SHOULD RATHER BE   "data/hbv.zip "
+        sequences = "results/sequences.fasta",   
     output:
         alignment = "data/nextclade/aligned.fasta",
-        tree = "data/nextclade/nextclade.json",      # MAYBE DONT WANT TREE YET
         translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
         metadata = "data/nextclade/metadata.tsv",
     params:
@@ -68,7 +69,6 @@ rule nextclade:
             --output-fasta {output.alignment} \
             --output-translations {params.translations_pattern} \
             --output-tsv {output.metadata} \
-            --output-tree {output.tree} \
             {input.sequences}
         """
 
