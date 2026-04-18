@@ -21,7 +21,11 @@ auspice:
 
 #__________________________________________________________________________________________________________ FILTERING CRITERIA __________________________________________________________________________________________________________
 
-augur_custom_filter: 'year > "1977" & (is_lab_host != True) & host == "Homo sapiens"'  # First sequenced genome is 1978, not sure if the earlier ones are old samples and relieable
+sampling:
+  augur_custom_filter: 'year > "1977" & (is_lab_host != True) & host == "Homo sapiens"'  # First sequenced genome is 1978, not sure if the earlier ones are old samples and relieable
+  group_by:
+    - region
+    - year
 
 # Defines whether we filter by sequence completeness (length) and which thresholds to use. DO NOT use small genes in ancestr^al reconstruction if length filtering is not strict.
 length_filtering:
@@ -36,7 +40,7 @@ subgenotype_filtering_singleclade: false
 
 # all branches with length higher than this threshold will be pruned from the tree
 long_branch_threshold:  0.25  # 0.3
-tip_branch_threshold: 0.01  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants. 
+tip_branch_threshold: 0.1  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants. 
 
 filter_genbank_vs_nextclade: true
 

@@ -76,15 +76,18 @@ def define_filters(mode, key):
                 query_exprs.append('genotype_genbank == clade_nextclade')
 
 
-    if config.get("augur_custom_filter"):
-        query_exprs.append(config["augur_custom_filter"])    
+    if config.get("sampling", {}).get("augur_custom_filter"):
+        query_exprs.append(config["sampling"]["augur_custom_filter"])    
 
     args = []
     if query_exprs:
         combined = " & ".join(f"({q})" for q in query_exprs)
         args.append(f"--query '{combined}'")
     
-    args.append(f"--group-by year region --subsample-max-sequences {max_n}") 
+    args.append(
+    f"--group-by {' '.join(config['sampling']['group_by'])} "
+    f"--subsample-max-sequences {max_n}"
+)
 
     return " ".join(args)
 
