@@ -123,3 +123,16 @@ rule cleanall:
         paths=["results", "auspice_datasets", "data"]
     shell:
         "rm -rfv {params.paths}"
+
+
+rule deploy:
+    input:
+        *rules.all.input,
+    output:
+        touch(expand("results/{target}/deploy.done", target=DEFAULT_TARGETS))
+    params:
+        deploy_destination = config["deploy_destination"]
+    shell:
+        """
+        nextstrain remote upload {params.deploy_destination} {input}
+        """

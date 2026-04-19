@@ -98,3 +98,7 @@ single_build_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 # TODO FOR SOME STRAINS ALL SEQUENCES GET FILTERED, and check if problem is somewhere else potentially
 all_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 #all_genotypes: ["A", "B", "C", "D", "E"]
+
+
+
+deploy_destination: 's3://nextstrain-staging'
