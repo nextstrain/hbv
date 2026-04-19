@@ -67,6 +67,17 @@ rule compare_trees_RF_all:
         rm -rf results/rf
         """
 
+rule display_RF:
+    input:
+        table=f"results/compare_trees_RF_{TAG}.tsv"
+    output:
+        grid= f"results/RF_{TAG}.pdf"
+    shell:
+        r"""
+        python scripts/visualise_rf.py {input.table} {output.grid}
+        """
+
+
 
 rule tree_knit_pair:
     input:
