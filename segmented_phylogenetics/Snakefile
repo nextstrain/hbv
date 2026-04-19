@@ -41,7 +41,6 @@ rule all:
         tree_json     = expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
         node_data     = expand(f"{OUTDIR}/{{name}}/{{name}}.ancestral.json", name=REGION_NAMES),
         joint_exclude ="defaults/exclude.txt",
-        distances_correlation_matrix="results/correlation_analysis/pairwise_tip_distance_scatter_grid.patristic.png",
 
 
 
@@ -295,7 +294,7 @@ rule augur_export:
         --node-data "{input.node_data}"  \
         --metadata "{input.metadata}" \
         --metadata-id-columns accession \
-        --auspice-config defaults/auspice_config.json \
+        --auspice-config {input.config}\
         --color-by-metadata \
             genotype_genbank \
             subgenotype_genbank \
