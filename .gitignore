@@ -67,3 +67,4 @@ Thumbs.db
 
 # SLURM log files
 slurm-*.out
+nextclade_datasets/references/NC_003977/versions/2026_04_jonas/
