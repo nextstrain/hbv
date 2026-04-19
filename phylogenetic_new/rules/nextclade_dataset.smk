@@ -89,7 +89,7 @@ rule test_dataset:
 
 # TODO: UPLOAD DATASETS TO NEXTSTRAIN.ORG 
 
-# Does not run by default as part of ruele all
+# Does not run by default as part of rule all
 rule deploy_to_nextstrain_staging:
     input:
         rules.all.input
