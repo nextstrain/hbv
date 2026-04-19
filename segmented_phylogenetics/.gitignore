@@ -6,3 +6,4 @@ defaults/*_excluded_accessions.txt
 scripts/MSA_analysis_deprecated.ipynb 
 scripts/MSA_for_QC_deprecated.sh
 defaults/exclude.txt
+defaults/exclude.txt
