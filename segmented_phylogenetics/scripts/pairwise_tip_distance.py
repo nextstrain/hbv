@@ -136,7 +136,7 @@ def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
             ax.text(j, i, f"{corr_matrix[i, j]:.2f}",
                     ha="center", va="center", fontsize=8)
     metric="Patristic" if metric=="patristic" else "Topological"
-    ax.set_title(f"Pairwise tip-distance correlation (n = {n_pairs} pairs), metric={metric}", pad=20)
+    ax.set_title(f"Pairwise tip-distance correlation (n = {n_pairs} pairs), metric={metric}.", pad=20)
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label("Pearson correlation")
@@ -166,8 +166,10 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
 
     for i in range(n):
         for j in range(n):
-            x = values[i]
-            y = values[j]
+            eps = 1e-5
+            x = np.log10(np.asarray(values[i]) + eps)
+            y = np.log10(np.asarray(values[j]) + eps)
+
 
             # ------------------ scatter grid ------------------
             ax = axes[i, j]
@@ -240,12 +242,12 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
     cbar.set_label("count (log)")
 
     # --- save scatter grid ---
-    fig.suptitle(f"{metric} distance scatter matrix")
+    fig.suptitle(f"{metric} distance scatter matrix. Log-10 transformed")
     fig.savefig(out_base + "_scatter.pdf", bbox_inches="tight")
     plt.close(fig)
 
     # --- save hexbin grid (NO tight_layout) ---
-    fig_hex.suptitle(f"{metric} distance hexbin matrix (log density)")
+    fig_hex.suptitle(f"{metric} distance hexbin matrix (log density). Log-10 transformed.")
     fig_hex.savefig(out_base + "_hexbin.pdf", bbox_inches="tight")
     plt.close(fig_hex)
 
