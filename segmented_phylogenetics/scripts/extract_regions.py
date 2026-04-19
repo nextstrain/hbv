@@ -5,9 +5,6 @@ import os
 from Bio import AlignIO, SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-
-import argparse
-
 import argparse
 
 ap = argparse.ArgumentParser(description="Extract alignment regions by reference coordinates; write per-region FASTA, GenBank, and optional metadata.")
