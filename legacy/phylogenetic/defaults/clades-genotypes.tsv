@@ -1,0 +1,29 @@
+clade	gene	site	alt
+
+A	nuc	2551	G
+
+# Note that B is a subclade of C in the full 11k tree
+B	nuc	410	G
+
+C	nuc	117	A
+C	nuc	2981	A
+C	nuc	484	C
+
+C_re	nuc	45	A
+C_re	nuc	1043	A
+C_re	nuc	2136	C
+
+D	nuc	113	C
+D	nuc	2689	G
+
+E	nuc	520	C
+
+F	nuc	1694	T
+
+G	nuc	1953	G
+G	nuc	2494	G
+G	nuc	2770	G
+
+H	nuc	2619	G
+
+I	nuc	1052	G

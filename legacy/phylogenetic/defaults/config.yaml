@@ -1,0 +1,29 @@
+
+
+# Used to re-circularise genomes. This should be the same as the reference in the nextclade dataset!
+# Also force-included for a number of datasets
+reference_accession: "NC_003977"
+
+# technically CDSs, but we use these terms rather interchangeably.
+# These should be the entire list of CDSs in the nextclade dataset's genemap
+genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']
+
+# Augur cannot parse the (correct) nextclade dataset genemap, so we make a temporary one
+# Luckily, while many CDSs wrap, `augur ancestral` does the right thing (perhaps by chance not design)
+temporary_genemap_for_augur_ancestral: "defaults/temp_genemap.gff"
+
+genotypes: ["A", "B", "C", "D"]
+
+roots: {
+    "all": "HQ603073", # NHP-HBV isolate to root the tree
+    # genotype roots chosen by examining the entire tree and picking a suitably close isolate
+    "A": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "B": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "C": "MK534669", # root is genotype I (I is A/C/G recombinant)
+    "D": "KX186584", # root is genotype E
+}
+
+# candidate non-human sequences which fall in outgroups (the entire outgroup will be pruned)
+outgroups: ["FM209514", "HQ603059", "FJ798097", "HQ603068"] # "HQ603059", "FJ798097", "AY330914", "AY781182", "AB823660", "AY330914", "FJ798098"]
+
+deploy_destination: 's3://nextstrain-staging'
