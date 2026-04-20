@@ -24,7 +24,6 @@ args = ap.parse_args()
 if not (0.0 <= args.min_cov <= 1.0):
     ap.error("--min-cov must be between 0.0 and 1.0")
 
-
 aln_path    = args.aln_path
 regions_path = args.regions_path
 ref_id      = args.ref_id
@@ -33,7 +32,6 @@ outdir      = args.outdir
 min_cov     = args.min_cov
 metadata    = args.metadata
 keep_cols   = args.keep_cols
-
 
 aln = AlignIO.read(aln_path, "fasta")
 gb_ref = SeqIO.read(gb_path, "genbank")
@@ -75,7 +73,6 @@ if aln_ref_len != gb_ref_len:
         f"  GenBank reference ({gb_ref.id}): {gb_ref_len} bp\n"
         f"This means the alignment reference and GenBank are not the same origin or not the same reference."
     )
-
 
 def clip_features(gb_ref, seg0, seg1, out_offset):
     """
@@ -126,7 +123,6 @@ def clip_features(gb_ref, seg0, seg1, out_offset):
 
     return out
 
-
 with open(regions_path) as f:
     for line in f:
         line = line.strip()
@@ -170,15 +166,13 @@ with open(regions_path) as f:
 
         sub_aln = sub_aln.__class__(kept)  # MultipleSeqAlignment from kept records
 
-
         region_dir = f"{outdir}/{name}"
         os.makedirs(region_dir, exist_ok=True)
         AlignIO.write(sub_aln, f"{region_dir}/{name}_sub-alignment.fasta", "fasta")
-    
+
         if metadata is not None:
             kept_ids = {r.id for r in sub_aln}
             subseq_len_by_id = {r.id: len(str(r.seq).replace("-", "")) for r in sub_aln}
-            
 
             with open(metadata) as f:
                 header = f.readline().rstrip("\n").split("\t")
@@ -204,9 +198,6 @@ with open(regions_path) as f:
                                     for c in keep
                                 ) + "\n"
                             )
-
-
-
 
         # --- GenBank sequence slice (wrap-aware) ---
         if not wraps:
@@ -251,6 +242,5 @@ with open(regions_path) as f:
         )
         rec.annotations = gb_ref.annotations
         rec.features = sub_features
-
 
         SeqIO.write(rec, f"{region_dir}/{name}.gb", "genbank")

@@ -9,14 +9,11 @@ from math import ceil
 from scipy.stats import pearsonr
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-
 def read_tree(path: str):
     return Phylo.read(path, "newick")
 
-
 def tip_names(tree):
     return {t.name for t in tree.get_terminals() if t.name is not None}
-
 
 def prune_to_set(tree, keep):
     # prune all leaves not in keep
@@ -24,14 +21,11 @@ def prune_to_set(tree, keep):
     for t in to_prune:
         tree.prune(t)
 
-
 def select_random_pairs(names, n_pairs, rng):
     names = sorted(names)
     if len(names) < 2:
         raise ValueError("Need at least 2 tips to form pairs")
     return [tuple(rng.sample(names, 2)) for _ in range(n_pairs)]
-
-
 
 def calculate_distances_both(trees, pairs):
     pat_all, topo_all = [], []
@@ -52,16 +46,12 @@ def calculate_distances_both(trees, pairs):
         topo_all.append(topo)
     return pat_all, topo_all
 
-
-
-
-
 def calculate_correlation(values_per_tree, pairs, out_csv, labels, metric, top_frac=0.05):
 
     n = len(values_per_tree)
     if n == 0: raise ValueError("values_per_tree is empty")
 
-    for k, v in enumerate(values_per_tree): 
+    for k, v in enumerate(values_per_tree):
         if len(v) != len(pairs): raise ValueError(f"Tree {k}: expected {len(pairs)} values (len(pairs)), got {len(v)}")
 
     # --- correlation matrix ---
@@ -75,7 +65,7 @@ def calculate_correlation(values_per_tree, pairs, out_csv, labels, metric, top_f
             corr_matrix[i, j] = corr
             corr_matrix[j, i] = corr
 
-    if metric=="topo": 
+    if metric=="topo":
         return corr_matrix
 
     # --- outliers for EACH tree pair (i<j), one CSV per pair, only for patristic distance ---
@@ -113,9 +103,6 @@ def calculate_correlation(values_per_tree, pairs, out_csv, labels, metric, top_f
 
     return corr_matrix
 
-
-
-
 def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
 
     fig, ax = plt.subplots(figsize=(1.2 * len(labels), 1.0 * len(labels)))
@@ -145,7 +132,6 @@ def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
     plt.savefig(out_png, dpi=300)
     plt.close()
 
-
 def plot_correlation_grid(values, labels, metric, out_pdf):
     n = len(values)
 
@@ -169,7 +155,6 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
             eps = 1e-5
             x = np.log10(np.asarray(values[i]) + eps)
             y = np.log10(np.asarray(values[j]) + eps)
-
 
             # ------------------ scatter grid ------------------
             ax = axes[i, j]
@@ -251,7 +236,6 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
     fig_hex.savefig(out_base + "_hexbin.pdf", bbox_inches="tight")
     plt.close(fig_hex)
 
-
 def main():
     ap = argparse.ArgumentParser(
         description="Keep only shared tips across Newick trees, sample random tip pairs, correlate distances between trees."
@@ -288,14 +272,12 @@ def main():
     os.makedirs(os.path.join(outdir, "corr_grid"), exist_ok=True)
     os.makedirs(os.path.join(outdir, "outliers"), exist_ok=True)
 
-
     for metric, values_per_tree in (("patristic", pat_dists), ("topo", topo_dists)):
 
         corr_matrix = calculate_correlation(values_per_tree,pairs, out_csv=os.path.join(outdir, "outliers"), top_frac=0.05, labels=labels, metric=metric)
-        
+
         tsv_out = os.path.join(outdir, "corr_matrix", f"pw_tip_distance_correlation_matrix.{metric}.tsv")
         png_out = os.path.join(outdir, "corr_matrix", f"pw_tip_distance_correlation_matrix.{metric}.png")
-
 
         with open(tsv_out, "w") as f:
             header = "\t" + "\t".join(os.path.basename(p) for p in args.trees)
@@ -303,7 +285,6 @@ def main():
             for i, row in enumerate(corr_matrix):
                 line = os.path.basename(args.trees[i]) + "\t" + "\t".join(f"{v:.4f}" for v in row)
                 print(line, file=f)
-
 
         save_corr_heatmap(corr_matrix, labels, args.sample_pairs, png_out, metric)
 
@@ -315,8 +296,6 @@ def main():
             metric=metric,
             out_pdf=grid_out,
         )
-
-
 
 if __name__ == "__main__":
     main()

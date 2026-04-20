@@ -12,14 +12,11 @@ OUTPUTS:
 
 """
 
-
 def format_field_map(field_map: dict[str, str]) -> str:
     """
     Format dict to `"key1"="value1" "key2"="value2"...` for use in shell commands.
     """
     return " ".join([f'"{key}"="{value}"' for key, value in field_map.items()])
-
-
 
 rule curate_genbank_metadata:
     input:
@@ -30,7 +27,7 @@ rule curate_genbank_metadata:
     output:
         metadata = "data/curated-genbank-metadata.tsv",
         sequences = "data/curated-genbank-sequences.fasta",
-        
+
     params:
         metadata_columns = ['name', 'accession', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
         "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
@@ -40,7 +37,7 @@ rule curate_genbank_metadata:
 
     shell:
         # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
-        # vendored/apply-geolocation-rules 
+        # vendored/apply-geolocation-rules
         # scripts/add-year.py adds "year" to NDJSON entries
         """
         cat {input.ndjson} \
@@ -50,14 +47,13 @@ rule curate_genbank_metadata:
             | augur curate passthru \
                 --output-seq-field sequence --output-id-field accession \
                 --output-metadata {params.tmp_metadata} --output-fasta {output.sequences}
-        
+
         python "scripts/subgenotype_mapping.py" \
             --metadata-in {params.tmp_metadata} \
             --mapping {input.mapping} \
             --metadata-out {output.metadata}
 
         """
-
 
 # This curate pipeline is based on existing pipelines for pathogen repos using NCBI data.
 # You may want to add and/or remove steps from the pipeline for custom metadata
@@ -130,8 +126,6 @@ rule curate_ncbi:
                 --output-seq-field {params.sequence_field}
         """
 
-
-
 rule add_metadata_columns:
     """Add columns to metadata
     Notable columns:
@@ -158,8 +152,6 @@ rule add_metadata_columns:
           --out {output.metadata}
     """
 
-
-
 # TO DO: Add new cols
 rule subset_metadata:
     input:
@@ -178,7 +170,6 @@ rule subset_metadata:
             {input.metadata} > {output.subset_metadata}
         """
 
-
 rule recircularise:
     input:
         metadata = "data/subset_metadata.tsv",
@@ -196,8 +187,6 @@ rule recircularise:
             --reference {params.reference}
         """
 
-
-
 rule copy_ingest_sequences:
     input:
         sequences = "data/circularised.fasta",
@@ -207,8 +196,6 @@ rule copy_ingest_sequences:
         """
         cp {input.sequences} {output.sequences}
         """
-
-
 
 ####### OPTIONAL #########
 rule align_unrotated:

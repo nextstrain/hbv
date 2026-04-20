@@ -10,9 +10,8 @@ OUTPUTS:
     ndjson = data/ncbi.ndjson
     ndjson_genbank = "data/genbank.ndjson" # for metadata only
 
-
 There are two different approaches for fetching data from NCBI. The "Fetching from Entrez" workflow was adapted to "Fetch from NCBI" using the Mumps repo (https://github.com/nextstrain/mumps/blob/main/ingest/rules/fetch_from_ncbi.smk) as a template.
-Fetching from Entrez is still included to provide *self-described* HBV (sub)genotype metadata to be compared with Nextclade assignments at later steps. 
+Fetching from Entrez is still included to provide *self-described* HBV (sub)genotype metadata to be compared with Nextclade assignments at later steps.
 
 Edit the workflow config to provide the correct parameter.
 
@@ -24,7 +23,6 @@ Workflow:
     - Only returns metadata fields that are available through NCBI Datasets
     - Only works for viral genomes
 
-
 2. Fetch from Entrez (https://www.ncbi.nlm.nih.gov/books/NBK25501/)
     - requires `entrez_search_term` config (now `entrez_query`)
     - Returns all available data via a GenBank file
@@ -32,13 +30,9 @@ Workflow:
 
 """
 
-
-
 ###########################################################################
 ####################### 1. Fetch from NCBI Datasets #######################
 ###########################################################################
-
-
 
 rule fetch_ncbi_dataset_package:
     params:
@@ -78,10 +72,9 @@ rule dump_ncbi_dataset_report:
             --package {input.dataset_package} > {output.ncbi_dataset_tsv}
         """
 
-
 rule extract_ncbi_dataset_sequences:
     input:
-        dataset_package="data/ncbi_dataset.zip", 
+        dataset_package="data/ncbi_dataset.zip",
     output:
         ncbi_dataset_sequences=temp("data/ncbi_dataset_sequences.fasta"),
     log:
@@ -122,7 +115,6 @@ rule format_ncbi_dataset_report:
             > {output.ncbi_dataset_tsv}
         """
 
-
 # Technically you can bypass this step and directly provide FASTA and TSV files
 # as input files for the curate pipeline.
 # We do the formatting here to have a uniform NDJSON file format for the raw
@@ -153,7 +145,6 @@ rule format_ncbi_datasets_ndjson:
             2> {log} > {output.ndjson}
         """
 
-
 rule ncbi_active:
     input:
         ndjson="data/ncbi.ndjson"
@@ -175,12 +166,9 @@ rule ncbi_active:
         fi
         """
 
-
-
 ###########################################################################
 ########################## 2. Fetch from Entrez ###########################
 ###########################################################################
-
 
 # overrides.smk
 rule fetch_genbank:
@@ -254,7 +242,6 @@ if __name__ == "__main__":
 PY
         """
 
-
 rule add_extra_genomes:
     """
     This step shouldn't be necessary but the NCBI reference genome, NC_003977,
@@ -270,7 +257,6 @@ rule add_extra_genomes:
         """
         cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
         """
-
 
 rule parse_genbank:
     input:

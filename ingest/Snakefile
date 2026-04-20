@@ -8,7 +8,6 @@ configfile: "defaults/config.yaml"
 
 ACTIVE_NDJSON = "data/ncbi.active.ndjson"
 
-
 # This is the default rule that Snakemake will run when there are no specified targets.
 # The default output of the ingest workflow is usually the curated metadata and sequences.
 # Nextstrain-maintained ingest workflows will produce metadata files with the
@@ -22,7 +21,6 @@ rule all:
         "results/sequences.fasta",
         "results/metadata.tsv",
 
-
 # Note that only PATHOGEN-level customizations should be added to these
 # core steps, meaning they are custom rules necessary for all builds of the pathogen.
 # If there are build-specific customizations, they should be added with the
@@ -31,15 +29,12 @@ rule all:
 include: "rules/fetch_from_ncbi.smk"
 include: "rules/curate.smk"
 
-
 # We are pushing to standardize ingest workflows with Nextclade runs to include
 # Nextclade outputs in our publicly hosted data where possible.
 # The initial Mumps Nextclade datasets for SH and genome were available starting August 2025
 # and the Nextclade-specific rules are included to create the final metadata TSV by
 # joining the Nextclade output with the metadata.
 include: "rules/nextclade.smk"
-
-
 
 # Allow users to import custom rules provided via the config.
 # This allows users to run custom rules that can extend or override the workflow.

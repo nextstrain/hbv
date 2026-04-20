@@ -1,11 +1,9 @@
 configfile: "defaults/config.yaml"
 
-
 #    Expcted inputs from ingest:
 #        sequences="../ingest/results/sequences.fasta",
 #        metadata="../ingest/results/metadata.tsv",
 #        alignment="../ingest/results/aligned.fasta",
-
 
 def region_names(path):
     names = []
@@ -24,7 +22,6 @@ def make_tag(regions):
         return "segments1-8"
     return "_".join(regions)
 
-
 REGION_NAMES = region_names(config["genomic_regions"])
 REGION_TAG = "_".join(REGION_NAMES)
 OUTDIR = "data/regions"
@@ -33,7 +30,6 @@ PAIRS = [(REGION_NAMES[i], REGION_NAMES[j])
          for i in range(len(REGION_NAMES))
          for j in range(i+1, len(REGION_NAMES))]
 
-
 rule all:
     input:
         fasta         = expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
@@ -41,8 +37,6 @@ rule all:
         tree_json     = expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
         node_data     = expand(f"{OUTDIR}/{{name}}/{{name}}.ancestral.json", name=REGION_NAMES),
         joint_exclude ="defaults/exclude.txt",
-
-
 
 rule copy:
     input:
@@ -94,7 +88,6 @@ rule length_filter:
         rm -f "$kept_ids"
         """
 
-
 # Writes segments file based on gene annotations in reference GenBank
 rule specify_genomic_regions_genes:
     input:
@@ -104,7 +97,7 @@ rule specify_genomic_regions_genes:
         regions="defaults/genomic_regions_genes.txt",
     shell:
         r"""
-        python {input.script} {input.ref_gb} {output.regions} 
+        python {input.script} {input.ref_gb} {output.regions}
         """
 
 # Writes segments file based on previously identified breakpoints
@@ -129,7 +122,6 @@ rule specify_genomic_regions_breakpoints:
           --map-out {output.mapping} \
           --out {output.regions}
         """
-
 
 # To Do: have this segment the tsv metadata as well, including calculating new quality metrics
 # To Do: make this work for non complete sequences, i.e. additional filtering for each region if region not sufficiently covered
@@ -177,8 +169,6 @@ rule augur_tree:
           --method fasttree \
           --output {output.tree}
         """
-        
-
 
 rule cut_outliers:
     input:
@@ -203,7 +193,6 @@ rule cut_outliers:
             --exclude {output.exclude}
         """
 
-
 rule joint_exclude_file:
     input:
         excludes=expand(f"defaults/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
@@ -221,7 +210,6 @@ rule joint_exclude_file:
         echo "$n unique accessions written to {output.joint_exclude}"
         """
 
-
 rule augur_refine:
     input:
         tree      = f"{OUTDIR}" + "/{name}/{name}.pruned.tree.nwk",
@@ -237,8 +225,6 @@ rule augur_refine:
           --root mid_point \
           --output-tree {output.tree}
         """
-
-
 
 rule ancestral:
     input:
@@ -273,7 +259,6 @@ rule ancestral:
 #          --reference-sequence {input.ref_gb} \
 #          --output-node-data {output.aa}
 #        """)
-
 
 rule augur_export:
     input:
@@ -311,8 +296,6 @@ rule augur_export:
         --output "{output.auspice_json}"
 
         """
-
-
 
 # rules to compare differnt region trees to inform recombination via different metrics (partially have to be called individually)
 include: "rules/tree_comparisons.smk"

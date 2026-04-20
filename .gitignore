@@ -34,6 +34,9 @@ snakemake_log
 # Local config overrides
 /config_local.yaml
 
+# Local exploratory helpers not used by the workflow
+exploratory/scripts/map_gb_position_to_msa.py
+
 # For Python #
 ##############
 *.pyc

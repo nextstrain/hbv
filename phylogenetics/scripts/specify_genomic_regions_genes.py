@@ -11,7 +11,7 @@ for f in rec.features:
     if f.type != "gene":
         continue
     name = (f.qualifiers.get("gene") or [None])[0]
-    
+
     loc = f.location
     parts = loc.parts if hasattr(loc, "parts") else [loc]
 

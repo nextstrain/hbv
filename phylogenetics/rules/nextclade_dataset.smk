@@ -53,7 +53,6 @@ rule assemble_dataset:
         printf "## Unreleased\n\nInitial release.\n" > {output.changelog}
         """
 
-
 rule test_dataset:
     input:
         sequences=  DATASET_DIR + "sequences.fasta",
@@ -74,17 +73,11 @@ rule test_dataset:
             --input-dataset {params.dataset_dir} \
             --output-all {output.outdir}
         """
- 
-
-
-
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
-
-
-# TODO: UPLOAD DATASETS TO NEXTSTRAIN.ORG 
+# TODO: UPLOAD DATASETS TO NEXTSTRAIN.ORG
 
 # Does not run by default as part of rule all
 rule deploy_to_nextstrain_staging:
@@ -94,7 +87,6 @@ rule deploy_to_nextstrain_staging:
         """
         nextstrain deploy s3://nextstrain-staging {input}
         """
-
 
 rule download:
    "Downloading ingested sequences and metadata from data.nextstrain.org"

@@ -39,7 +39,6 @@ Nextclade v3 is used to align all genomes and assign genotype based on a guide t
 
 Preliminary stats can be seen in `ingest/data/metadata.summary.txt` after an ingest build has completed.
 
-
 ## Configuration
 
 Configuration parameters are in `defaults/config.yaml`. These may be overridden by using Snakemake's `--configfile` or `--config` options.
@@ -47,7 +46,6 @@ Configuration parameters are in `defaults/config.yaml`. These may be overridden 
 ### Environment Variables
 
 None currently required
-
 
 ## `ingest/vendored`
 

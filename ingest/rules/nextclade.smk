@@ -15,19 +15,16 @@ OUTPUTS:
     summary = "data/metadata.summary.txt",
     tree = "data/nextclade/nextclade.json",  # DOESNT BELONG HERE
 
-
-
 See Nextclade docs for more details on usage, inputs, and outputs if you would
 like to customize the rules:
 https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 """
 
-
 # TODO: upload dataset and add rule get_nextclade_dataset that properly fetches dataset instead of getting it from dataset folder
 
 #rule get_nextclade_dataset:
 #    output:
-#        "data/hbv.zip",  
+#        "data/hbv.zip",
 #    params:
 #        dataset_name="HBV",  # CHANGE
 #    log:
@@ -43,16 +40,15 @@ https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 #            --output-zip {output:q}
 #        """
 
-
 rule nextclade:
     """
     Nextclade v3 is used to align all genomes using a reference dataset, perform QC and infer genotypes ("clade_nextclade")
-    We can output a preliminary tree here but do not need to for this pipeline. 
+    We can output a preliminary tree here but do not need to for this pipeline.
     Note that the minimum seed match rate is specified in the dataset itself.
-    Note that QC metrics are not used for filtering yet. 
+    Note that QC metrics are not used for filtering yet.
     """
     input:
-        sequences = "results/sequences.fasta",   
+        sequences = "results/sequences.fasta",
     output:
         alignment = "data/nextclade/aligned.fasta",
         translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
@@ -74,7 +70,7 @@ rule nextclade:
 
 rule join_nextclade_metadata:
     input:
-        metadata = "data/circularised.tsv",             
+        metadata = "data/circularised.tsv",
         nextclade = "data/nextclade/metadata.tsv"
     output:
         metadata = "results/metadata.tsv",

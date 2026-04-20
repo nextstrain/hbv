@@ -56,7 +56,6 @@ def build_src_to_tgt_map(src_seq: str, tgt_seq: str) -> dict[int, int | None]:
     q = coords[1]
     L = len(src_seq)
 
-
     cols = []
     for j in range(len(t) - 1):
         t0, t1 = int(t[j]), int(t[j+1])
@@ -76,7 +75,6 @@ def build_src_to_tgt_map(src_seq: str, tgt_seq: str) -> dict[int, int | None]:
                 src_pos = None
             cols.append((tgt_pos, src_pos))
     return cols
-
 
 def lift_breakpoint_from_cols(x, cols, L, max_scan=500):
     """
@@ -103,8 +101,6 @@ def lift_breakpoint_from_cols(x, cols, L, max_scan=500):
             return src2tgt[right][0]
 
     raise ValueError(f"Breakpoint {x} could not be lifted (gap/indel region too large).")
-
-
 
 def shrink_interval(start, end, buf, L):
     # start/end are 1-based inclusive; may wrap if start > end
@@ -138,7 +134,6 @@ def shrink_interval(start, end, buf, L):
             e2 = e2 + L
 
         return s2, e2
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -190,7 +185,6 @@ def main():
         lift_breakpoint_from_cols(bp - 1, cols, L_src) for bp in bps_src_1based
     ]
     bps_tgt_1based = sorted(set(p + 1 for p in lifted_tgt_0based))  # back to 1-based
-    print(bps_tgt_1based)
 
     with open(args.out, "w") as fh:
         fh.write("# name\tstart\tend\t(1-based, inclusive; start>end means wrap-around)\n")
@@ -205,7 +199,6 @@ def main():
 
             start2, end2 = shrink_interval(start, end, buf, L_tgt)
             fh.write(f"segment{seg_idx + 1}\t{start2}\t{end2}\n")
-
 
 if __name__ == "__main__":
     main()

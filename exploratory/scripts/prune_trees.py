@@ -2,14 +2,12 @@ import argparse
 from pathlib import Path
 from ete3 import Tree
 
-
 def suppress_unary_nodes(t):
     for n in list(t.traverse()):
         if not n.is_root() and len(n.children) == 1:
             child = n.children[0]
             child.dist += n.dist
             n.delete(prevent_nondicotomic=False)
-
 
 def suppress_unary_root(t):
     while len(t.children) == 1:
@@ -18,7 +16,6 @@ def suppress_unary_root(t):
         t = child
         t.dist = 0.0
     return t
-
 
 def keep_biggest_after_each_cut(t: Tree, cutoff_allbranches: float, excl_fh):
     removed = set()
@@ -57,7 +54,6 @@ def keep_biggest_after_each_cut(t: Tree, cutoff_allbranches: float, excl_fh):
         assert all(len(node.children) != 1 for node in t.traverse()), \
             "Unary node detected after suppression"
 
-
 def prune_long_tips_iteratively(t: Tree, cutoff_tips: float, excl_fh=None):
     """
     Iteratively remove tips whose terminal branch length exceeds cutoff.
@@ -81,16 +77,13 @@ def prune_long_tips_iteratively(t: Tree, cutoff_tips: float, excl_fh=None):
             suppress_unary_nodes(t)
             t = suppress_unary_root(t)
 
-
-
         if excl_fh is not None and discarded:
             excl_fh.write(" ".join(sorted(discarded)) + "\n")
-            
+
         removed |= discarded
 
         assert all(len(node.children) != 1 for node in t.traverse()), \
             "Unary node detected after tip pruning"
-
 
 def prune_metadata(metadata_in: str, metadata_out: str, removed: set):
     with open(metadata_in) as fin:
@@ -106,7 +99,6 @@ def prune_metadata(metadata_in: str, metadata_out: str, removed: set):
 
     with open(metadata_out, "w") as fout:
         fout.writelines(out)
-
 
 def plot_log_tip_length_distribution(t, out_png, bins=200):
     import matplotlib.pyplot as plt
@@ -127,7 +119,6 @@ def plot_log_tip_length_distribution(t, out_png, bins=200):
     plt.tight_layout()
     plt.savefig(out_png, dpi=300)
     plt.close()
-
 
 # -------------------- main --------------------
 

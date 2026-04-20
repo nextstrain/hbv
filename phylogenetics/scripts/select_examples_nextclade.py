@@ -4,7 +4,6 @@ import pandas as pd
 GENOTYPES = list("ABCDEFGHI")
 QC_LEVELS = ["good", "mediocre", "bad"]
 
-
 def is_recombinant(df):
     return (
         df["clade_nextclade"].str.contains("_re", na=False)
@@ -17,12 +16,10 @@ def is_recombinant(df):
         )
     )
 
-
 def sample_random(df, n):
     if n <= 0 or df.empty:
         return df.iloc[0:0].copy()
     return df.sample(n=min(n, len(df)), random_state=42).copy()
-
 
 def take_evenly_across_qc(df, n, prefer_explicit_recombinant=False):
     if n <= 0 or df.empty:
@@ -79,7 +76,6 @@ def take_evenly_across_qc(df, n, prefer_explicit_recombinant=False):
         out = pd.concat([out, fill], ignore_index=True)
 
     return out.head(n).copy()
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -144,7 +140,6 @@ def main():
     cols = [c for c in cols if c in out.columns]
 
     out[cols].to_csv(args.output, sep="\t", index=False)
-
 
 if __name__ == "__main__":
     main()

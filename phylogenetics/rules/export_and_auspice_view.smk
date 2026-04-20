@@ -12,7 +12,7 @@ rule augur_export:
         config = config["auspice"]["auspice_config"],
     output:
         auspice_json = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}.json",
-    params: 
+    params:
         colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
     threads: 1
     shell:
@@ -28,10 +28,9 @@ rule augur_export:
         --output "{output.auspice_json}"
         """
 
-
 rule export_stitched:
     wildcard_constraints:
-        gene="P|S|C|X"  
+        gene="P|S|C|X"
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
@@ -42,10 +41,10 @@ rule export_stitched:
             STITCHED_DIR + "/{gene}_subclades.json",
             STITCHED_DIR + "/{gene}_clades.json",]
             #STITCHED_DIR + "/{gene}_node_metadata.json",
-        
+
     output:
         auspice_json = STITCHED_DIR + "/{gene}.json",
-    params: 
+    params:
         colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
     threads: 1
     shell:
@@ -62,10 +61,7 @@ rule export_stitched:
             --include-root-sequence-inline
         """
 
-
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
-
 
 rule create_auspice_view_main_clades:
     input:
@@ -78,7 +74,6 @@ rule create_auspice_view_main_clades:
         r"""
         cp {input.main_clades} {output.main_clades}
         """
-
 
 rule create_auspice_view_full_tree:
     input:
