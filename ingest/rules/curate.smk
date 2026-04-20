@@ -10,7 +10,6 @@ OUTPUTS:
     sequences = "results/sequences.fasta",
     metadata = "data/circularised.tsv",
 
-
 """
 
 
@@ -19,8 +18,6 @@ def format_field_map(field_map: dict[str, str]) -> str:
     Format dict to `"key1"="value1" "key2"="value2"...` for use in shell commands.
     """
     return " ".join([f'"{key}"="{value}"' for key, value in field_map.items()])
-
-
 
 
 
@@ -60,9 +57,6 @@ rule curate_genbank_metadata:
             --metadata-out {output.metadata}
 
         """
-
-
-
 
 
 # This curate pipeline is based on existing pipelines for pathogen repos using NCBI data.
@@ -138,10 +132,6 @@ rule curate_ncbi:
 
 
 
-
-
-
-
 rule add_metadata_columns:
     """Add columns to metadata
     Notable columns:
@@ -167,10 +157,6 @@ rule add_metadata_columns:
           --accession-col {params.accession_col} \
           --out {output.metadata}
     """
-
-
-
-
 
 
 
@@ -245,4 +231,3 @@ rule align_unrotated:
             --output-fasta {output.alignment} \
             {input.sequences}
         """
-        

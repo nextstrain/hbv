@@ -95,4 +95,3 @@ rule copy_ingest_alignment:
         """
         cp {input.aligned} {output.aligned}
         """
-

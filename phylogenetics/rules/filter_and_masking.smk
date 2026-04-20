@@ -1,4 +1,3 @@
-
 rule length_filter:
     input:
         sequences = "../ingest/results/sequences.fasta",
@@ -217,5 +216,3 @@ rule mask_gene:
 
         rm -f "$maskfile"
         """
-
-

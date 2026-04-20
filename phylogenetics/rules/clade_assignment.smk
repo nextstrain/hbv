@@ -1,5 +1,3 @@
-
-
 rule clades_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",

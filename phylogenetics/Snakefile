@@ -1,4 +1,3 @@
-
 #    Expcted inputs from ingest:
 #        sequences="../ingest/results/sequences.fasta",
 #        metadata="../ingest/results/metadata.tsv",

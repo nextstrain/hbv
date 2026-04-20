@@ -94,7 +94,6 @@ ancestral_genes: # If length filtering is disabled or not strict, ancestral reco
 gene_mask: ["P"]
 
 
-
 #__________________________________________________________________________________________________________ TARGETS / BUILDS __________________________________________________________________________________________________________
 
 # Defines which genotypes to include in the single build phylogeny

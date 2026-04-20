@@ -1,4 +1,3 @@
-
 # Reference sequence is to be included in the alignment but excluded from tree building to avoid it appearing in wrong individual clade-trees.
 rule augur_tree:
     input:
@@ -128,6 +127,3 @@ rule ancestral:
           --root-sequence {input.root}
 
         """
-
-
-

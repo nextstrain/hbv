@@ -8,4 +8,3 @@ for record in stdin:
     record['year'] = record['date'][0:4]
     json.dump(record, stdout, allow_nan=False, indent=None, separators=',:')
     print()
-    

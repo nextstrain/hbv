@@ -11,7 +11,6 @@ OUTPUTS:
     ndjson_genbank = "data/genbank.ndjson" # for metadata only
 
 
-
 There are two different approaches for fetching data from NCBI. The "Fetching from Entrez" workflow was adapted to "Fetch from NCBI" using the Mumps repo (https://github.com/nextstrain/mumps/blob/main/ingest/rules/fetch_from_ncbi.smk) as a template.
 Fetching from Entrez is still included to provide *self-described* HBV (sub)genotype metadata to be compared with Nextclade assignments at later steps. 
 
@@ -180,7 +179,6 @@ rule ncbi_active:
 
 
 
-
 ###########################################################################
 ########################## 2. Fetch from Entrez ###########################
 ###########################################################################
@@ -285,4 +283,3 @@ rule parse_genbank:
         """
         scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
         """
-
