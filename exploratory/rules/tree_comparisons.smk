@@ -113,11 +113,11 @@ rule treeknit_all:
         set -euo pipefail
         rm -f {output.summary}
         for f in {input.individual}; do
-            python scripts/treeknit_summary_to_csv.py "$f" "{output.summary}"
+            python scripts/treeknit/treeknit_summary_to_csv.py "$f" "{output.summary}"
         done
         """
 
- rule treeknit_visualisation:
+rule treeknit_visualisation:
     input:
         summary="results/compare_trees_treeknit_{TAG}.csv"
     output:
