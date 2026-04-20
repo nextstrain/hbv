@@ -55,7 +55,6 @@ rule copy:
         alignment = "data/alignment.fasta",
     shell:
         """
-        mkdir -p data
         cp {input.sequences} {output.sequences}
         cp {input.metadata} {output.metadata}
         cp {input.alignment} {output.alignment}
@@ -76,7 +75,6 @@ rule length_filter:
         length_filtering=config["length_filtering"],
     shell:
         r"""
-        mkdir -p data
         kept_ids="$(mktemp)"
 
         if [ "{params.length_filtering}" = "true" ] || [ "{params.length_filtering}" = "True" ] || [ "{params.length_filtering}" = "1" ]; then
@@ -155,7 +153,6 @@ rule extract_genomic_regions:
 
     shell:
         r"""
-        mkdir -p {params.outdir}
         python scripts/extract_regions.py \
             {input.alignment} \
             {input.regions} \

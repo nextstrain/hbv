@@ -28,7 +28,6 @@ rule compare_pairwise_distances:
     shell:
         r"""
         set -euo pipefail
-        mkdir -p {params.outdir}/corr_matrix {params.outdir}/corr_grid
         python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs} {params.outdir}
         """
 
@@ -41,7 +40,6 @@ rule compare_trees_RF_pair:
     shell:
         r"""
         set -euo pipefail
-        mkdir -p results/rf
         python scripts/compare_region_trees.py {input.t1} {input.t2} {output} 
         """
 
@@ -57,7 +55,6 @@ rule compare_trees_RF_all:
     shell:
         r"""
         set -euo pipefail
-        mkdir -p results
         head -n 1 {input[0]} > {output}
         for f in {input}; do
             tail -n +2 "$f" >> {output}

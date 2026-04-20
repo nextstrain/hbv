@@ -88,7 +88,6 @@ rule ancestral_stitched:
         set -euo pipefail
 
         outdir="{params.outdir}"
-        # mkdir -p "$outdir"
 
         combined="$outdir/combined_nonmasked_aln.fasta"
 

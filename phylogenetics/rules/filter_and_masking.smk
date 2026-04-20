@@ -13,7 +13,6 @@ rule length_filter:
         max_length       = config["length_filtering"]["max_length"],
     shell:
         r"""
-        # mkdir -p data
         kept_ids="$(mktemp)"
 
         if [ "{params.length_filtering}" = "true" ] || [ "{params.length_filtering}" = "True" ] || [ "{params.length_filtering}" = "1" ]; then

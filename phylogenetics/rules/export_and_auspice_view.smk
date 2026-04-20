@@ -102,6 +102,5 @@ rule create_auspice_view_single:
         key="|".join(SINGLE_BUILD_GENOTYPES),
     shell:
         r"""
-        # mkdir -p auspice_datasets/{wildcards.gene}_masked
         cp {input.json} {output.single_clades}
         """
