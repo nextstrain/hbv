@@ -8,13 +8,19 @@ This is the experimental Nextstrain phylogenetic workflow behind the (as yet unr
 
 
 ```
-snakemake --cores 4 -pf {target}
+snakemake --cores 4 -pf
 ```
 
-Where target is one (or more) of the following auspice datasets:
-- `auspice/hbv_dev.json` for a small ~500-tip dev tree
-- `auspice/hbv_{A,B,C,D}.json` for genotype builds, each of ~500 tips. Currently only genotypes A-D are supported.
-- `auspice/hbv_all.json` the entire human-HBV tree, with 11k tips (takes ~15min on a 4-core M1 machine)
+The following build is automatically generated (change the mask between P and S genes in config file):
+
+- `auspice_datasets/P_masked/main-clades.json` the entire human-HBV tree, with appr. 2k tips using stitched genotypes
+
+The following alternative builds are additionally generated in dev mode (set in config file):
+
+- `auspice/P_masked/full-tree.jso` the entire human-HBV tree, without the stitching procedure 
+- `auspice/hbv_{A,B,C,D,E,F,G,H,I}.json` for single genotype builds. Note that some of these are very small and one should consider disabling filtering by subgenotype annotation availability (via config)
+
+
 
 
 ## Configuration
@@ -46,6 +52,5 @@ Specify a new date-stamped version name in version in the config file and finall
 
 #### Updating example sequences
 
-A small set of example sequences is automatically generated in the nextclade workflow and can be configurated in the nextclade config file
-
-And then a new dataset created as described above.
+A small set of example sequences is automatically generated in the nextclade workflow and can be configurated in the nextclade config file. 
+Example sequences are sampled evenly across genotypes, recombinants, and qc status but can be alternatively sampled at random (config option).
