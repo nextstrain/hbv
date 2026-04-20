@@ -2,7 +2,7 @@
 #        sequences="../ingest/results/sequences.fasta",
 #        metadata="../ingest/results/metadata.tsv",
 #        alignment="../ingest/results/aligned.fasta",
-#______________________________________________________________________________________________________________________________________________________________________________________________
+#___________________________________________________________________________________________________________________________________________________________________________________________
 from os.path import join
 
 
@@ -17,7 +17,8 @@ if config["dev"]:
     print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")
 
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
+#___________________________________________________________________________________________________________________________________________________________________________________________
+
 GENE_MASKS = config["gene_mask"]
 ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if config.get("dev", False) else config["ancestral_genes"]["prod"]
 
@@ -31,24 +32,26 @@ STITCHED_DIR = RESULTS + "/stitched/{gene}_global"
 
 # Nextclade: 
 
-DATASET_DIR = join(
-    "../nextclade_datasets/references",
-    config["reference"]["id"],
-    "versions",
-    config["version"],
-    config["nextclade_buildname"],
-    ""
-)
+wf = config.get("workflow")
+if wf == "nextclade":
+    DATASET_DIR = join(
+        "../nextclade_datasets/references",
+        config["reference"]["id"],
+        "versions",
+        config["version"],
+        config["nextclade_buildname"],
+        ""
+    )
 
-DATASET_FILES = [
-    "pathogen.json",
-    "sequences.fasta",
-    "genome_annotation.gff3",
-    "README.md",
-    "CHANGELOG.md",
-    "tree.json",
-    "reference.fasta"
-]
+    DATASET_FILES = [
+        "pathogen.json",
+        "sequences.fasta",
+        "genome_annotation.gff3",
+        "README.md",
+        "CHANGELOG.md",
+        "tree.json",
+        "reference.fasta"
+    ]
 
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
@@ -68,10 +71,8 @@ full_tree_target = (
 )
 
 
-print(DATASET_DIR + "tree.json")
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
-wf = config.get("workflow")
 
 if wf == "nextstrain":
     rule all:
@@ -124,14 +125,14 @@ rule cleanall:
         "rm -rfv {params.paths}"
 
 
-rule deploy:
-    input:
-        *rules.all.input,
-    output:
-        touch(expand("results/{target}/deploy.done", target=DEFAULT_TARGETS))
-    params:
-        deploy_destination = config["deploy_destination"]
-    shell:
-        """
-        nextstrain remote upload {params.deploy_destination} {input}
-        """
+# rule deploy:
+#     input:
+#         *rules.all.input,
+#     output:
+#         touch(expand("results/{target}/deploy.done", target=DEFAULT_TARGETS))
+#     params:
+#         deploy_destination = config["deploy_destination"]
+#     shell:
+#         """
+#         nextstrain remote upload {params.deploy_destination} {input}
+#         """
