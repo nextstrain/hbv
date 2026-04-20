@@ -35,6 +35,10 @@ def alignment_length(path, reference_id):
     raise ValueError(f"No sequences found in {path}")
 
 
+def genbank_length(path):
+    return len(SeqIO.read(path, "genbank").seq)
+
+
 def mask_positions(start, end, length):
     if start < 1 or end < 1 or start > length or end > length:
         raise ValueError(
@@ -53,17 +57,27 @@ def main():
         description="Write augur mask positions for all alignment sites outside a gene."
     )
     parser.add_argument("--regions", required=True)
-    parser.add_argument("--alignment", required=True)
+    parser.add_argument("--alignment")
+    parser.add_argument("--reference-genbank")
     parser.add_argument("--gene", required=True)
-    parser.add_argument("--reference", required=True)
+    parser.add_argument("--reference")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
+
+    if args.alignment and not args.reference:
+        parser.error("--reference is required when using --alignment")
+    if not args.alignment and not args.reference_genbank:
+        parser.error("one of --alignment or --reference-genbank is required")
 
     regions = read_regions(args.regions)
     if args.gene not in regions:
         raise ValueError(f"Gene {args.gene!r} not found in {args.regions}")
 
-    length = alignment_length(args.alignment, args.reference)
+    if args.alignment:
+        length = alignment_length(args.alignment, args.reference)
+    else:
+        length = genbank_length(args.reference_genbank)
+
     start, end = regions[args.gene]
 
     if args.output == "-":

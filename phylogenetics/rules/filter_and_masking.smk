@@ -159,21 +159,18 @@ rule specify_genomic_regions_genes:
 rule write_gene_mask:
     input:
         regions="defaults/genomic_regions_genes.txt",
-        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
+        ref_gb=config["reference"]["genbank"],
         script="scripts/write_gene_mask.py",
     output:
-        mask=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_mask.txt"),
-    params:
-        ref=config["reference"]["id"]
+        mask=temp(RESULTS + "/masks/{gene}_mask.txt"),
     wildcard_constraints:
         gene="|".join(config["gene_mask"]),
     shell:
         r"""
         python {input.script} \
           --regions "{input.regions}" \
-          --alignment "{input.alignment}" \
+          --reference-genbank "{input.ref_gb}" \
           --gene "{wildcards.gene}" \
-          --reference "{params.ref}" \
           --output "{output.mask}"
         """
 
@@ -181,7 +178,7 @@ rule write_gene_mask:
 rule mask_gene_new:
     input:
         alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
-        mask=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_mask.txt",
+        mask=RESULTS + "/masks/{gene}_mask.txt",
     output:
         alignment=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.new.fasta"),
     wildcard_constraints:
