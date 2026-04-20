@@ -14,3 +14,12 @@ Available are:
 ```bash
 snakemake --cores 4 --configfile defaults/config_nextclade.yaml
 ```
+
+To view the generated dataset, navigate to the dataset version e.g. [`2026_04_jonas/stitched_P_masked/`](./references/NC_003977/versions/2026_04_jonas/stitched_P_masked) and exectute:
+
+
+```bash
+auspice view --datasetDir test_output
+```
+
+Then select nextclade.auspice and filter by "Node Type → New" to see example sequences. 
