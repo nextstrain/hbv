@@ -36,6 +36,7 @@ snakemake_log
 
 # Local exploratory helpers not used by the workflow
 exploratory/scripts/map_gb_position_to_msa.py
+exploratory/auspice_datasets/
 
 # For Python #
 ##############
