@@ -5,7 +5,6 @@ t1 = Tree(sys.argv[1])
 t2 = Tree(sys.argv[2])
 out_path = sys.argv[3]
 
-
 # restrict to shared leaves
 common = set(t1.get_leaf_names()) & set(t2.get_leaf_names())
 t1.prune(common, preserve_branch_length=True)
@@ -18,7 +17,6 @@ common_leaves = res[2]
 
 rf_norm = rf / max_rf if max_rf else 0.0
 print("RF:", rf, "max:", max_rf, "normalized:", rf_norm, "n_leaves:", len(common))
-
 
 header = (
     "tree1\t"

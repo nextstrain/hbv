@@ -4,7 +4,6 @@ import argparse
 from collections import defaultdict
 import json
 
-
 def is_missing(v):
     return ( v in ("other", "NA", "") or v is None or (isinstance(v, float) and pd.isna(v) ))
 
@@ -20,14 +19,14 @@ def monophyletic_label_clades(tree, label, node_to_label, args):
         if cl.is_terminal():
             is_lab = (node_to_label.get(cl.name) == label)
             cl._n_label = 1 if is_lab else 0
-            cl._n_other = 0 if is_lab else 1 
+            cl._n_other = 0 if is_lab else 1
         else:
             cl._n_label = sum(ch._n_label for ch in cl.clades)
             cl._n_other = sum(ch._n_other for ch in cl.clades)
 
     out = []
     for cl in tree.find_clades(order="preorder"):
-        if cl._n_label > 0 and cl._n_other == 0 : 
+        if cl._n_label > 0 and cl._n_other == 0 :
             parent = parent_of.get(cl, None)
             parent_pure = (parent is not None and parent._n_label > 0 and parent._n_other == 0)
             if not parent_pure:
@@ -57,13 +56,10 @@ def assign_clade_info(tree , node_data, args, fallback_annotations, node_to_subt
     for node in tree.find_clades(order = 'preorder'):
         if node.is_terminal():
             if node.clade != node_to_subtype[node.name]:
-                # if not (pd.isna(node.clade) and pd.isna(node_to_subtype[node.name])):
-                #     print("Node {} has clade {} but subtype {}".format(node.name, node.clade, node_to_subtype[node.name]))
                 node.clade = node_to_subtype[node.name]
 
-        
         datum = {args.nextclade_label: node.clade}
-    
+
         # If the node is missing subtype information and a fallback annotation file is provided, use the fallback annotation for this node if available
         if fallback_annotations is not None and is_missing(node.clade):
             fallback_node = fallback_annotations.get("nodes", {}).get(node.name, {})
@@ -74,9 +70,6 @@ def assign_clade_info(tree , node_data, args, fallback_annotations, node_to_subt
 
         node_data['nodes'][node.name] = datum
     return tree, node_data
-
-
-
 
 def assign_branch_clades(tree, node_data, args, fallback_annotations=None):
 
@@ -90,8 +83,7 @@ def assign_branch_clades(tree, node_data, args, fallback_annotations=None):
             if sz > best_size_for_label.get(lab, -1):
                 best_size_for_label[lab] = sz
                 best_node_for_label[lab] = n
-    
-                
+
     for node in tree.find_clades(order = 'preorder'):
         # TODO add branch settings functionality here
         if hasattr(node, 'clade_label') and node.name not in (None, ""):
@@ -112,12 +104,7 @@ def assign_branch_clades(tree, node_data, args, fallback_annotations=None):
 
     return tree, node_data
 
-
-
-
-
 if __name__=="__main__":
-
 
     # ______Read in arguments and data_____________________________________________________________________________________________________
     parser = argparse.ArgumentParser(description='Assign clades to a tree')
@@ -136,7 +123,6 @@ if __name__=="__main__":
     parser.add_argument('--only_monophyletic', action="store_true", help='only store monophyletic clades; split labels into multiple monophyletic clades if needed')
     parser.add_argument('--branch_display_only_largest', action="store_true", help='whether to display branch labels multiple times on tree (if only-monophyletic is set) or only once for largest clade')
 
-    
     args = parser.parse_args()
 
     print(
@@ -148,7 +134,7 @@ if __name__=="__main__":
         f"{'removed from annotation.' if args.min_count_mode == 'use_for_annotation' else 'not displayed on branches.' if args.min_count_mode == 'use_for_branch_display' else 'have already been pruned.'}\n"
         f"{'For multiple monophyletic clades per subtype only the largest is displayed.\n' if args.branch_display_only_largest else '\n'}"
         )
-    
+
     tree = Phylo.read(args.tree, 'newick')
     metadata = pd.read_csv(args.metadata, sep='\t', index_col=0)
 
@@ -158,12 +144,11 @@ if __name__=="__main__":
             fallback_annotations = json.load(f)
 
     # ______Match nodes and subtypes_____________________________________________________________________________________________________
-    node_to_subtype = {x.Index: getattr(x, args.subtype_col) for x in metadata.itertuples()}  
+    node_to_subtype = {x.Index: getattr(x, args.subtype_col) for x in metadata.itertuples()}
     nodes_by_subtype_all = defaultdict(list)
 
     for node in tree.get_terminals():
         nodes_by_subtype_all[node_to_subtype[node.name]].append(node)
-
 
     nodes_by_subtype = defaultdict(list)
 
@@ -180,10 +165,9 @@ if __name__=="__main__":
     for node in nodes_by_subtype['other']:
         node_to_subtype[node.name] = 'other'
 
-
-    # ______Assign clades to internal nodes and branches_____________________________________________________________________________________________________  
+    # ______Assign clades to internal nodes and branches_____________________________________________________________________________________________________
     for subtype, nodes in nodes_by_subtype.items():
-        if subtype == "other": 
+        if subtype == "other":
             continue
 
         clade = tree.is_monophyletic(nodes)
@@ -191,21 +175,18 @@ if __name__=="__main__":
             print("Subtype {} is not monophyletic".format(subtype))
             if not args.only_monophyletic:
                 clade = tree.common_ancestor(nodes)
-            else: 
+            else:
                 # split into maximal monophyletic clades for this subtype
                 clades = monophyletic_label_clades(tree, subtype, node_to_subtype, args)
                 for c in clades:
                     c.clade_label = subtype
-                continue        
+                continue
         clade.clade_label = subtype
 
-    
-    
     node_data = {'nodes': {}, 'branches': {}}
 
-    tree, node_data = assign_clade_info   (tree, node_data, args, fallback_annotations, node_to_subtype)   
-    tree, node_data = assign_branch_clades(tree, node_data, args, fallback_annotations)   
-
+    tree, node_data = assign_clade_info   (tree, node_data, args, fallback_annotations, node_to_subtype)
+    tree, node_data = assign_branch_clades(tree, node_data, args, fallback_annotations)
 
     with open(args.output, 'w') as f:
         json.dump(node_data, f, indent=2)

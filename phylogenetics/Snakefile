@@ -5,7 +5,6 @@
 #___________________________________________________________________________________________________________________________________________________________________________________________
 from os.path import join
 
-
 if not workflow.overwrite_configfiles:
     print(
         "No config provided, using defaults/nextstrain/config_nextstrain.yaml.\n"
@@ -15,7 +14,6 @@ configfile: "defaults/nextstrain/config_nextstrain.yaml"
 
 if config["dev"]:
     print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")
-
 
 #___________________________________________________________________________________________________________________________________________________________________________________________
 
@@ -30,7 +28,7 @@ MODES = ["basic", "stitched", "single-clade"]
 RESULTS = join("results", config["workflow"])
 STITCHED_DIR = RESULTS + "/stitched/{gene}_global"
 
-# Nextclade: 
+# Nextclade:
 
 wf = config.get("workflow")
 if wf == "nextclade":
@@ -53,9 +51,7 @@ if wf == "nextclade":
         "reference.fasta"
     ]
 
-
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
 
 # Single genotype trees and basic non-stitched tree only for development mode
 single_clade_targets = (
@@ -70,9 +66,7 @@ full_tree_target = (
     else []
 )
 
-
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
 
 if wf == "nextstrain":
     rule all:
@@ -87,9 +81,8 @@ elif wf == "nextclade":
             datasets=expand(DATASET_DIR + "{file}", file=DATASET_FILES),
             tests=expand(DATASET_DIR + "test_output")
 
-else: 
+else:
     raise ValueError(f"Unknown workflow: {wf}")
-
 
 #______________________________________________________________________________________________________________________________________________________________________________________________
 # Length filtering, other filter steps that specifcy the different builds, and gene masking
@@ -100,16 +93,13 @@ include: "rules/generating_tree.smk"
 include: "rules/stitching_workflow.smk"
 # Assignment of clades and subclades (also for internal nodes)
 include: "rules/clade_assignment.smk"
-# Augur export and creating auspice datasets 
+# Augur export and creating auspice datasets
 include: "rules/export_and_auspice_view.smk"
 # Generates Nextclade dataset (if nextclade config is used)
 if config.get("workflow") == "nextclade":
     include: "rules/nextclade_dataset.smk"
 
-
-
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
 
 rule clean:
     params:
@@ -117,13 +107,11 @@ rule clean:
     shell:
         "rm -rfv {params.paths}"
 
-
 rule cleanall:
     params:
         paths=["results", "auspice_datasets", "data"]
     shell:
         "rm -rfv {params.paths}"
-
 
 # rule deploy:
 #     input:

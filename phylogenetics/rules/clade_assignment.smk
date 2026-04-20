@@ -2,18 +2,18 @@ rule clades_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
-        script = "scripts/assign_clades.py"   
+        script = "scripts/assign_clades.py"
     output:
         clades = STITCHED_DIR + "/{gene}_clades.json",
     params:
          min_count = config["clade_settings"]["min_count_per_clade"],
          min_count_mode = config["clade_settings"]["min_count_mode"],
-         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,        
+         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,
          branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest",False) else "",
          genotype_col = "genotype_genbank",
          nextclade_label = "HBV Type",
     shell:
-        r"""        
+        r"""
         python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
@@ -23,28 +23,28 @@ rule clades_stitched:
           --subtype-col {params.genotype_col} \
           --nextclade-label "{params.nextclade_label}" \
           {params.only_monophyletic_flag} \
-          {params.branch_display_flag}       
+          {params.branch_display_flag}
          """
 
 rule sub_clades_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
-        fallback_clades = STITCHED_DIR + "/{gene}_clades.json", 
+        fallback_clades = STITCHED_DIR + "/{gene}_clades.json",
         script = "scripts/assign_clades.py"
     output:
         clades = STITCHED_DIR + "/{gene}_subclades.json",
     params:
          min_count = config["clade_settings"]["min_count_per_subclade"],
          min_count_mode = config["clade_settings"]["min_count_mode"],
-         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,        
+         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,
          branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest",False) else "",
          genotype_col = "subgenotype_genbank",
          fallback_genotype_col = "genotype_genbank", # in case subgenotype information is missing, use genotype information to assign to major clade
          nextclade_label = "HBV Subtype",
          fallback_annotation_nextclade_label = "HBV Type", # if subtype information is missing and genotype information is used as fallback, use the major clade as annotation for nextclade clades as well
     shell:
-        r"""        
+        r"""
         python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
@@ -60,12 +60,7 @@ rule sub_clades_stitched:
           {params.branch_display_flag}
         """
 
-    
 #______________________________________________________________________________________________________________________________________________________________________________________________
-
-
-
-
 
 rule clades_non_stitched:
     input:
@@ -94,7 +89,6 @@ rule clades_non_stitched:
           {params.only_monophyletic_flag} \
           {params.branch_display_flag}
         """
-
 
 rule sub_clades_non_stitched:
     input:

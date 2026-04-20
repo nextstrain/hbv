@@ -1,5 +1,5 @@
 #______________________________________________________________________________________________________________________________________________________________________________________________
-# Rules for stitching together trees from different genotypes into a single tree 
+# Rules for stitching together trees from different genotypes into a single tree
 #______________________________________________________________________________________________________________________________________________________________________________________________
 
 rule collect_trees_for_stitching:
@@ -49,7 +49,6 @@ rule group_trees:
           --ref-id {params.ref_id}
         """
 
-
 rule refine_stitched:
     input:
         tree = STITCHED_DIR + "/tree_raw.nwk",
@@ -64,15 +63,12 @@ rule refine_stitched:
                      --output-tree {output.tree} --output-node-data {output.node_data}
         """
 
-
-
-
 rule ancestral_stitched:
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         aln=expand(RESULTS + "/stitched/{key}/filtered.fasta", key=ALL_GTS),  # Using non-masked alignments for ancestral reconstruction
         annotation= config["reference"]["gff"],
-        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]), 
+        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]),
         root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
 
     output:
@@ -82,7 +78,7 @@ rule ancestral_stitched:
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
         outdir=RESULTS + "/stitched/{gene}_global",
         ref_id= config["reference"]["id"],
- 
+
     shell:
         r"""
         set -euo pipefail
@@ -93,7 +89,7 @@ rule ancestral_stitched:
 
         awk -v ref="{params.ref_id}" '
         /^>/ {{
-            is_ref = ($0 == ">" ref) 
+            is_ref = ($0 == ">" ref)
             if (is_ref && seen_ref) skip=1
             else {{
                 skip=0
@@ -107,5 +103,5 @@ rule ancestral_stitched:
                         --translations {params.translation_pattern} --genes {params.genes} \
                         --output-node-data {output.node_data} \
                         --annotation {input.annotation}  \
-                        --root-sequence {input.root} 
+                        --root-sequence {input.root}
         """

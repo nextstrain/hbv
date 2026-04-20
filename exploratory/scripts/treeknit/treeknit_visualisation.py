@@ -7,7 +7,6 @@ import argparse
 def short_name(x):
     return Path(x).stem.replace(".tree", "")
 
-
 def make_sym_matrix(df_sub, value_col):
     labels = sorted(set(df_sub["name1"]) | set(df_sub["name2"]))
     mat = pd.DataFrame(np.nan, index=labels, columns=labels, dtype=float)
@@ -26,7 +25,6 @@ def make_sym_matrix(df_sub, value_col):
         np.fill_diagonal(mat.values, 0.0)
 
     return mat
-
 
 def plot_matrix(mat, title, out, cmap="viridis", vmin=None, vmax=None, fmt=".2f"):
     fig, ax = plt.subplots(figsize=(1.2 * len(mat.columns), 1.0 * len(mat.index)))
@@ -48,7 +46,6 @@ def plot_matrix(mat, title, out, cmap="viridis", vmin=None, vmax=None, fmt=".2f"
     plt.tight_layout()
     fig.savefig(out, dpi=300)
     plt.close(fig)
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -88,7 +85,6 @@ def main():
                 vmax=opts["vmax"],
                 fmt=opts["fmt"],
             )
-
 
 if __name__ == "__main__":
     main()

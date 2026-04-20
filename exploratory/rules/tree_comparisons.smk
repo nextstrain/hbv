@@ -1,5 +1,5 @@
 """
-This part of the workflow to compare trees between different regions of HBV 
+This part of the workflow to compare trees between different regions of HBV
 
 REQUIRED INPUTS:
 -  trees: expand(f"data/regions/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
@@ -14,7 +14,6 @@ OUTPUTS:
 
 TAG = make_tag(REGION_NAMES)
 OUTDIR_CORR = f"results/correlation_analysis_{TAG}"
-
 
 rule compare_pairwise_distances:
     input:
@@ -40,9 +39,8 @@ rule compare_trees_RF_pair:
     shell:
         r"""
         set -euo pipefail
-        python scripts/compare_region_trees.py {input.t1} {input.t2} {output} 
+        python scripts/compare_region_trees.py {input.t1} {input.t2} {output}
         """
-
 
 rule compare_trees_RF_all:
     input:
@@ -71,7 +69,7 @@ rule display_RF:
         r"""
         python scripts/visualise_rf.py {input.table} {output.grid}
         """
-    
+
 rule tree_knit_pair:
     input:
         t1 = "data/regions/{seg1}/{seg1}.tree.nwk",
@@ -110,16 +108,16 @@ rule treeknit_all:
     output:
         summary=f"results/compare_trees_treeknit_{TAG}.csv"
 
-    shell: 
+    shell:
         r"""
         set -euo pipefail
         rm -f {output.summary}
         for f in {input.individual}; do
-            python scripts/treeknit_summary_to_csv.py "$f" "{output.summary}"
-        done        
+            python scripts/treeknit/treeknit_summary_to_csv.py "$f" "{output.summary}"
+        done
         """
 
- rule treeknit_visualisation:
+rule treeknit_visualisation:
     input:
         summary="results/compare_trees_treeknit_{TAG}.csv"
     output:

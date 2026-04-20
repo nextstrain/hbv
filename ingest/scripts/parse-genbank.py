@@ -28,14 +28,14 @@ def parse_genotype(genbank_note):
         genotype = get_geno_from_match(geno_match[0])
         subgenotype = get_subgeno_from_match(genotype, geno_match[0])
 
-    #could also be listed as 'genotype' 
+    #could also be listed as 'genotype'
     elif len(geno_match)==0:
         regex_geno2 = (r'genotype\s+(.*)')
         geno2_match = re.findall(regex_geno2, genbank_note)
         if len(geno2_match)!=0:
             genotype = get_geno_from_match(geno2_match[0])
             subgenotype = get_subgeno_from_match(genotype, geno2_match[0])
-        
+
         #could be listed as 'genotype:' with no space after
         elif len(geno2_match)==0:
             regex_geno3 = (r'genotype:+(.*)')
@@ -43,7 +43,7 @@ def parse_genotype(genbank_note):
             if len(geno3_match)!=0:
                 genotype = get_geno_from_match(geno3_match[0])
                 subgenotype = get_subgeno_from_match(genotype, geno3_match[0])
-            
+
             #could be listed as 'subgenotype'
             elif len(geno3_match)==0:
                 regex_subgeno = (r'subgenotype\s+(.*)')
@@ -51,11 +51,11 @@ def parse_genotype(genbank_note):
                 if len(subgeno_match)!=0:
                     genotype = get_geno_from_match(subgeno_match[0])
                     subgenotype = get_subgeno_from_match(genotype, subgeno_match[0])
-                    
+
                 elif len(subgeno_match)==0:
                     genotype = 'None'
                     subgenotype = 'None'
-                    
+
     return (genotype, subgenotype)
 
 def get_geno_from_match(match_result):
@@ -78,7 +78,7 @@ def get_geno_from_match(match_result):
         genotype = match_result.split('subgenotype ')[1][0].upper()
     else:
         genotype = match_result[0].upper()
-    
+
     if genotype=="D4":
         genotype = "D"
 
@@ -89,12 +89,12 @@ def get_geno_from_match(match_result):
 
 def get_subgeno_from_match(genotype, match_result):
     #going to miss a couple subgenotypes, but this catches most of them
-    
+
     #going to ignore recombinants for the genotype-specific builds, so don't assign a subtype
     if len(match_result)==1 or genotype=='recombinant':
         subgenotype='None'
     else:
-        #if just the subgenotype is listed, it will be max len(3) 
+        #if just the subgenotype is listed, it will be max len(3)
         if len(match_result)<=3:
             subgenotype=match_result.upper()
         elif 'ubgenotype:' in match_result:
@@ -131,7 +131,6 @@ def exclude_isolate(record):
     #exclude patent and synthetic sequences, that are not clinical isolates
     return record.annotations['data_file_division'] in ['PAT', 'SYN']
 
-
 def summarise(metadata):
     counts = defaultdict(int)
     n = 0
@@ -164,7 +163,6 @@ def parse_collection_date(record, source):
 
     return formatted_date
 
-
 def extract(feature, key):
     if key in feature.qualifiers:
          return feature.qualifiers[key][0]
@@ -176,7 +174,7 @@ def parse_metadata(record):
     note = extract(source, 'note')
 
     metadata = {}
-    metadata['name'] = accession # TODO XXX - change once new augur release is out with https://github.com/nextstrain/augur/pull/1240, 
+    metadata['name'] = accession # TODO XXX - change once new augur release is out with https://github.com/nextstrain/augur/pull/1240,
     metadata['accession'] = accession
     metadata['strain_name'] = extract(source, 'strain') or extract(source, 'isolate') or 'None'
     metadata['country'] = extract(source, 'country') or 'None'
@@ -212,7 +210,7 @@ if __name__ == '__main__':
             record_metadata = parse_metadata(record)
         except MissingDate:
             exclude_counts['missing date']+=1
-            continue   
+            continue
 
         accession = record_metadata['accession']
         seq_records[accession] = SeqRecord(record.seq, id=accession, description='')

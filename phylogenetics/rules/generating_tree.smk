@@ -13,8 +13,7 @@ rule augur_tree:
           --output {output.tree}
         """
 
-
-# TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however. 
+# TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however.
 rule prune_tree:
     input:
         tree_nwk=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
@@ -52,13 +51,11 @@ rule prune_tree:
           --out_tree {output.out_tree} \
           --exclude {output.exclude} \
           {params.purity_args} \
-          {params.minclade_args}     
-        
+          {params.minclade_args}
+
         n=$(tr ' ' '\n' < {output.exclude} | sed '/^$/d' | sort -u | wc -l)
         echo "$n unique accessions in {output.exclude}"
-        """       
-
-
+        """
 
 rule augur_refine:
     input:
@@ -76,13 +73,12 @@ rule augur_refine:
           --output-tree {output.tree}
         """
 
-
-# NOTE THAT THIS MAPPING INCLUDES PRE-REGIONS IN C AND S 
+# NOTE THAT THIS MAPPING INCLUDES PRE-REGIONS IN C AND S
 rule alias_translations_for_augur:
     input:
         dir="../ingest/data/nextclade",
         pol="../ingest/data/nextclade/cds_pol.fasta",
-    params: # for genes with muultiple transcripts 
+    params: # for genes with muultiple transcripts
         s=config["gene_products_for_ancestral"]["S"], # "envL", "envM" or "envS"
         c=config["gene_products_for_ancestral"]["C"], # "pre-capsid" or "capsid"
     output:
@@ -96,7 +92,6 @@ rule alias_translations_for_augur:
         cp {input.dir}/cds_{params.c}.fasta {output.c}
         """
 
-
 # TODO take ref sequence as root here for reconstruction as well?
 rule ancestral:
     input:
@@ -105,11 +100,11 @@ rule ancestral:
         annotation= config["reference"]["gff"],
         translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]),
         root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
- 
+
     output:
         node_data = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
         sequences = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
-    params: 
+    params:
         genes=" ".join(ANCESTRAL_GENES),
         translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
 

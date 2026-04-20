@@ -18,11 +18,10 @@ auspice:
     - country
     - date
 
-
-# All HBV genes 
+# All HBV genes
 genes: ["P", "S", "C", "X"]
 
-# Reference sequence 
+# Reference sequence
 reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
@@ -40,7 +39,7 @@ sampling:
 
 # Defines whether we filter by sequence completeness (length) and which thresholds to use. DO NOT use small genes in ancestr^al reconstruction if length filtering is not strict.
 length_filtering:
-  use_as_filter: true   
+  use_as_filter: true
   min_length: 3000
   max_length: 3400
 
@@ -48,17 +47,15 @@ length_filtering:
 subgenotype_filtering_fulltree: true
 subgenotype_filtering_singleclade: false
 
-
 # all branches with length higher than this threshold will be pruned from the tree
 long_branch_threshold:  0.25  # 0.3
-tip_branch_threshold: 0.01  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants. 
+tip_branch_threshold: 0.01  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants.
 
 filter_genbank_vs_nextclade: true
 filter_previously_excluded: false
 
-
 # There are 2 ways to filter messy subgenotype annotation so that trees appear cleaner:
-# 1) Clade Purity: Broadly enforce minimal purity of subclades of a given size (clade fraction), i.e. delete small impurities/supposed outliers 
+# 1) Clade Purity: Broadly enforce minimal purity of subclades of a given size (clade fraction), i.e. delete small impurities/supposed outliers
 # 2) Clade Settings: Different ways to deal with monophyletic groups of given subtype smaller than a minimum size (either delete labels, annotations or prune them completely)
 
 clade_purity:
@@ -74,7 +71,6 @@ clade_settings:
   branch_display_only_largest: false # if only_monophyletic is true: branch labels for non-monophyletic subtypes are per default (False) displayed for ALL monophyletic clades of a subtype. Change to True to display labels ONCE only for the largest monophyletic clade.
 #________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-
 # n is number of sequences to use (build-specific), Development mode defines supplementary targets, dev_n is number of sequences per build to use in dev mode
 n_totaltree: 3000
 n_stitched_parts: 800
@@ -89,11 +85,10 @@ gene_products_for_ancestral:
   C: "pre-capsid"              #can be either: "pre-capsid" or "capsid"
 ancestral_genes: # If length filtering is disabled or not strict, ancestral reconstruction might not work for all genes, as some sequences might be too short. Perform ancestral reconstruction for longer genes (P > S> C > X).
   prod: ["P", "S", "C", "X"]
-  dev: ["X"] #Testing reconstruction on 1 gene speeds runtime up significantly 
+  dev: ["X"] #Testing reconstruction on 1 gene speeds runtime up significantly
 
-# Defines which genes to use for the phylogenetic reconstruction. Ideally P or S with lowest recombination burden (Note that ancestral reconstruction will be performed for all genes) 
+# Defines which genes to use for the phylogenetic reconstruction. Ideally P or S with lowest recombination burden (Note that ancestral reconstruction will be performed for all genes)
 gene_mask: ["P"]
-
 
 #__________________________________________________________________________________________________________ TARGETS / BUILDS __________________________________________________________________________________________________________
 

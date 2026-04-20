@@ -39,7 +39,6 @@ def parse_treeknit_summary(summary_path):
 
     return row
 
-
 def append_summary_csv(summary_path, out_csv):
     row = parse_treeknit_summary(summary_path)
 

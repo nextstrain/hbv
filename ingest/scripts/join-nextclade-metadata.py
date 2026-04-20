@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     ## Summarise statistics & print to screen (as well as summary file)
     with open(args.summary, 'w') as fh:
-        
+
         qc = result.groupby(["QC_overall_status"])["QC_overall_status"].count()
         summarise(qc, "Overall Nextclade QC status", empty="Failed align", fh=fh)
 

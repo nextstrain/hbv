@@ -6,7 +6,6 @@ This is the experimental Nextstrain phylogenetic workflow behind the (as yet unr
 
 > NOTE: These command examples assume you are within the `phylogenetic` directory.
 
-
 ```
 snakemake --cores 4 -pf
 ```
@@ -17,11 +16,8 @@ The following build is automatically generated (change the mask between P and S 
 
 The following alternative builds are additionally generated in dev mode (set in config file):
 
-- `auspice/P_masked/full-tree.jso` the entire human-HBV tree, without the stitching procedure 
+- `auspice/P_masked/full-tree.jso` the entire human-HBV tree, without the stitching procedure
 - `auspice/hbv_{A,B,C,D,E,F,G,H,I}.json` for single genotype builds. Note that some of these are very small and one should consider disabling filtering by subgenotype annotation availability (via config)
-
-
-
 
 ## Configuration
 
@@ -40,7 +36,6 @@ Nextclade datasets exist for reference `NC_003977`. The dataset includes a ~2000
 
 #### Updating the tree
 
-
 ```bash
 snakemake --cores 4 --configfile defaults/nextclade/config_nextclade.yaml
 ```
@@ -49,8 +44,7 @@ This creates a new version of the dataset in `../nextclade_datasets`
 
 Specify a new date-stamped version name in version in the config file and finally update `nextclade_dataset` in the ingest `../ingest/default/config.yaml` to point to the new dataset
 
-
 #### Updating example sequences
 
-A small set of example sequences is automatically generated in the nextclade workflow and can be configurated in the nextclade config file. 
+A small set of example sequences is automatically generated in the nextclade workflow and can be configurated in the nextclade config file.
 Example sequences are sampled evenly across genotypes, recombinants, and qc status but can be alternatively sampled at random (config option).

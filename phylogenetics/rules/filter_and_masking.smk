@@ -32,17 +32,14 @@ rule length_filter:
         rm -f "$kept_ids"
         """
 
-
 ## TODO - there are a number of nextclade QC status' we can filter on here.
-## Currently the settings in the nextclade dataset need to be looked at as 
+## Currently the settings in the nextclade dataset need to be looked at as
 ## around 40% of all sequences (including the entirety of some genotypes)
 ## have QC=bad mainly due to frameshifts and stop codons.
 
-
-
 def define_filters(mode, key):
-    
-    # Subsample based on dev mode and build     
+
+    # Subsample based on dev mode and build
     if str(config.get("dev", False)).lower() in ("1", "true", "yes"):
         max_n = int(config.get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config.get("dev_n_totaltree", 500))
     else:
@@ -64,7 +61,6 @@ def define_filters(mode, key):
     elif mode != "basic":
         raise Exception("Unknown build parameter")
 
-
     if config.get("filter_genbank_vs_nextclade", False):
         query_exprs.append('genotype_genbank.notnull() & (genotype_genbank != "") & clade_nextclade.notnull() & (clade_nextclade != "")')
         if mode in ("stitched", "single-clade"):
@@ -73,15 +69,14 @@ def define_filters(mode, key):
             else:
                 query_exprs.append('genotype_genbank == clade_nextclade')
 
-
     if config.get("sampling", {}).get("augur_custom_filter"):
-        query_exprs.append(config["sampling"]["augur_custom_filter"])    
+        query_exprs.append(config["sampling"]["augur_custom_filter"])
 
     args = []
     if query_exprs:
         combined = " & ".join(f"({q})" for q in query_exprs)
         args.append(f"--query '{combined}'")
-    
+
     args.append(
     f"--group-by {' '.join(config['sampling']['group_by'])} "
     f"--subsample-max-sequences {max_n}"
@@ -94,19 +89,15 @@ def define_filters(mode, key):
     #elif wildcards.build == "nextclade-sequences":
     #    return "--group-by genotype_genbank --subsample-max-sequences 25"
 
-
 def get_filter_args(wc):
     return define_filters(wc.mode, wc.key)
 
-
 PREVIOUS_EXCLUDE_FILE = f"defaults/{config['workflow']}/exclude.txt"
-
 
 def get_previous_exclude_file(wildcards):
     if config.get("filter_previously_excluded", False):
         return PREVIOUS_EXCLUDE_FILE
     return []
-
 
 rule combine_previous_excludes:
     output:
@@ -128,8 +119,6 @@ rule combine_previous_excludes:
         n=$(wc -l < "{output.exclude}" | tr -d ' ')
         echo "$n unique accessions written to {output.exclude}"
         """
-
-
 
 rule filter_by_clade:
     input:
@@ -162,11 +151,10 @@ rule filter_by_clade:
           $exclude_arg \
           {params.args} \
           --output-sequences {output.alignment} \
-          --output-metadata {output.metadata} 
+          --output-metadata {output.metadata}
         """
 
 #____________________________________________________________________________________________________________________________________________________________________________________________
-
 
 rule specify_genomic_regions_genes:
     input:
@@ -176,7 +164,7 @@ rule specify_genomic_regions_genes:
         regions="defaults/genomic_regions_genes.txt",
     shell:
         r"""
-        python {input.script} {input.ref_gb} {output.regions} 
+        python {input.script} {input.ref_gb} {output.regions}
         """
 
 rule write_gene_mask:
@@ -196,7 +184,6 @@ rule write_gene_mask:
           --gene "{wildcards.gene}" \
           --output "{output.mask}"
         """
-
 
 rule mask_gene:
     input:
