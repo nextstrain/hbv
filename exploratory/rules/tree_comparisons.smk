@@ -1,16 +1,15 @@
-
 """
 This part of the workflow to compare trees between different regions of HBV 
 
 REQUIRED INPUTS:
-
-...
+-  trees: expand(f"data/regions/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
 
 OUTPUTS:
-
-...
-
-
+-   matrix = f"{OUTDIR_CORR}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
+-   grid = f"{OUTDIR_CORR}/corr_grid/grid_patristic_scatter.pdf",
+-   f"results/compare_trees_RF_{TAG}.tsv"
+-   grid= f"results/RF_{TAG}.pdf"
+-   done="results/treeknit_plots/.done"
 """
 
 TAG = make_tag(REGION_NAMES)
@@ -32,7 +31,6 @@ rule compare_pairwise_distances:
         mkdir -p {params.outdir}/corr_matrix {params.outdir}/corr_grid
         python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs} {params.outdir}
         """
-
 
 rule compare_trees_RF_pair:
     input:
@@ -76,9 +74,7 @@ rule display_RF:
         r"""
         python scripts/visualise_rf.py {input.table} {output.grid}
         """
-
-
-
+    
 rule tree_knit_pair:
     input:
         t1 = "data/regions/{seg1}/{seg1}.tree.nwk",
@@ -108,8 +104,6 @@ rule tree_knit_pair:
         rm -f {params.tmp1} {params.tmp2}
         """
 
-
-
 rule treeknit_all:
     input:
         individual=expand("results/treeknit/{seg1}_{seg2}/results_summary.txt",zip,
@@ -127,8 +121,6 @@ rule treeknit_all:
             python scripts/treeknit_summary_to_csv.py "$f" "{output.summary}"
         done        
         """
-
-
 
  rule treeknit_visualisation:
     input:

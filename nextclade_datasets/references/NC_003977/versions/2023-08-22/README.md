@@ -1,7 +1,7 @@
-# Example dataset for HepB virus
+# Example dataset for HepB virus - Deprecated
 
-Dataset for Hepatitis B Virus. Work in progress. 
+Early dataset version for Hepatitis B Virus by James Hadfield
 
-Example sequences are randomly selected and need to be replaced by suitable ones. 
+Example sequences are randomly selected and need to be replaced by suitable ones (see newer versions)
 
 Note that alignment parameters are set to those suggested for highly diverse viruses and not adapted for HBV specifically.

@@ -36,7 +36,7 @@ Please see `../ingest/README.md` for how to generate these files.
 
 Nextclade datasets exist for reference `NC_003977`. The dataset includes a ~2000 tip tree attempting to cover observed human HBV diversity and genotypes, as well as a small set of example sequences which are useful for trialling the web interface.
 
-> NOTE: Many of the files - especially `qc.json` - still need to be optimised for HBV.
+> NOTE: Note that alignment parameters and QC metrics are set to those suggested for highly diverse viruses and not adapted for HBV specifically!
 
 #### Updating the tree
 
