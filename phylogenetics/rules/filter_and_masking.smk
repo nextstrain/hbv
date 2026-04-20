@@ -175,12 +175,12 @@ rule write_gene_mask:
         """
 
 
-rule mask_gene_new:
+rule mask_gene:
     input:
         alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
         mask=RESULTS + "/masks/{gene}_mask.txt",
     output:
-        alignment=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.new.fasta"),
+        alignment=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     wildcard_constraints:
         gene="|".join(config["gene_mask"]),
     shell:
@@ -189,87 +189,4 @@ rule mask_gene_new:
           --sequences "{input.alignment}" \
           --mask "{input.mask}" \
           --output "{output.alignment}"
-        """
-
-
-rule mask_gene_legacy:
-    input:
-        regions="defaults/genomic_regions_genes.txt",
-        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
-    output:
-        alignment=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.legacy.fasta"),
-    params:
-        ref=config["reference"]["id"]
-    wildcard_constraints:
-        gene="|".join(config["gene_mask"]),
-    shell:
-        r"""
-        # Original shell implementation kept temporarily to validate the
-        # Python-generated mask before publishing the canonical alignment.
-
-        read -r start end < <(
-        awk -v g="{wildcards.gene}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
-        )
-
-        L=$(seqkit grep -n -p "^{params.ref}$" "{input.alignment}" \
-            | seqkit seq -s \
-            | head -n1 \
-            | tr -d '\n' \
-            | wc -c \
-            | tr -d ' ')
-
-        if [ -z "$L" ]; then
-        L=$(seqkit seq -s "{input.alignment}" \
-            | head -n1 \
-            | tr -d '\n' \
-            | wc -c \
-            | tr -d ' ')
-        fi
-
-        if [ -z "$L" ]; then
-        echo "mask_gene: could not determine alignment length" >&2
-        exit 1
-        fi
-        maskfile="$(mktemp)"
-
-        if [ "$start" -le "$end" ]; then
-        # mask [1,start-1]
-        if [ "$start" -gt 1 ]; then
-            seq 1 $((start-1)) >> "$maskfile"
-        fi
-        # mask [end+1,L]
-        if [ "$end" -lt "$L" ]; then
-            seq $((end+1)) "$L" >> "$maskfile"
-        fi
-        else
-        # gene wraps -> mask [end+1, start-1]
-        seq $((end+1)) $((start-1)) >> "$maskfile"
-        fi
-
-        augur mask \
-        --sequences "{input.alignment}" \
-        --mask "$maskfile" \
-        --output "{output.alignment}"
-
-        rm -f "$maskfile"
-        """
-
-
-rule mask_gene:
-    input:
-        new=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.new.fasta",
-        legacy=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.legacy.fasta",
-    output:
-        alignment= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
-    wildcard_constraints:
-        gene="|".join(config["gene_mask"]),
-    shell:
-        r"""
-        if ! cmp -s "{input.new}" "{input.legacy}"; then
-          echo "mask_gene: new Python-generated mask output differs from legacy output" >&2
-          diff -u "{input.legacy}" "{input.new}" | sed -n '1,200p' >&2 || true
-          exit 1
-        fi
-
-        cp "{input.new}" "{output.alignment}"
         """
