@@ -156,19 +156,59 @@ rule specify_genomic_regions_genes:
         python {input.script} {input.ref_gb} {output.regions} 
         """
 
-rule mask_gene:
+rule write_gene_mask:
     input:
         regions="defaults/genomic_regions_genes.txt",
         alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
+        script="scripts/write_gene_mask.py",
     output:
-        alignment= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
+        mask=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_mask.txt"),
     params:
         ref=config["reference"]["id"]
     wildcard_constraints:
         gene="|".join(config["gene_mask"]),
     shell:
         r"""
-        # mkdir -p data/masked
+        python {input.script} \
+          --regions "{input.regions}" \
+          --alignment "{input.alignment}" \
+          --gene "{wildcards.gene}" \
+          --reference "{params.ref}" \
+          --output "{output.mask}"
+        """
+
+
+rule mask_gene_new:
+    input:
+        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
+        mask=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_mask.txt",
+    output:
+        alignment=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.new.fasta"),
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+    shell:
+        r"""
+        augur mask \
+          --sequences "{input.alignment}" \
+          --mask "{input.mask}" \
+          --output "{output.alignment}"
+        """
+
+
+rule mask_gene_legacy:
+    input:
+        regions="defaults/genomic_regions_genes.txt",
+        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
+    output:
+        alignment=temp(RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.legacy.fasta"),
+    params:
+        ref=config["reference"]["id"]
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+    shell:
+        r"""
+        # Original shell implementation kept temporarily to validate the
+        # Python-generated mask before publishing the canonical alignment.
 
         read -r start end < <(
         awk -v g="{wildcards.gene}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
@@ -215,4 +255,24 @@ rule mask_gene:
         --output "{output.alignment}"
 
         rm -f "$maskfile"
+        """
+
+
+rule mask_gene:
+    input:
+        new=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.new.fasta",
+        legacy=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.legacy.fasta",
+    output:
+        alignment= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+    shell:
+        r"""
+        if ! cmp -s "{input.new}" "{input.legacy}"; then
+          echo "mask_gene: new Python-generated mask output differs from legacy output" >&2
+          diff -u "{input.legacy}" "{input.new}" | sed -n '1,200p' >&2 || true
+          exit 1
+        fi
+
+        cp "{input.new}" "{output.alignment}"
         """
