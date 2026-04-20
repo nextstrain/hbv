@@ -14,8 +14,6 @@ rule generate_example_sequences:
         sampling=config["example_sequences"]["sampling"]
     shell:
         r"""
-        mkdir -p "$(dirname {output.sequences})"
-
         python {input.script} \
           --metadata {input.metadata} \
           --output {output.selected} \
@@ -46,7 +44,6 @@ rule assemble_dataset:
         pathogen =  DATASET_DIR + "pathogen.json"
     shell:
         """
-        mkdir -p {DATASET_DIR}
         cp {input.tree} {output.tree}
         cp {input.annotation} {output.annotation}
         cp {input.reference} {output.reference}

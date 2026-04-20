@@ -165,8 +165,6 @@ rule ncbi_active:
         ref=config["reference_accession"],
     shell:
         r"""
-        # mkdir -p data
-
         if [ "{params.dev}" = "true" ] || [ "{params.dev}" = "True" ] || [ "{params.dev}" = "1" ]; then
           (
             grep '"accession"[[:space:]]*:[[:space:]]*"{params.ref}"' {input.ndjson} || true
