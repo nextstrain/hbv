@@ -3,17 +3,6 @@
 benchmarks/
 logs/
 results/
-!exploratory/results/
-!exploratory/results/genes/
-exploratory/results/genes/**
-!exploratory/results/genes/**/
-!exploratory/results/genes/**/*.png
-!exploratory/results/genes/**/*.pdf
-!exploratory/results/segments/
-exploratory/results/segments/**
-!exploratory/results/segments/**/
-!exploratory/results/segments/**/*.png
-!exploratory/results/segments/**/*.pdf
 build/
 auspice/
 data/
