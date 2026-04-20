@@ -35,6 +35,7 @@ rule all:
         fasta         = expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
         gb            = expand(f"{OUTDIR}" + "/{name}/{name}.gb", name=REGION_NAMES),
         tree_json     = expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
+        auspice_json  = expand("auspice_datasets/{name}.json", name=REGION_NAMES),
         node_data     = expand(f"{OUTDIR}/{{name}}/{{name}}.ancestral.json", name=REGION_NAMES),
         joint_exclude ="defaults/exclude.txt",
 
@@ -295,6 +296,16 @@ rule augur_export:
             isolate \
         --output "{output.auspice_json}"
 
+        """
+
+rule copy_auspice_view:
+    input:
+        json=f"{OUTDIR}" + "/{name}/{name}.json",
+    output:
+        json="auspice_datasets/{name}.json",
+    shell:
+        r"""
+        cp {input.json} {output.json}
         """
 
 # rules to compare differnt region trees to inform recombination via different metrics (partially have to be called individually)
