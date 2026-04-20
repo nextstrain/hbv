@@ -100,19 +100,35 @@ def get_filter_args(wc):
     return define_filters(wc.mode, wc.key)
 
 
+PREVIOUS_EXCLUDE_FILE = f"defaults/{config['workflow']}/exclude.txt"
 
-# # TODO right now this is empty! 
-# rule include_file:
-#     output:
-#         file="results/{mode}/{key}/include.txt",
-#     params:
-#         #ref=lambda wc: config["reference"]["id"],
-#     shell:
-#         r"""
-#         mkdir -p results/{wildcards.mode}/{wildcards.key}
-#         touch {output.file}
-#         """
-#         #printf "%s\n" "{params.ref}" > {output.file}
+
+def get_previous_exclude_file(wildcards):
+    if config.get("filter_previously_excluded", False):
+        return PREVIOUS_EXCLUDE_FILE
+    return []
+
+
+rule combine_previous_excludes:
+    output:
+        exclude=PREVIOUS_EXCLUDE_FILE,
+    params:
+        source_dir=RESULTS,
+    shell:
+        r"""
+        if [ -d "{params.source_dir}" ]; then
+          find "{params.source_dir}" -type f -name '*_exclude.txt' -exec cat {{}} + \
+            | tr -s '[:space:]' '\n' \
+            | awk 'NF' \
+            | sort -u \
+            > "{output.exclude}"
+        else
+          : > "{output.exclude}"
+        fi
+
+        n=$(wc -l < "{output.exclude}" | tr -d ' ')
+        echo "$n unique accessions written to {output.exclude}"
+        """
 
 
 
@@ -120,27 +136,35 @@ rule filter_by_clade:
     input:
         alignment="data/filtered/alignment.len_filtered.fasta",
         metadata="data/filtered/metadata.len_filtered.tsv",
-        #include = RESULTS + "/{mode}/{key}/include.txt",   
-        #exclude = "defaults/exclude.txt",
+        exclude = get_previous_exclude_file,
     output:
         alignment=RESULTS + "/{mode}/{key}/filtered.fasta",
         metadata=RESULTS + "/{mode}/{key}/filtered.tsv",
     params:
-        args=get_filter_args
+        args=get_filter_args,
+        filter_previously_excluded=str(config.get("filter_previously_excluded", False)).lower(),
     wildcard_constraints:
         mode="basic|stitched|single-clade",
         key="all|" + "|".join(ALL_GTS),
     shell:
         r"""
-        # mkdir -p results/{wildcards.mode}/{wildcards.key}
+        exclude_arg=""
+        if [ "{params.filter_previously_excluded}" = "true" ]; then
+          if [ -s "{input.exclude}" ]; then
+            exclude_arg="--exclude {input.exclude}"
+          else
+            echo "No previous exclude accessions found in {input.exclude}; continuing without --exclude"
+          fi
+        fi
+
         augur filter \
           --sequences {input.alignment} --metadata {input.metadata} \
           --metadata-id-columns accession \
+          $exclude_arg \
           {params.args} \
           --output-sequences {output.alignment} \
           --output-metadata {output.metadata} 
         """
-        #--include {input.include} \
 
 #____________________________________________________________________________________________________________________________________________________________________________________________
 

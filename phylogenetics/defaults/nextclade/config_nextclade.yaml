@@ -54,6 +54,7 @@ long_branch_threshold:  0.25  # 0.3
 tip_branch_threshold: 0.01  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants. 
 
 filter_genbank_vs_nextclade: true
+filter_previously_excluded: false
 
 
 # There are 2 ways to filter messy subgenotype annotation so that trees appear cleaner:
