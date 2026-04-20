@@ -156,63 +156,37 @@ rule specify_genomic_regions_genes:
         python {input.script} {input.ref_gb} {output.regions} 
         """
 
-rule mask_gene:
+rule write_gene_mask:
     input:
         regions="defaults/genomic_regions_genes.txt",
-        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
+        ref_gb=config["reference"]["genbank"],
+        script="scripts/write_gene_mask.py",
     output:
-        alignment= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
-    params:
-        ref=config["reference"]["id"]
+        mask=temp(RESULTS + "/masks/{gene}_mask.txt"),
     wildcard_constraints:
         gene="|".join(config["gene_mask"]),
     shell:
         r"""
-        # mkdir -p data/masked
+        python {input.script} \
+          --regions "{input.regions}" \
+          --reference-genbank "{input.ref_gb}" \
+          --gene "{wildcards.gene}" \
+          --output "{output.mask}"
+        """
 
-        read -r start end < <(
-        awk -v g="{wildcards.gene}" '$0 !~ /^#/ && $1==g {{print $2, $3; exit}}' "{input.regions}"
-        )
 
-        L=$(seqkit grep -n -p "^{params.ref}$" "{input.alignment}" \
-            | seqkit seq -s \
-            | head -n1 \
-            | tr -d '\n' \
-            | wc -c \
-            | tr -d ' ')
-
-        if [ -z "$L" ]; then
-        L=$(seqkit seq -s "{input.alignment}" \
-            | head -n1 \
-            | tr -d '\n' \
-            | wc -c \
-            | tr -d ' ')
-        fi
-
-        if [ -z "$L" ]; then
-        echo "mask_gene: could not determine alignment length" >&2
-        exit 1
-        fi
-        maskfile="$(mktemp)"
-
-        if [ "$start" -le "$end" ]; then
-        # mask [1,start-1]
-        if [ "$start" -gt 1 ]; then
-            seq 1 $((start-1)) >> "$maskfile"
-        fi
-        # mask [end+1,L]
-        if [ "$end" -lt "$L" ]; then
-            seq $((end+1)) "$L" >> "$maskfile"
-        fi
-        else
-        # gene wraps -> mask [end+1, start-1]
-        seq $((end+1)) $((start-1)) >> "$maskfile"
-        fi
-
+rule mask_gene:
+    input:
+        alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
+        mask=RESULTS + "/masks/{gene}_mask.txt",
+    output:
+        alignment=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
+    wildcard_constraints:
+        gene="|".join(config["gene_mask"]),
+    shell:
+        r"""
         augur mask \
-        --sequences "{input.alignment}" \
-        --mask "$maskfile" \
-        --output "{output.alignment}"
-
-        rm -f "$maskfile"
+          --sequences "{input.alignment}" \
+          --mask "{input.mask}" \
+          --output "{output.alignment}"
         """
