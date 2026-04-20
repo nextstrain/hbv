@@ -128,3 +128,15 @@ rule treeknit_all:
         done        
         """
 
+
+
+ rule treeknit_visualisation:
+    input:
+        summary="results/compare_trees_treeknit_{TAG}.csv"
+    output:
+        done="results/treeknit_plots/.done"
+    shell:
+        r"""
+        python scripts/treeknit/treeknit_visualisation.py {input.summary}
+        touch {output.done}
+        """
