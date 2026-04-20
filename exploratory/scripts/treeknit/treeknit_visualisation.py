@@ -50,11 +50,11 @@ def plot_matrix(mat, title, out, cmap="viridis", vmin=None, vmax=None, fmt=".2f"
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("in_csv")
-    ap.add_argument("--outdir", default="results/treeknit_summary_plots")
+    ap.add_argument("--outdir", default=None)
     args = ap.parse_args()
 
     in_csv = args.in_csv
-    outdir = Path(args.outdir)
+    outdir = Path(args.outdir) if args.outdir else Path(in_csv).parent / "plots"
     outdir.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(in_csv)
 
@@ -69,22 +69,17 @@ def main():
         "mcc_max": dict(title="Largest MCC size (n leaves)", cmap="viridis", vmin=0, vmax=None, fmt=".0f"),
     }
 
-    is_gene = df["name1"].isin(["C", "P", "S", "X"]) & df["name2"].isin(["C", "P", "S", "X"])
-    gene_df = df[is_gene].copy()
-    seg_df = df[~is_gene].copy()
-
-    for label, subdf in [("genes", gene_df), ("segments", seg_df)]:
-        for metric, opts in metrics.items():
-            mat = make_sym_matrix(subdf, metric)
-            plot_matrix(
-                mat,
-                title=f"TreeKnit summary: {opts['title']} ({label})",
-                out=outdir / f"{label}.{metric}.png",
-                cmap=opts["cmap"],
-                vmin=opts["vmin"],
-                vmax=opts["vmax"],
-                fmt=opts["fmt"],
-            )
+    for metric, opts in metrics.items():
+        mat = make_sym_matrix(df, metric)
+        plot_matrix(
+            mat,
+            title=f"TreeKnit summary: {opts['title']}",
+            out=outdir / f"{metric}.png",
+            cmap=opts["cmap"],
+            vmin=opts["vmin"],
+            vmax=opts["vmax"],
+            fmt=opts["fmt"],
+        )
 
 if __name__ == "__main__":
     main()

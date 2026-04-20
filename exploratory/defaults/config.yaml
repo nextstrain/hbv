@@ -6,16 +6,16 @@ reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
 
-#genomic_regions: defaults/genomic_regions_genes.txt
-genomic_regions: defaults/genomic_regions_breakpoints_2005.txt
+#genomic_regions: defaults/phylogenetics/genomic_regions_genes.txt
+genomic_regions: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
 
 # Current breakpoints based on https://journals.asm.org/doi/10.1128/jvi.79.24.15467-15476.2005, published in 2005
 breakpoints:
   old_ref: X02763.1
   list: [1, 750, 900, 1600, 1950, 2500, 2650, 2750] # Make sure to include 0 if there is a segment starting at the beginning of the genome
   buffer: 25  # Controls for the amount of variability around breakpoints when extracting segments
-  out: defaults/genomic_regions_breakpoints_2005.txt
-  map_out: defaults/X02763_to_NC_003977_map.tsv
+  out: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
+  map_out: defaults/phylogenetics/X02763_to_NC_003977_map.tsv
 
 min_coverage_per_region: 0.8  # Minimum fraction of region that must be covered in a sequence for it to be retained in that segment's alignment
 

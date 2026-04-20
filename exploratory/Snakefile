@@ -22,8 +22,17 @@ def make_tag(regions):
         return "segments1-8"
     return "_".join(regions)
 
+def make_result_group(regions):
+    if set(regions) == {"C","P","S","X"}:
+        return "genes"
+    if set(regions) == {"segment1","segment2","segment3","segment4","segment5","segment6","segment7","segment8"}:
+        return "segments"
+    return "_".join(regions)
+
 REGION_NAMES = region_names(config["genomic_regions"])
 REGION_TAG = "_".join(REGION_NAMES)
+RESULT_GROUP = make_result_group(REGION_NAMES)
+RESULTS = f"results/{RESULT_GROUP}"
 OUTDIR = "data/regions"
 GENES = {"X", "P", "S", "C"}
 PAIRS = [(REGION_NAMES[i], REGION_NAMES[j])
@@ -37,7 +46,7 @@ rule all:
         tree_json     = expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
         auspice_json  = expand("auspice_datasets/{name}.json", name=REGION_NAMES),
         node_data     = expand(f"{OUTDIR}/{{name}}/{{name}}.ancestral.json", name=REGION_NAMES),
-        joint_exclude ="defaults/exclude.txt",
+        joint_exclude ="defaults/phylogenetics/exclude.txt",
 
 rule copy:
     input:
@@ -95,7 +104,7 @@ rule specify_genomic_regions_genes:
         ref_gb=config["reference"]["genbank"],
         script="scripts/specify_genomic_regions_genes.py",
     output:
-        regions="defaults/genomic_regions_genes.txt",
+        regions="defaults/phylogenetics/genomic_regions_genes.txt",
     shell:
         r"""
         python {input.script} {input.ref_gb} {output.regions}
@@ -178,7 +187,8 @@ rule cut_outliers:
     output:
         out_tree = f"{OUTDIR}/{{name}}/{{name}}.pruned.tree.nwk",
         metadata = f"{OUTDIR}/{{name}}/{{name}}_metadata.pruned.tsv",
-        exclude = f"defaults/{{name}}_excluded_accessions.txt",
+        exclude = f"defaults/phylogenetics/{{name}}_excluded_accessions.txt",
+        tip_lengths = f"{RESULTS}/phylogenetics/tip_length_distr/{{name}}.tip_length_loglog.png",
     params:
         long_branch_threshold = config["long_branch_threshold"],
         tip_branch_threshold = config["tip_branch_threshold"],
@@ -191,17 +201,18 @@ rule cut_outliers:
             --cutoff_allbranches {params.long_branch_threshold} \
             --cutoff_tips {params.tip_branch_threshold} \
             --out-tree {output.out_tree} \
-            --exclude {output.exclude}
+            --exclude {output.exclude} \
+            --tip-length-plot {output.tip_lengths}
         """
 
 rule joint_exclude_file:
     input:
-        excludes=expand(f"defaults/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
+        excludes=expand(f"defaults/phylogenetics/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
     output:
-        joint_exclude="defaults/exclude.txt",
+        joint_exclude="defaults/phylogenetics/exclude.txt",
     shell:
         """
-        cat defaults/*_excluded_accessions.txt \
+        cat defaults/phylogenetics/*_excluded_accessions.txt \
         | tr -s '[:space:]' '\n' \
         | awk 'NF' \
         | sort -u \
@@ -266,7 +277,7 @@ rule augur_export:
         tree         = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
         node_data    = f"{OUTDIR}/{{name}}/{{name}}.ancestral.json",
         metadata     = f"{OUTDIR}" + "/{name}/{name}_metadata.pruned.tsv",
-        config       = "defaults/auspice_config.json",
+        config       = "defaults/phylogenetics/auspice_config.json",
     output:
         auspice_json = f"{OUTDIR}" + "/{name}/{name}.json",
     threads: 1

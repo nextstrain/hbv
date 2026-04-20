@@ -130,6 +130,7 @@ parser.add_argument("--out-tree", required=True)
 parser.add_argument("--exclude", required=True)
 parser.add_argument("--cutoff_allbranches", type=float, required=True)
 parser.add_argument("--cutoff_tips", type=float, default=None)
+parser.add_argument("--tip-length-plot", default=None)
 args = parser.parse_args()
 
 t = Tree(args.tree, format=1)
@@ -138,7 +139,8 @@ total = len(t.get_leaf_names())
 Path(args.exclude).parent.mkdir(parents=True, exist_ok=True)
 Path(args.out_tree).parent.mkdir(parents=True, exist_ok=True)
 Path(args.metadata_out).parent.mkdir(parents=True, exist_ok=True)
-Path("results/tip_length_distr").mkdir(parents=True, exist_ok=True)
+if args.tip_length_plot:
+    Path(args.tip_length_plot).parent.mkdir(parents=True, exist_ok=True)
 
 # internal-branch pruning
 with open(args.exclude, "w") as excl_fh:
@@ -177,7 +179,5 @@ print(
     + f" out of {total} total tips"
 )
 
-plot_log_tip_length_distribution(
-    kept_tree,
-    f"results/tip_length_distr/{Path(args.tree).stem}.tip_length_loglog.png"
-)
+if args.tip_length_plot:
+    plot_log_tip_length_distribution(kept_tree, args.tip_length_plot)

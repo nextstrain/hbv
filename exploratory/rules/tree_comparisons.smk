@@ -5,25 +5,27 @@ REQUIRED INPUTS:
 -  trees: expand(f"data/regions/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
 
 OUTPUTS:
--   matrix = f"{OUTDIR_CORR}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
--   grid = f"{OUTDIR_CORR}/corr_grid/grid_patristic_scatter.pdf",
--   f"results/compare_trees_RF_{TAG}.tsv"
--   grid= f"results/RF_{TAG}.pdf"
--   done="results/treeknit_plots/.done"
+-   matrix = f"{PW_RESULTS}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
+-   grid = f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
+-   f"{RF_RESULTS}/compare_trees_RF.tsv"
+-   grid= f"{RF_RESULTS}/RF.pdf"
+-   done=f"{TREEKNIT_RESULTS}/plots/.done"
 """
 
 TAG = make_tag(REGION_NAMES)
-OUTDIR_CORR = f"results/correlation_analysis_{TAG}"
+PW_RESULTS = f"{RESULTS}/pw_distances"
+RF_RESULTS = f"{RESULTS}/rf"
+TREEKNIT_RESULTS = f"{RESULTS}/treeknit"
 
 rule compare_pairwise_distances:
     input:
         trees = expand(f"{OUTDIR}/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
     output:
-        matrix = f"{OUTDIR_CORR}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
-        grid   = f"{OUTDIR_CORR}/corr_grid/grid_patristic_scatter.pdf",
+        matrix = f"{PW_RESULTS}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
+        grid   = f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
     params:
         n_pairs = config.get("n_subsamples_pairwise_distance_comparison", 100),
-        outdir  = OUTDIR_CORR,
+        outdir  = PW_RESULTS,
     shell:
         r"""
         set -euo pipefail
@@ -35,7 +37,7 @@ rule compare_trees_RF_pair:
         t1 = f"{OUTDIR}" + "/{seg1}/{seg1}.tree.nwk",
         t2 = f"{OUTDIR}" + "/{seg2}/{seg2}.tree.nwk",
     output:
-        "results/rf/{seg1}_{seg2}.tsv"
+        f"{RF_RESULTS}/pairwise/{{seg1}}_{{seg2}}.tsv"
     shell:
         r"""
         set -euo pipefail
@@ -44,11 +46,11 @@ rule compare_trees_RF_pair:
 
 rule compare_trees_RF_all:
     input:
-        expand("results/rf/{seg1}_{seg2}.tsv", zip,
+        expand(f"{RF_RESULTS}/pairwise/{{seg1}}_{{seg2}}.tsv", zip,
                seg1=[a for a,b in PAIRS],
                seg2=[b for a,b in PAIRS])
     output:
-        f"results/compare_trees_RF_{TAG}.tsv"
+        f"{RF_RESULTS}/compare_trees_RF.tsv"
 
     shell:
         r"""
@@ -57,14 +59,13 @@ rule compare_trees_RF_all:
         for f in {input}; do
             tail -n +2 "$f" >> {output}
         done
-        rm -rf results/rf
         """
 
 rule display_RF:
     input:
-        table=f"results/compare_trees_RF_{TAG}.tsv"
+        table=f"{RF_RESULTS}/compare_trees_RF.tsv"
     output:
-        grid= f"results/RF_{TAG}.pdf"
+        grid= f"{RF_RESULTS}/RF.pdf"
     shell:
         r"""
         python scripts/visualise_rf.py {input.table} {output.grid}
@@ -75,10 +76,10 @@ rule tree_knit_pair:
         t1 = "data/regions/{seg1}/{seg1}.tree.nwk",
         t2 = "data/regions/{seg2}/{seg2}.tree.nwk",
     output:
-        outdir = directory("results/treeknit/{seg1}_{seg2}")
+        outdir = directory(f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}")
     params:
-        tmp1 = "results/treeknit/{seg1}_{seg2}.out1.nwk",
-        tmp2 = "results/treeknit/{seg1}_{seg2}.out2.nwk",
+        tmp1 = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/input1.nwk",
+        tmp2 = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/input2.nwk",
         prune = "scripts/treeknit/prune_to_shared.py",
         summarize = "scripts/treeknit/treeknit_summarize.py",
         n_subset = config.get("treeknit", {}).get("n_subset", "None"),
@@ -101,12 +102,12 @@ rule tree_knit_pair:
 
 rule treeknit_all:
     input:
-        individual=expand("results/treeknit/{seg1}_{seg2}/results_summary.txt",zip,
+        individual=expand(f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/results_summary.txt",zip,
             seg1=[a for a,b in PAIRS],
             seg2=[b for a,b in PAIRS],
         )
     output:
-        summary=f"results/compare_trees_treeknit_{TAG}.csv"
+        summary=f"{TREEKNIT_RESULTS}/compare_trees_treeknit.csv"
 
     shell:
         r"""
@@ -119,11 +120,13 @@ rule treeknit_all:
 
 rule treeknit_visualisation:
     input:
-        summary="results/compare_trees_treeknit_{TAG}.csv"
+        summary=f"{TREEKNIT_RESULTS}/compare_trees_treeknit.csv"
     output:
-        done="results/treeknit_plots/.done"
+        done=f"{TREEKNIT_RESULTS}/plots/.done"
+    params:
+        outdir=f"{TREEKNIT_RESULTS}/plots",
     shell:
         r"""
-        python scripts/treeknit/treeknit_visualisation.py {input.summary}
+        python scripts/treeknit/treeknit_visualisation.py {input.summary} --outdir {params.outdir}
         touch {output.done}
         """

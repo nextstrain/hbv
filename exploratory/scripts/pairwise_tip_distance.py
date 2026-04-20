@@ -242,7 +242,7 @@ def main():
     )
     ap.add_argument("trees", nargs="+", help="Input .nwk tree files")
     ap.add_argument("sample_pairs", type=int, help="Number of random tip pairs to sample")
-    ap.add_argument("outdir", default="results/correlation_analysis", help="output directory")
+    ap.add_argument("outdir", help="output directory")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
