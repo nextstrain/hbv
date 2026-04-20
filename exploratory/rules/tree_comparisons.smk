@@ -9,6 +9,7 @@ OUTPUTS:
 -   grid = f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
 -   f"{RF_RESULTS}/compare_trees_RF.tsv"
 -   grid= f"{RF_RESULTS}/RF.pdf"
+-   summary = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/results_summary.txt"
 -   done=f"{TREEKNIT_RESULTS}/plots/.done"
 """
 
@@ -16,6 +17,18 @@ TAG = make_tag(REGION_NAMES)
 PW_RESULTS = f"{RESULTS}/pw_distances"
 RF_RESULTS = f"{RESULTS}/rf"
 TREEKNIT_RESULTS = f"{RESULTS}/treeknit"
+PAIRWISE_N_PAIRS = config.get("dev_metric_subsample_size", 50) if DEV_MODE else config.get("n_subsamples_pairwise_distance_comparison", 100)
+PAIRWISE_SEED = int(config.get("dev_seed", 1)) if DEV_MODE else 0
+TREEKNIT_N_SUBSET = config.get("dev_metric_subsample_size", 50) if DEV_MODE else config.get("treeknit", {}).get("n_subset", "None")
+TREEKNIT_SEED = config.get("treeknit", {}).get("seed", config.get("treeknit", {}).get("treeknit_seed", "None"))
+
+rule comparison_targets:
+    input:
+        f"{PW_RESULTS}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
+        f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
+        f"{RF_RESULTS}/RF.pdf",
+        f"{TREEKNIT_RESULTS}/compare_trees_treeknit.csv",
+        f"{TREEKNIT_RESULTS}/plots/.done"
 
 rule compare_pairwise_distances:
     input:
@@ -24,12 +37,13 @@ rule compare_pairwise_distances:
         matrix = f"{PW_RESULTS}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
         grid   = f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
     params:
-        n_pairs = config.get("n_subsamples_pairwise_distance_comparison", 100),
+        n_pairs = PAIRWISE_N_PAIRS,
+        seed = PAIRWISE_SEED,
         outdir  = PW_RESULTS,
     shell:
         r"""
         set -euo pipefail
-        python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs} {params.outdir}
+        python scripts/pairwise_tip_distance.py {input.trees} {params.n_pairs} {params.outdir} --seed {params.seed}
         """
 
 rule compare_trees_RF_pair:
@@ -76,27 +90,26 @@ rule tree_knit_pair:
         t1 = "data/regions/{seg1}/{seg1}.tree.nwk",
         t2 = "data/regions/{seg2}/{seg2}.tree.nwk",
     output:
-        outdir = directory(f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}")
+        summary = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/results_summary.txt"
     params:
+        outdir = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}",
         tmp1 = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/input1.nwk",
         tmp2 = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/input2.nwk",
         prune = "scripts/treeknit/prune_to_shared.py",
         summarize = "scripts/treeknit/treeknit_summarize.py",
-        n_subset = config.get("treeknit", {}).get("n_subset", "None"),
-        seed = config.get("treeknit", {}).get("seed", "None"),
+        n_subset = TREEKNIT_N_SUBSET,
+        seed = TREEKNIT_SEED,
     shell:
         r"""
         set -euo pipefail
-        mkdir -p {output.outdir}
-
         python {params.prune} {input.t1} {input.t2} {params.tmp1} {params.tmp2} {params.n_subset} {params.seed}
 
         JULIA_PROJECT="{workflow.basedir}"
         julia --project="$JULIA_PROJECT" \
         -e 'using TreeKnit; TreeKnit.treeknit(ARGS[1], ARGS[2]; outdir=ARGS[3], no_likelihood=true)' \
-        {params.tmp1} {params.tmp2} {output.outdir}
+        {params.tmp1} {params.tmp2} {params.outdir}
 
-        python {params.summarize} {input.t1} {input.t2} {output.outdir} {params.n_subset}
+        python {params.summarize} {input.t1} {input.t2} {params.outdir} {params.n_subset}
         rm -f {params.tmp1} {params.tmp2}
         """
 

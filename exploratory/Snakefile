@@ -29,6 +29,13 @@ def make_result_group(regions):
         return "segments"
     return "_".join(regions)
 
+def as_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
 REGION_NAMES = region_names(config["genomic_regions"])
 REGION_TAG = "_".join(REGION_NAMES)
 RESULT_GROUP = make_result_group(REGION_NAMES)
@@ -38,6 +45,10 @@ GENES = {"X", "P", "S", "C"}
 PAIRS = [(REGION_NAMES[i], REGION_NAMES[j])
          for i in range(len(REGION_NAMES))
          for j in range(i+1, len(REGION_NAMES))]
+DEV_MODE = as_bool(config.get("dev_mode", False))
+FILTERED_SEQUENCES = "data/filtered/sequences.dev_sample.fasta" if DEV_MODE else "data/filtered/sequences.len_filtered.fasta"
+FILTERED_ALIGNMENT = "data/filtered/alignment.dev_sample.fasta" if DEV_MODE else "data/filtered/alignment.len_filtered.fasta"
+FILTERED_METADATA = "data/filtered/metadata.dev_sample.tsv" if DEV_MODE else "data/filtered/metadata.len_filtered.tsv"
 
 rule all:
     input:
@@ -98,6 +109,34 @@ rule length_filter:
         rm -f "$kept_ids"
         """
 
+rule dev_subsample_tree_inputs:
+    input:
+        sequences = "data/filtered/sequences.len_filtered.fasta",
+        alignment = "data/filtered/alignment.len_filtered.fasta",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+        script = "scripts/dev_subsample_tree_inputs.py",
+    output:
+        sequences = "data/filtered/sequences.dev_sample.fasta",
+        alignment = "data/filtered/alignment.dev_sample.fasta",
+        metadata = "data/filtered/metadata.dev_sample.tsv",
+    params:
+        reference_id = config["reference"]["id"],
+        sample_size = int(config.get("dev_tree_sample_size", 100)),
+        seed = int(config.get("dev_seed", 1)),
+    shell:
+        r"""
+        python {input.script} \
+            --sequences {input.sequences} \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --out-sequences {output.sequences} \
+            --out-alignment {output.alignment} \
+            --out-metadata {output.metadata} \
+            --reference-id {params.reference_id} \
+            --sample-size {params.sample_size} \
+            --seed {params.seed}
+        """
+
 # Writes segments file based on gene annotations in reference GenBank
 rule specify_genomic_regions_genes:
     input:
@@ -137,11 +176,11 @@ rule specify_genomic_regions_breakpoints:
 # To Do: make this work for non complete sequences, i.e. additional filtering for each region if region not sufficiently covered
 rule extract_genomic_regions:
     input:
-        alignment="data/filtered/alignment.len_filtered.fasta",
+        alignment=FILTERED_ALIGNMENT,
         regions=config["genomic_regions"],
         ref_gb=config["reference"]["genbank"],
         script="scripts/extract_regions.py",
-        metadata="data/filtered/metadata.len_filtered.tsv",
+        metadata=FILTERED_METADATA,
 
     output:
         fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
