@@ -8,10 +8,10 @@ from os.path import join
 
 if not workflow.overwrite_configfiles:
     print(
-        "No config provided, using defaults/config_nextstrain.yaml.\n"
-        "For nextclade workflow run: snakemake --configfile defaults/config_nextclade.yaml"
+        "No config provided, using defaults/nextstrain/config_nextstrain.yaml.\n"
+        "For nextclade workflow run: snakemake --configfile defaults/nextclade/config_nextclade.yaml"
     )
-configfile: "defaults/config_nextstrain.yaml"
+configfile: "defaults/nextstrain/config_nextstrain.yaml"
 
 if config["dev"]:
     print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")

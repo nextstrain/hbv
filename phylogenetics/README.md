@@ -42,7 +42,7 @@ Nextclade datasets exist for reference `NC_003977`. The dataset includes a ~2000
 
 
 ```bash
-snakemake --cores 4 configfile defaults/config_nextclade.yaml
+snakemake --cores 4 --configfile defaults/nextclade/config_nextclade.yaml
 ```
 
 This creates a new version of the dataset in `../nextclade_datasets`

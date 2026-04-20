@@ -13,7 +13,7 @@ Available are:
 > NOTE: This command assumes you are within the `phylogenetics` directory.
 
 ```bash
-snakemake --cores 4 --configfile defaults/config_nextclade.yaml
+snakemake --cores 4 --configfile defaults/nextclade/config_nextclade.yaml
 ```
 
 To view the generated dataset, navigate to the dataset version e.g. [`2026_04_jonas/stitched_P_masked/`](./references/NC_003977/versions/2026_04_jonas/stitched_P_masked) and exectute:

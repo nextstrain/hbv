@@ -33,9 +33,9 @@ rule assemble_dataset:
     input:
         tree=join(RESULTS, config["nextclade_tree_build"]),
         sequences = "results/nextclade/example_sequences/sequences.fasta",
-        reference = "defaults/reference.fasta",
+        reference = "defaults/nextclade/reference.fasta",
         annotation= config["reference"]["gff"],
-        pathogen = "defaults/pathogen.json"
+        pathogen = "defaults/nextclade/pathogen.json"
     output:
         tree=       DATASET_DIR + "tree.json",
         annotation= DATASET_DIR + "genome_annotation.gff3",
