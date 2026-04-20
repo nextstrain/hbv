@@ -17,5 +17,8 @@ Additionally available are:
 - [`legacy/`](./legacy) - Old functionality within the phylogenetic workflow by James Hadfield not yet fully incoporated in the current workflow
 
 
+Each folder contains a `README.md` with more information.
 
-Each folder contains a README.md with more information.
+For more information about HBV, recombination, and workflow options, see the [`report`](https://polybox.ethz.ch/index.php/s/xeAyC7tJqgqndpw) associated with the April 2026 version of this repository.
+
+
