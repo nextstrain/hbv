@@ -98,7 +98,7 @@ n_stitched_parts: 1000
 #__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
 
 # Development mode overrides the stitched build-size limit and uses the development ancestral gene set.
-dev: true
+dev: false
 # Number of sequences to use per stitched part in development mode.
 dev_n_stitched_parts: 800
 

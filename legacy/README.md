@@ -1,6 +1,6 @@
 # Legacy code within the phylogenetic workflow 
 
-> Contains previous work by James Hadfield not yet fully incoporated in the current workflow
+> Contains previous work by James Hadfield not yet fully incorporated in the current workflow
 
 
 ## What is still useful here

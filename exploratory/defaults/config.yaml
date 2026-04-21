@@ -69,7 +69,7 @@ metadata_keep_cols:
 #__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
 
 # Development-mode settings for faster exploratory runs.
-dev_mode: true
+dev_mode: false
 # Random seed used for deterministic dev-mode subsampling.
 dev_seed: 1
 # Number of sequences kept for exploratory tree building in dev mode.

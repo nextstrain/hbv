@@ -163,7 +163,6 @@ rule ancestral:
 rule clades:
     input:
         tree =  "results/{build}/tree.nwk",
-        # aa_muts = rules.translate.output.node_data,
         nuc_muts = "results/{build}/mutations.json",
         clades = "defaults/clades-genotypes.tsv"
     output:

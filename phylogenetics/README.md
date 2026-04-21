@@ -16,7 +16,7 @@ By default this uses `defaults/nextstrain/config_nextstrain.yaml`. Building the 
 
 The following build is automatically generated (change the mask between P and S genes in config file):
 
-- `auspice_datasets/P_masked/main-clades.json` the entire human-HBV tree, with appr. 2k tips using stitched genotypes
+- `auspice_datasets/P_masked/main-clades.json` the entire human-HBV tree, with appr. 1600-1800 tips using stitched genotypes
 
 The following alternative builds are additionally generated in dev mode (set in config file):
 
@@ -32,7 +32,7 @@ Please see `../ingest/README.md` for how to generate these files.
 
 ##  Updating the Nextclade dataset
 
-Nextclade datasets exist for reference `NC_003977`. The dataset includes a ~2000 tip tree attempting to cover observed human HBV diversity and genotypes, as well as a small set of example sequences which are useful for trialling the web interface.
+Nextclade datasets exist for reference `NC_003977`. The dataset includes a ~1600-1800 tip tree attempting to cover observed human HBV diversity and genotypes, as well as a small set of example sequences which are useful for trialling the web interface.
 
 > NOTE: Note that alignment parameters and QC metrics are set to those suggested for highly diverse viruses and not adapted for HBV specifically!
 
