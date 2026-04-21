@@ -116,7 +116,8 @@ def prune_via_purity(t: Tree, maximal_monophyletic_fraction: int, minimal_monoph
             if (size(node.get_leaf_names()) <= max_phylogenetic_size_abs and (not node.is_root()) and size(node.up.get_leaf_names()) > max_phylogenetic_size_abs):
                 clades.append(node)
 
-        if not clades: return t, removed
+        if not clades:
+            return t, removed
 
         discarded = set()
 
@@ -127,13 +128,16 @@ def prune_via_purity(t: Tree, maximal_monophyletic_fraction: int, minimal_monoph
             total = 0
             for nm in leaf_names:
                 v = meta.get(nm, "")
-                if v in ("", None): continue
+                if v in ("", None):
+                    continue
                 counts[v] = counts.get(v, 0) + 1
                 total += 1
-            if total == 0: continue
+            if total == 0:
+                continue
 
             bad_types = {v for v, c in counts.items() if (c / total) < minimal_monophyletic_purity}
-            if not bad_types: continue
+            if not bad_types:
+                continue
 
             for nm in leaf_names:
                 if meta.get(nm, "") in bad_types:
@@ -210,7 +214,7 @@ def prune_via_min_counts(t: Tree, metadata_in: str, metadata_col: str, min_count
         return None
 
     # keep pruning until no more events (recompute children-labels after each prune)
-    # clades to prune are computed dynamically to avoid overpruning (e.g. not prune all branches of impure catterpillar tree)
+    # clades to prune are computed dynamically to avoid overpruning (e.g. not prune all branches of an impure caterpillar tree)
     changed = True
     while changed:
         changed = False
@@ -345,7 +349,7 @@ if args.minclade_metadata_cols and args.prune_min_counts:
             )
         removed_via_minimal_clades |= removed_now
 
-assert all(l.name not in (None, "") for l in kept_tree.iter_leaves()), \
+assert all(leaf.name not in (None, "") for leaf in kept_tree.iter_leaves()), \
     "Unnamed leaf present"
 
 if kept_tree.name in (None, ""):

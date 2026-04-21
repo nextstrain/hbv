@@ -31,10 +31,8 @@ rule include_file:
             for name in params[2]:
                 print(name, file=fh)
 
-## TODO - there are a number of nextclade QC status' we can filter on here.
-## Currently the settings in the nextclade dataset need to be looked at as 
-## around 40% of all sequences (including the entirety of some genotypes)
-## have QC=bad mainly due to frameshifts and stop codons.
+# Optional: additional Nextclade QC-based filtering could be added here.
+# In earlier analysis, many sequences had QC=bad due to frameshifts and stop codons.
 def filter_params(wildcards):
     if wildcards.build == "all":
         return ""

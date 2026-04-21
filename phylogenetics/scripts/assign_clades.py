@@ -124,7 +124,7 @@ if __name__=="__main__":
     parser.add_argument('--metadata', type=str, help='metadata file with subtype information')
     parser.add_argument('--output', type=str, help='output file')
     parser.add_argument('--min-count', type=int, help='subtypes to ignore if they have fewer than this many samples', default=5)
-    parser.add_argument('--min-count-mode', type=str, help='mode to use for subtypes with fewer than min-count samples (options: "use_for_branch_display", "use_for_annotation")') # "use_for_pruning" config option has no effect here but is used in earlier scirpt
+    parser.add_argument('--min-count-mode', type=str, help='mode to use for subtypes with fewer than min-count samples (options: "use_for_branch_display", "use_for_annotation")') # "use_for_pruning" config option has no effect here but is used in earlier script
     parser.add_argument('--subtype-col', type=str, help='column in metadata file to use for subtype information')
     parser.add_argument('--nextclade-label', type=str, help='label to use for nextclade clades')
 

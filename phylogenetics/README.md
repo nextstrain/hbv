@@ -6,7 +6,7 @@ This is the experimental Nextstrain phylogenetic workflow behind the (as yet unr
 
 ## Usage
 
-> NOTE: These command examples assume you are within the `phylogenetic` directory.
+> NOTE: These command examples assume you are within the `phylogenetics` directory.
 
 ```
 snakemake --cores 4 -pf
@@ -48,5 +48,5 @@ Specify a new date-stamped version name in version in the config file and finall
 
 #### Updating example sequences
 
-A small set of example sequences is automatically generated in the nextclade workflow and can be configurated in the nextclade config file.
+A small set of example sequences is automatically generated in the nextclade workflow and can be configured in the nextclade config file.
 Example sequences are sampled evenly across genotypes, recombinants, and qc status but can be alternatively sampled at random (config option).

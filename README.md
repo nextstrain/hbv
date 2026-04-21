@@ -12,7 +12,7 @@ This repository contains two workflows for the analysis of HBV virus data:
 Additionally available are:
 
 - [`exploratory/`](./exploratory) - Exploration of HBV phylogenetic changes between trees of different genomic segments - to be removed
-- [`legacy/`](./legacy) - Old functionality within the phylogenetic workflow by James Hadfield not yet fully incoporated in the current workflow
+- [`legacy/`](./legacy) - Old functionality within the phylogenetic workflow by James Hadfield not yet fully incorporated in the current workflow
 
 Each folder contains a `README.md` with more information.
 
