@@ -19,7 +19,7 @@ Useful files to look at:
 There are two notebook-style resources:
 
 - `notebook/`: an Observable Framework website intended for GitHub Pages. It is a polished presentation layer rather than an analysis scratchpad. In particular, `notebook/docs/rotated.md` shows why rotating circular HBV genomes improves apparent alignment coverage, and `notebook/docs/index.md` is the landing page for that mini-site.
-- `notebooks/alignment-qc.ipynb`: a Jupyter notebook for local exploratory QC. It is a more direct Python/matplotlib analysis notebook which reads metadata and alignments, counts reference-matching sites, and plots alignment quality by genotype/host.
+- `notebooks/alignment-qc.ipynb`: a Jupyter notebook for local exploratory QC (using old reference!). It is a more direct Python/matplotlib analysis notebook which reads metadata and alignments, counts reference-matching sites, and plots alignment quality by genotype/host.
 
 ## Legacy Snakemake functionality not yet present in the main workflow
 
@@ -34,4 +34,3 @@ There are two notebook-style resources:
 
 
 For additional context on how the workflow evolved, it is also worth checking the earlier 2023 version of the repo.
-
