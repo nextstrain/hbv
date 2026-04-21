@@ -1,1 +1,2 @@
+# Use gene-based genomic regions for the exploratory workflow.
 genomic_regions: defaults/phylogenetics/genomic_regions_genes.txt

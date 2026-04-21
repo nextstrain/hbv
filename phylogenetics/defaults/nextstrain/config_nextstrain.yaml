@@ -1,16 +1,20 @@
-workflow: nextstrain
-verbose: true
-
 # All HBV genes
 genes: ["P", "S", "C", "X"]
+
+# Workflow selector for the main Nextstrain build.
+workflow: nextstrain
+# Enable workflow/helper verbosity.
+verbose: true
 
 # Reference sequence
 reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
+  # FASTA used where augur expects a plain-sequence root input.
   fasta: ../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta
   gff: "defaults/NC_003977.2_version_2026.gff"
 
+# Auspice export settings for the main workflow outputs.
 auspice:
   auspice_config: "defaults/nextstrain/auspice_config_nextstrain.json"
   color_by_metadata:
@@ -43,7 +47,9 @@ subgenotype_filtering_singleclade: false
 long_branch_threshold:  0.25  # 0.3
 tip_branch_threshold: 0.1  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants.
 
+# Whether to drop records when GenBank and Nextclade genotype assignments disagree.
 filter_genbank_vs_nextclade: true
+# Whether to reuse exclude files collected from previous runs.
 filter_previously_excluded: false
 
 # There are 2 ways to filter messy subgenotype annotation so that trees appear cleaner:
@@ -66,9 +72,13 @@ clade_settings:
 # n is number of sequences to use (build-specific), Development mode defines supplementary targets, dev_n is number of sequences per build to use in dev mode
 n_totaltree: 3000
 n_stitched_parts: 800
+# Development mode changes target selection and sampling sizes.
 dev: true
+# Number of ingest records assumed to be available for dev-mode phylogenetics.
 dev_n_ingest: 300
+# Number of sequences to use in development-mode total-tree builds.
 dev_n_totaltree: 100
+# Number of sequences to use per stitched part in development mode.
 dev_n_stitched_parts: 50
 
 # Defines which exact transcript to use for the acestral reconstruction,
@@ -92,4 +102,5 @@ single_build_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 all_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 #all_genotypes: ["A", "B", "C", "D", "E"]
 
+# Deploy target for published/staging builds.
 deploy_destination: 's3://nextstrain-staging'
