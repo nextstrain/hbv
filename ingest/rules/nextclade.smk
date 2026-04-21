@@ -19,7 +19,7 @@ like to customize the rules:
 https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 """
 
-# TODO: fetch the Nextclade dataset directly instead of relying on a local dataset path.
+# Future improvement: fetch the Nextclade dataset directly instead of relying on a local dataset path.
 
 rule nextclade:
     """

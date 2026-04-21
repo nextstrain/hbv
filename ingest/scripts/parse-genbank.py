@@ -13,6 +13,11 @@ import dateutil.parser
 from collections import defaultdict
 import re
 import json
+import os
+import sys
+
+VERBOSE = os.environ.get("HBV_VERBOSE", "").lower() in {"1", "true", "yes", "on"}
+PHYLO_GENOTYPES = list("ABCDEFGHI")
 
 class MissingDate(Exception):
     pass
@@ -132,6 +137,8 @@ def exclude_isolate(record):
     return record.annotations['data_file_division'] in ['PAT', 'SYN']
 
 def summarise(metadata):
+    if not VERBOSE:
+        return
     counts = defaultdict(int)
     n = 0
     for data in metadata.values():
@@ -144,6 +151,28 @@ def summarise(metadata):
         stars = "*" * int(round(v/n*20, 0))
         print(f"{field:25}{stars:20} (n={v}/{n})")
     print()
+
+def warn_low_phylo_genotype_counts(metadata):
+    counts = defaultdict(int)
+    for data in metadata.values():
+        genotype = data.get("genotype_genbank")
+        if genotype in PHYLO_GENOTYPES:
+            counts[genotype] += 1
+
+    low_genotypes = []
+    for genotype in PHYLO_GENOTYPES:
+        count = counts.get(genotype, 0)
+        if count <= 2:
+            low_genotypes.append(f"{genotype} ({count})")
+
+    if low_genotypes:
+        print(
+            "WARNING: Parsed GenBank records contain only 0, 1, or 2 sequences for "
+            f"genotype(s) {', '.join(low_genotypes)}. Depending on setup, this might "
+            "break the phylogenetic pipeline. If this is the case, change genotype "
+            "filters in ingest and phylogenetics or consider taking in more sequences.",
+            file=sys.stderr,
+        )
 
 def parse_collection_date(record, source):
     collection_date = extract(source, 'collection_date')
@@ -216,8 +245,10 @@ if __name__ == '__main__':
         seq_records[accession] = SeqRecord(record.seq, id=accession, description='')
         metadata[record_metadata['accession']] = record_metadata
 
-    print(f"{n_records} records parsed. Excluded "+', '.join([f"n={v} ({k})"for k,v in exclude_counts.items()]))
-    summarise(metadata)
+    if VERBOSE:
+        print(f"{n_records} records parsed. Excluded "+', '.join([f"n={v} ({k})"for k,v in exclude_counts.items()]))
+        summarise(metadata)
+    warn_low_phylo_genotype_counts(metadata)
 
     metadata_keys = list(next(iter(metadata.values())).keys())
     with open(args.output, 'w') as fh:

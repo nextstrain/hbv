@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
+"""Merge curated GenBank-derived metadata columns into the active curated NCBI metadata.
+
+Validate accession overlap first so upstream fetch or parsing mismatches fail loudly.
+"""
+
 import argparse
+import os
 import sys
 
 import pandas as pd
+
+
+VERBOSE = os.environ.get("HBV_VERBOSE", "").lower() in {"1", "true", "yes", "on"}
 
 
 def format_examples(values):
@@ -44,7 +53,7 @@ def main():
             f"Example GenBank-only accessions: {format_examples(gb_ids - meta_ids)}."
         )
 
-    if overlap_fraction < 0.5:
+    if overlap_fraction < 0.5 and VERBOSE:
         print(
             "Warning: poor accession overlap between curated NCBI metadata and "
             "curated GenBank metadata. "

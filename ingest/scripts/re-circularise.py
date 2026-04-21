@@ -2,24 +2,29 @@
 
 """
 HBV is a circular genome or ~3.2kb, and so a origin point has to be chosen to represent it in fasta/genbank
-Upon alignment of all (NCBI) genomes to reference (JN182318) ~10% of (full-length) genomes had very good alignments
-which terminated part-way through the reference as they were using a different (3') origin.
+Some genomes terminate part-way through the reference because they use a different
+origin.
 
 This script uses a simple seed-matching approach to find where the 3' end of the reference best matches,
 and if it's suitably far into the genome we shift the genome accordingly.
 
 Adds the 'circularise' field to the metadata TSV
                                                                                     @jameshadfield June 2023
-
-Not sure where the JN182318 reference above comes from actually since NC_003977 is used in the config file for the respecive rule.
-                                                                                    @jonasamirar January 2026
 """
 
 import argparse
+import os
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import csv
+
+VERBOSE = os.environ.get("HBV_VERBOSE", "").lower() in {"1", "true", "yes", "on"}
+
+
+def vprint(*args, **kwargs):
+    if VERBOSE:
+        print(*args, **kwargs)
 
 
 def load_reference_from_genbank(ref_genbank, ref_name):
@@ -48,7 +53,7 @@ def analyse_ref(seq_fname, ref_name, ref_genbank=None):
         if not ref:
             source = ref_genbank or seq_fname
             raise Exception(f"Reference {ref_name!r} not found in {source}")
-        print(f"Loaded reference {ref_name} from {ref_genbank}")
+        vprint(f"Loaded reference {ref_name} from {ref_genbank}")
     seed_len = 30
     seeds = [
         {'start':0, 'seq': str(ref.seq[0:seed_len])},
@@ -65,9 +70,9 @@ def print_match(a, b):
     if len(a)>100:
         a=a[0:100]
         b=b[0:100]
-    print(f"\t{a}")
-    print(f"\t{''.join(['|' if aa==b[i] else ' ' for i,aa in enumerate(a)])}")
-    print(f"\t{b}")
+    vprint(f"\t{a}")
+    vprint(f"\t{''.join(['|' if aa==b[i] else ' ' for i,aa in enumerate(a)])}")
+    vprint(f"\t{b}")
 
 def identify_origin(records, seeds, verbose=0):
     BAD_SEED_MISMATCH_COUNT = 10
@@ -77,12 +82,12 @@ def identify_origin(records, seeds, verbose=0):
     origins = {}
     skipped = 0
 
-    print("Processing", len(records), "items...")
+    vprint("Processing", len(records), "items...")
 
     for name, record in records.items():
         count += 1
         if count % 1000 == 0:
-            print(count)
+            vprint(count)
 
         mismatches = 10000
         seed_used = None
@@ -139,10 +144,10 @@ def identify_origin(records, seeds, verbose=0):
                 print_match(seed_used['seq'], record.seq[match_start:match_start+len(seed_used['seq'])])
                 print("\n")
 
-    print(f"Skipped (no seed search possible): {skipped}/{len(records)}")
-    print(f"Matches found:    {len([v for v in origins.values() if not v['bad_match']])}/{len(origins)}")
-    print(f"Genomes to recut: {len([v for v in origins.values() if v['recut']])}/{len(origins)}")
-    print(f"Bad Matches:      {len([v for v in origins.values() if v['bad_match']])}/{len(origins)}")
+    vprint(f"Skipped (no seed search possible): {skipped}/{len(records)}")
+    vprint(f"Matches found:    {len([v for v in origins.values() if not v['bad_match']])}/{len(origins)}")
+    vprint(f"Genomes to recut: {len([v for v in origins.values() if v['recut']])}/{len(origins)}")
+    vprint(f"Bad Matches:      {len([v for v in origins.values() if v['bad_match']])}/{len(origins)}")
     return origins
 
 def recircularise(records, origins, reference, verbose=False):
@@ -175,7 +180,7 @@ def recircularise(records, origins, reference, verbose=False):
 
 def append_to_metadata(origins, fname_in, fname_out):
 
-    ## TODO -- shift to augur commands / stream processing
+    # Future improvement: replace this with an augur-based or stream-oriented implementation.
     with open(fname_in, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter="\t")
         header = reader.fieldnames
@@ -200,7 +205,7 @@ def main(args):
         args.reference,
         args.reference_genbank,
     )
-    print("seeds:", seeds)
+    vprint("seeds:", seeds)
 
     origins = identify_origin(records, seeds, 0)
 

@@ -58,6 +58,7 @@ rule curate_genbank_metadata:
 # The final step of the pipeline should convert the NDJSON records to two
 # separate files: a metadata TSV and a sequences FASTA.
 rule curate_ncbi:
+    """Run the main streaming NCBI curation pipeline and write curated metadata plus sequences."""
     input:
         sequences_ndjson="data/active/ncbi_records.ndjson",
         geolocations = "defaults/geoLocationRules.tsv"
@@ -132,10 +133,11 @@ rule add_metadata_columns:
     log:
         "logs/add_metadata_columns.txt"
     params:
-        accession_col="accession"
+        accession_col="accession",
+        verbose=str(config.get("verbose", False)).lower(),
     shell:
         r"""
-        python scripts/add_genbank_metadata.py \
+        HBV_VERBOSE={params.verbose} python scripts/add_genbank_metadata.py \
           --metadata {input.metadata} \
           --metadata-genbank {input.metadata_genbank} \
           --accession-col {params.accession_col} \
@@ -169,10 +171,11 @@ rule recircularise:
         sequences = "data/circularised/circularised_sequences.fasta",
         metadata = "data/circularised/circularised_metadata.tsv",
     params:
-        reference = config['reference_accession']
+        reference = config['reference_accession'],
+        verbose=str(config.get("verbose", False)).lower(),
     shell:
         """
-        scripts/re-circularise.py \
+        HBV_VERBOSE={params.verbose} scripts/re-circularise.py \
             --seqs-in {input.sequences} --meta-in {input.metadata} \
             --seqs-out {output.sequences} --meta-out {output.metadata} \
             --reference {params.reference} \
