@@ -1,9 +1,13 @@
-configfile: "defaults/config.yaml"
+"""
+HBV exploratory workflow.
 
-#    Expcted inputs from ingest:
-#        sequences="../ingest/results/sequences.fasta",
-#        metadata="../ingest/results/metadata.tsv",
-#        alignment="../ingest/results/aligned.fasta",
+Expected ingest inputs:
+- ../ingest/results/sequences.fasta
+- ../ingest/results/metadata.tsv
+- ../ingest/results/aligned.fasta
+"""
+
+configfile: "defaults/config.yaml"
 
 def region_names(path):
     names = []
@@ -172,8 +176,6 @@ rule specify_genomic_regions_breakpoints:
           --out {output.regions}
         """
 
-# To Do: have this segment the tsv metadata as well, including calculating new quality metrics
-# To Do: make this work for non complete sequences, i.e. additional filtering for each region if region not sufficiently covered
 rule extract_genomic_regions:
     input:
         alignment=FILTERED_ALIGNMENT,
@@ -294,23 +296,6 @@ rule ancestral:
           --output-sequences {output.sequences} \
         """
 
-# THIS DOES NOT RUN SINCE SEGMENTS ONLY PARTIALLY OVERLAP WITH CDS AND AUGUR TRANSLATE CANNOT HANDLE THAT
-#rule translate_ancestral:
-#    input:
-#        tree      = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
-#        ancestral = f"{OUTDIR}/{{name}}/{{name}}.ancestral.json",
-#        ref_gb    = f"{OUTDIR}/{{name}}/{{name}}.gb",
-#    output:
-#       aa        = f"{OUTDIR}/{{name}}/{{name}}.aa-mutations.json",
-#    run:
-#        shell(r"""
-#        augur translate \
-#          --tree {input.tree} \
-#          --ancestral-sequences {input.ancestral} \
-#          --reference-sequence {input.ref_gb} \
-#          --output-node-data {output.aa}
-#        """)
-
 rule augur_export:
     input:
         tree         = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
@@ -358,5 +343,5 @@ rule copy_auspice_view:
         cp {input.json} {output.json}
         """
 
-# rules to compare differnt region trees to inform recombination via different metrics (partially have to be called individually)
+# Rules to compare different region trees to inform recombination via different metrics.
 include: "rules/tree_comparisons.smk"

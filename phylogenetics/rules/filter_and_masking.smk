@@ -37,11 +37,6 @@ rule length_filter:
         rm -f "$kept_ids"
         """
 
-## TODO - there are a number of nextclade QC status' we can filter on here.
-## Currently the settings in the nextclade dataset need to be looked at as
-## around 40% of all sequences (including the entirety of some genotypes)
-## have QC=bad mainly due to frameshifts and stop codons.
-
 def clade_query_for_key(key):
     if key == "C":
         return '(clade_nextclade=="C") | (clade_nextclade=="C_re")'
@@ -97,11 +92,6 @@ def define_filters(mode, key):
 )
 
     return " ".join(args)
-
-    #elif wildcards.build == "nextclade-tree":
-    #    return "--group-by genotype_genbank --subsample-max-sequences 2000"
-    #elif wildcards.build == "nextclade-sequences":
-    #    return "--group-by genotype_genbank --subsample-max-sequences 25"
 
 def get_filter_args(wc):
     return define_filters(wc.mode, wc.key)

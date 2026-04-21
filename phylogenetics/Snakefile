@@ -85,7 +85,6 @@ elif wf == "nextclade":
 else:
     raise ValueError(f"Unknown workflow: {wf}")
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
 # Length filtering, other filter steps that specifcy the different builds, and gene masking
 include: "rules/filter_and_masking.smk"
 # Augur tree, pruning problematic clades, refinement and ancestral reconstruction
@@ -99,8 +98,6 @@ include: "rules/export_and_auspice_view.smk"
 # Generates Nextclade dataset (if nextclade config is used)
 if config.get("workflow") == "nextclade":
     include: "rules/nextclade_dataset.smk"
-
-#______________________________________________________________________________________________________________________________________________________________________________________________
 
 rule clean:
     params:

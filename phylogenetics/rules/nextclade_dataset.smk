@@ -70,7 +70,7 @@ rule assemble_dataset:
         cat > {output.readme} <<'EOF'
 # Example dataset for Hepatitis B virus (HBV)
 
-Dataset for Hepatitis B virus. Work in progress.
+Dataset for Hepatitis B virus.
 
 Source tree: {params.tree_description} (`{params.tree_build}`).
 
@@ -102,8 +102,6 @@ rule test_dataset:
 
 # Optional deployment helpers for the generated dataset.
 
-# TODO: UPLOAD DATASETS TO NEXTSTRAIN.ORG
-
 rule deploy_to_nextstrain_staging:
     """Does not run by default as part of rule all."""
     input:
@@ -120,7 +118,7 @@ rule download:
        metadata="nextclade/data/metadata.tsv.zst",
        alignment="nextclade/data/alignment.fasta.zst",
    params:
-       metadata_url="https://data.nextstrain.org/files/workflows/hbv/metadata.tsv.zst",         # Those do not exist yet
+       metadata_url="https://data.nextstrain.org/files/workflows/hbv/metadata.tsv.zst",
        sequences_url="https://data.nextstrain.org/files/workflows/hbv/sequences.fasta.zst",
        alignment_url="https://data.nextstrain.org/files/workflows/hbv/alignment.fasta.zst",
    shell:

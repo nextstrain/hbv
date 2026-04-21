@@ -85,7 +85,6 @@ def assign_branch_clades(tree, node_data, args, fallback_annotations=None):
                 best_node_for_label[lab] = n
 
     for node in tree.find_clades(order = 'preorder'):
-        # TODO add branch settings functionality here
         if hasattr(node, 'clade_label') and node.name not in (None, ""):
             # Optional: Hide branch labels for very small clades
             if args.min_count_mode == "use_for_branch_display" and len(node.get_terminals())  < args.min_count:

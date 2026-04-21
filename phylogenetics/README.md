@@ -23,8 +23,6 @@ The following alternative builds are additionally generated in dev mode (set in 
 
 ## Configuration
 
-_Work in progress_
-
 ### Input data
 
 The phylogenetics workflow expects a number of files to exist which are produced by the ingest workflow.

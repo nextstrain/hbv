@@ -99,7 +99,6 @@ rule alias_translations_for_augur:
         cp {input.x} {output.x}
         """
 
-# TODO take ref sequence as root here for reconstruction as well?
 rule ancestral:
     input:
         tree=     RESULTS +  "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
