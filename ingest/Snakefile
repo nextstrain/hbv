@@ -27,11 +27,8 @@ rule all:
 include: "rules/fetch_from_ncbi.smk"
 include: "rules/curate.smk"
 
-# We are pushing to standardize ingest workflows with Nextclade runs to include
-# Nextclade outputs in our publicly hosted data where possible.
-# The initial Mumps Nextclade datasets for SH and genome were available starting August 2025
-# and the Nextclade-specific rules are included to create the final metadata TSV by
-# joining the Nextclade output with the metadata.
+# Nextclade outputs are joined into the final ingest metadata so downstream
+# workflows can use alignment, QC, and genotype inference consistently.
 include: "rules/nextclade.smk"
 
 # Allow users to import custom rules provided via the config.
