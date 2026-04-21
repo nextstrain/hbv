@@ -19,6 +19,16 @@ DEV_MODE = parse_bool(config.get("dev", False))
 COMPLETE_GENOMES_ONLY = parse_bool(config.get("entrez_complete_genomes_only", False))
 SUBSET_ACTIVE_NCBI = DEV_MODE or COMPLETE_GENOMES_ONLY
 
+if not workflow.overwrite_configfiles:
+    print("No config provided, using defaults/config.yaml.")
+
+print(f"INGEST DEVELOPMENT MODE: {'ON' if DEV_MODE else 'OFF'}")
+
+if COMPLETE_GENOMES_ONLY:
+    print("ENTREZ COMPLETE-GENOME FILTER: ON")
+    if not DEV_MODE:
+        print("Development mode is OFF, so all complete-genome Entrez matches will be fetched.")
+
 # This is the default rule that Snakemake will run when there are no specified targets.
 # The default output of the ingest workflow is usually the curated metadata and sequences.
 # Nextstrain-maintained ingest workflows will produce metadata files with the
