@@ -1,3 +1,8 @@
+"""Append parsed TreeKnit summary metrics to a cumulative CSV file.
+
+Extract the fields needed by the downstream TreeKnit visualisation step.
+"""
+
 import os
 import csv
 import re

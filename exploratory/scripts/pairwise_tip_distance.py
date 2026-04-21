@@ -1,3 +1,8 @@
+"""Compare tip-to-tip distances across multiple regional trees.
+
+Sample tip pairs, compute patristic or topological correlations, and write summary plots.
+"""
+
 import argparse
 import os
 import random
@@ -16,7 +21,6 @@ def tip_names(tree):
     return {t.name for t in tree.get_terminals() if t.name is not None}
 
 def prune_to_set(tree, keep):
-    # prune all leaves not in keep
     to_prune = [t for t in tree.get_terminals() if t.name not in keep]
     for t in to_prune:
         tree.prune(t)

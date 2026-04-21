@@ -1,3 +1,8 @@
+"""Prune exploratory trees by long branches while keeping metadata in sync.
+
+Write excluded accessions to a sidecar file and optionally plot terminal branch lengths.
+"""
+
 import argparse
 from pathlib import Path
 from ete3 import Tree

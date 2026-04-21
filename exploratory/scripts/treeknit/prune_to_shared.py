@@ -1,8 +1,7 @@
-# prune_to_shared.py
-# Usage:
-#   python prune_to_shared.py tree1.nwk tree2.nwk out1.nwk out2.nwk [n] [seed]
-#
-# If n is provided: keep a random subset of size n from the shared tips.
+"""Prune two trees to their shared tips, optionally downsampling the shared set.
+
+Usage: prune_to_shared.py tree1.nwk tree2.nwk out1.nwk out2.nwk [n] [seed]
+"""
 
 from Bio import Phylo
 import sys, random
@@ -33,7 +32,6 @@ shared = tips1 & tips2
 if not shared:
     raise SystemExit("No shared leaves between the two trees.")
 
-# optional downsample
 # optional downsample
 if n is not None:
     if n <= 0:

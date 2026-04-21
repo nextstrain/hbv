@@ -23,6 +23,7 @@ TREEKNIT_N_SUBSET = config.get("dev_metric_subsample_size", 50) if DEV_MODE else
 TREEKNIT_SEED = config.get("treeknit", {}).get("seed", config.get("treeknit", {}).get("treeknit_seed", "None"))
 
 rule comparison_targets:
+    """Convenience target for all exploratory tree-comparison summary outputs."""
     input:
         f"{PW_RESULTS}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
         f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
@@ -86,6 +87,7 @@ rule display_RF:
         """
 
 rule tree_knit_pair:
+    """Prune one tree pair to shared tips, run TreeKnit, and summarize the resulting MCC statistics."""
     input:
         t1 = "data/regions/{seg1}/{seg1}.tree.nwk",
         t2 = "data/regions/{seg2}/{seg2}.tree.nwk",
@@ -114,6 +116,7 @@ rule tree_knit_pair:
         """
 
 rule treeknit_all:
+    """Combine all pairwise TreeKnit summaries into one workflow-level comparison table."""
     input:
         individual=expand(f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/results_summary.txt",zip,
             seg1=[a for a,b in PAIRS],

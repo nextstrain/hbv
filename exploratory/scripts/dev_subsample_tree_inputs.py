@@ -1,3 +1,8 @@
+"""Subsample exploratory tree inputs while always keeping the reference record.
+
+Write matching FASTA and metadata subsets for fast dev-mode comparison runs.
+"""
+
 import argparse
 import random
 from Bio import SeqIO

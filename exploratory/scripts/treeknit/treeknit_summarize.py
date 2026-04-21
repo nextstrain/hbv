@@ -1,5 +1,8 @@
-# treeknit_summarize.py
-# Usage: python treeknit_summarize.py tree1.nwk tree2.nwk outdir [n_subset|None]
+"""Summarize TreeKnit outputs for one tree pair.
+
+Usage: treeknit_summarize.py tree1.nwk tree2.nwk outdir [n_subset|None]
+"""
+
 import json, os, sys
 
 tree1, tree2, outdir = sys.argv[1:4]

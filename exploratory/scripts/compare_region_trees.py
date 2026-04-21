@@ -1,3 +1,8 @@
+"""Compare two region trees with Robinson-Foulds distance after shared-tip pruning.
+
+Append one TSV row per tree pair so the exploratory workflow can aggregate RF metrics.
+"""
+
 from ete3 import Tree
 import sys, os
 

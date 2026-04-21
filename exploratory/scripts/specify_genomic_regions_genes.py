@@ -1,3 +1,8 @@
+"""Write exploratory gene intervals from the reference GenBank annotation.
+
+Output wrapped coordinates for the C, P, S, and X regions used by the workflow.
+"""
+
 from Bio import SeqIO
 import sys
 

@@ -1,3 +1,8 @@
+"""Render TreeKnit comparison matrices from the aggregated summary CSV.
+
+Write one PNG heatmap per metric into the requested output directory.
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

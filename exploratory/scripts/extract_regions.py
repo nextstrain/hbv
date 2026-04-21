@@ -1,5 +1,8 @@
-# This script extracts subsequences from a multiple sequence alignment based on specified regions
-# in a reference sequence, and also writes the corresponding sliced GenBank record (features clipped).
+"""Extract regional alignment slices and matching GenBank records.
+
+The script writes per-region FASTA and GenBank outputs from reference-based coordinates.
+"""
+
 import sys
 import os
 from Bio import AlignIO, SeqIO

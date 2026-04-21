@@ -1,3 +1,8 @@
+"""Render a Robinson-Foulds distance matrix from the aggregated comparison table.
+
+Write one PDF heatmap covering all region pairs in the current exploratory run.
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np

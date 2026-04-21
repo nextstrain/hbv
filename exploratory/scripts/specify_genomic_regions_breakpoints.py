@@ -1,5 +1,9 @@
-# This script lifts genomic region breakpoints from an old reference to a new reference using pairwise alignment and writes a segments file based on the lifted breakpoints.
 #!/usr/bin/env python3
+"""Lift genomic breakpoints from an old reference to a new reference.
+
+Verify that the lifted breakpoints behave as intended before using them.
+"""
+
 import argparse
 from Bio import SeqIO
 from Bio.Align import PairwiseAligner
