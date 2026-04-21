@@ -1,6 +1,8 @@
 # Exploration of HBV phylogenetic changes between trees of different genomic segments
 
 > This folder is highly experimental, i.e. not part of the nextstrain procedure, and should be removed before publishing
+>
+> Ingest dev mode is incompatible with other directories. First run ingest properly before rerunning phylogenetics or exploratory.
 
 Generate naive (recombination-unaware) phylogenies of different regions in of HBV with:
 

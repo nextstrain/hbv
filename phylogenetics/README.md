@@ -2,6 +2,8 @@
 
 This is the experimental Nextstrain phylogenetic workflow behind the (as yet unreleased) HBV datasets.
 
+> NOTE: Ingest dev mode is incompatible with other directories. First run ingest properly before rerunning phylogenetics or exploratory.
+
 ## Usage
 
 > NOTE: These command examples assume you are within the `phylogenetic` directory.

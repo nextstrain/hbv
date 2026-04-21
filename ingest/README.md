@@ -4,6 +4,8 @@ This is the ingest pipeline for Hepatitis B (HBV) virus sequences
 
 > NOTE: This ingest pipeline is in development and the inferred metadata (especially, but not limited to, "clade_nextclade") should not be used for scientific results.
 
+> NOTE: Ingest dev mode is incompatible with other directories. First run ingest properly before rerunning phylogenetics or exploratory.
+
 ## Software requirements
 
 Follow the [standard installation instructions](https://docs.nextstrain.org/en/latest/install.html) for Nextstrain's suite of software tools.
@@ -16,7 +18,7 @@ Follow the [standard installation instructions](https://docs.nextstrain.org/en/l
 snakemake --cores 4
 ```
 
-> NOTE: The initial data download step can take a very long time, in some runs up to about an hour.
+> NOTE: The initial data download step can take a very long time, in some runs up to about an hour. For a much faster Entrez fetch, set `entrez_complete_genomes_only: true`; this currently restricts the GenBank branch to about 11.7k complete-genome records. Development mode already enforces this filter.
 
 This produces a number of intermediate files in `data/` as well as three files in `results/` for downstream analysis:
 
@@ -29,7 +31,7 @@ This produces a number of intermediate files in `data/` as well as three files i
 #### GenBank data as inputs
 
 GenBank sequences and metadata are fetched via a NCBI Entrez query.
-As of April 21, 2026, the default `Hepatitis B virus[Organism]` query returns about 138k nucleotide records. About 16.6k of these are longer than 3000 nt, and about 11.7k match a `complete genome` query.
+As of April 21, 2026, the default `Hepatitis B virus[Organism]` query returns about 138k nucleotide records, while the optional `complete genome` filter reduces this to about 11.7k records.
 
 > NOTE: Genotype and subgenotype annotations are extracted manually from free-text GenBank annotation. The current parsing script is likely still too harsh for some common note formats and should be reviewed again before relying on these fields.
 
@@ -70,11 +72,16 @@ cohort controlled by `dev_n_ingest`.
 
 Downstream curation always reads `data/active/ncbi_records.ndjson`:
 
-- with `dev: true`, ingest builds a small Entrez/GenBank development cohort and
-  uses subgenotype-focused queries for genotypes A, B, C, D, F, and I
+- with `dev: true`, ingest fetches the first `dev_n_ingest` Entrez/GenBank
+  records from the query result and always restricts those queries to
+  `complete genome` records
 - with `dev: true`, the active NDJSON is then filtered to those accessions
-- with `dev: false`, the active NDJSON is built from the full raw NCBI NDJSON in
-  `data/raw/ncbi/ncbi_records.ndjson`
+- with `dev: false`, the active NDJSON is copied from the full raw NCBI NDJSON
+  unless `entrez_complete_genomes_only: true`, in which case it is filtered to
+  the fetched Entrez accession set
+
+Outside development mode, the same Entrez complete-genome restriction can be
+enabled independently with `entrez_complete_genomes_only: true`.
 
 ## Configuration
 
