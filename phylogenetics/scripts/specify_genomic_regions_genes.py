@@ -1,3 +1,8 @@
+"""Write phylogenetics gene intervals from the reference GenBank annotation.
+
+Handle wrapped coordinates on the circular HBV genome for the C, P, S, and X genes.
+"""
+
 from Bio import SeqIO
 import sys
 

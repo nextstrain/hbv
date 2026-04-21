@@ -43,6 +43,7 @@ rule generate_example_sequences:
         """
 
 rule assemble_dataset:
+    """Assemble the Nextclade dataset directory from the selected tree build, examples, and reference files."""
     input:
         tree=join(RESULTS, config["nextclade_tree_build"]),
         sequences = "results/nextclade/example_sequences/sequences.fasta",
@@ -80,6 +81,7 @@ EOF
         """
 
 rule test_dataset:
+    """Run nextclade3 against the assembled dataset directory as a basic validity check."""
     input:
         sequences=  DATASET_DIR + "sequences.fasta",
         tree=       DATASET_DIR + "tree.json",

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""Write augur mask positions for all sites outside one configured gene.
+
+Use the reference GenBank length so wrapped genes on the circular genome are masked correctly.
+"""
+
 import argparse
 from pathlib import Path
 

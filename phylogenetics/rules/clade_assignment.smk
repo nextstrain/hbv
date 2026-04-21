@@ -13,13 +13,14 @@ rule clades_stitched:
     params:
          min_count = config["clade_settings"]["min_count_per_clade"],
          min_count_mode = config["clade_settings"]["min_count_mode"],
+         verbose = str(config.get("verbose", False)).lower(),
          only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,
          branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest",False) else "",
          genotype_col = "genotype_genbank",
          nextclade_label = "HBV Type",
     shell:
         r"""
-        python3 {input.script} \
+        HBV_VERBOSE={params.verbose} python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
           --output {output.clades} \
@@ -43,6 +44,7 @@ rule sub_clades_stitched:
     params:
          min_count = config["clade_settings"]["min_count_per_subclade"],
          min_count_mode = config["clade_settings"]["min_count_mode"],
+         verbose = str(config.get("verbose", False)).lower(),
          only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "" ,
          branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest",False) else "",
          genotype_col = "subgenotype_genbank",
@@ -51,7 +53,7 @@ rule sub_clades_stitched:
          fallback_annotation_nextclade_label = "HBV Type", # if subtype information is missing and genotype information is used as fallback, use the major clade as annotation for nextclade clades as well
     shell:
         r"""
-        python3 {input.script} \
+        HBV_VERBOSE={params.verbose} python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
           --output {output.clades} \
@@ -77,13 +79,14 @@ rule clades_non_stitched:
     params:
         min_count = config["clade_settings"]["min_count_per_clade"],
         min_count_mode = config["clade_settings"]["min_count_mode"],
+        verbose = str(config.get("verbose", False)).lower(),
         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "",
         branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest", False) else "",
         genotype_col = "genotype_genbank",
         nextclade_label = "HBV Type",
     shell:
         r"""
-        python3 {input.script} \
+        HBV_VERBOSE={params.verbose} python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
           --output {output.clades} \
@@ -107,6 +110,7 @@ rule sub_clades_non_stitched:
     params:
         min_count = config["clade_settings"]["min_count_per_subclade"],
         min_count_mode = config["clade_settings"]["min_count_mode"],
+        verbose = str(config.get("verbose", False)).lower(),
         only_monophyletic_flag = "--only_monophyletic" if config["clade_settings"].get("only_monophyletic", True) else "",
         branch_display_flag = "--branch_display_only_largest" if config["clade_settings"].get("branch_display_only_largest", False) else "",
         genotype_col = "subgenotype_genbank",
@@ -115,7 +119,7 @@ rule sub_clades_non_stitched:
         fallback_annotation_nextclade_label = "HBV Type",
     shell:
         r"""
-        python3 {input.script} \
+        HBV_VERBOSE={params.verbose} python3 {input.script} \
           --tree {input.tree} \
           --metadata {input.metadata} \
           --output {output.clades} \

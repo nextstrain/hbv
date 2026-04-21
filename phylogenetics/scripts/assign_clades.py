@@ -1,8 +1,21 @@
+"""Assign clade annotations to tree nodes and branches from metadata labels.
+
+Support monophyletic splitting, fallback annotations, and branch-display filtering.
+"""
+
 from Bio import Phylo
 import pandas as pd
 import argparse
 from collections import defaultdict
 import json
+import os
+
+VERBOSE = os.environ.get("HBV_VERBOSE", "").lower() in {"1", "true", "yes", "on"}
+
+
+def vprint(*args, **kwargs):
+    if VERBOSE:
+        print(*args, **kwargs)
 
 def is_missing(v):
     return ( v in ("other", "NA", "") or v is None or (isinstance(v, float) and pd.isna(v) ))
@@ -124,7 +137,7 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    print(
+    vprint(
         f"Assigning clades based on "
         f"{'monophyly' if args.only_monophyletic else 'MRCA'} "
         f"in {args.subtype_col} metadata annotation and new nextclade label "
@@ -171,7 +184,7 @@ if __name__=="__main__":
 
         clade = tree.is_monophyletic(nodes)
         if not clade:
-            print("Subtype {} is not monophyletic".format(subtype))
+            vprint("Subtype {} is not monophyletic".format(subtype))
             if not args.only_monophyletic:
                 clade = tree.common_ancestor(nodes)
             else:

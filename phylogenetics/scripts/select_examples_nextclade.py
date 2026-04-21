@@ -1,3 +1,8 @@
+"""Select a small HBV example panel for the Nextclade dataset.
+
+Support curated genotype-balanced sampling or random sampling with recombinant enrichment.
+"""
+
 import argparse
 import pandas as pd
 

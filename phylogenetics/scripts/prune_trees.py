@@ -1,7 +1,15 @@
+"""Prune phylogenetic trees while keeping metadata and exclude lists in sync.
+
+Support long-branch, purity, and minimum-count pruning and enforce Augur's minimum of three tips.
+"""
+
 import argparse
 from pathlib import Path
+import os
 from ete3 import Tree
 from numpy import size
+
+VERBOSE = os.environ.get("HBV_VERBOSE", "").lower() in {"1", "true", "yes", "on"}
 
 def suppress_unary_nodes(t):
     for n in list(t.traverse()):
@@ -343,6 +351,12 @@ assert all(l.name not in (None, "") for l in kept_tree.iter_leaves()), \
 if kept_tree.name in (None, ""):
     kept_tree.name = "ROOT"
 
+n_tips = len(kept_tree.get_leaf_names())
+assert n_tips >= 3, (
+    f"Pruned tree {args.out_tree} has only {n_tips} terminal nodes after pruning. "
+    "Augur requires at least 3 terminals to read and refine a tree."
+)
+
 kept_tree.write(outfile=args.out_tree, format=1)
 
 removed_all = removed_via_all | removed_via_tips | removed_via_monophyly | removed_via_minimal_clades
@@ -353,18 +367,19 @@ excluded_via_tips = len(removed_via_tips)
 excluded_via_monophyly = len(removed_via_monophyly)
 excluded_via_minimal_clades = len(removed_via_minimal_clades)
 
-print(
-    f"[{Path(args.tree).name}] "
-    f"Excluded tips: \n   {excluded_via_all} via long internal branches length> {args.cutoff_allbranches},"
-    + (f"\n + {excluded_via_tips} via terminal branches length > {args.cutoff_tips}"
-       if args.cutoff_tips is not None else "")
-    + (f"\n + {excluded_via_monophyly} to enforce purity of {args.minimal_monophyletic_purity} "
-       f"of monophyletic clades with up to {int(args.maximal_monophyletic_fraction * total)} tips"
-       if args.maximal_monophyletic_fraction is not None and args.minimal_monophyletic_purity is not None else "")
-    + (f"\n + {excluded_via_minimal_clades} to enforce monophylactic clades with a minimum of tips of {args.prune_min_counts}"
-       f" with annotation  {args.minclade_metadata_cols} respectively"
-       if args.prune_min_counts is not None and args.minclade_metadata_cols is not None else "")
-    + f"\n out of {total} total tips"
-)
+if VERBOSE:
+    print(
+        f"[{Path(args.tree).name}] "
+        f"Excluded tips: \n   {excluded_via_all} via long internal branches length> {args.cutoff_allbranches},"
+        + (f"\n + {excluded_via_tips} via terminal branches length > {args.cutoff_tips}"
+           if args.cutoff_tips is not None else "")
+        + (f"\n + {excluded_via_monophyly} to enforce purity of {args.minimal_monophyletic_purity} "
+           f"of monophyletic clades with up to {int(args.maximal_monophyletic_fraction * total)} tips"
+           if args.maximal_monophyletic_fraction is not None and args.minimal_monophyletic_purity is not None else "")
+        + (f"\n + {excluded_via_minimal_clades} to enforce monophylactic clades with a minimum of tips of {args.prune_min_counts}"
+           f" with annotation  {args.minclade_metadata_cols} respectively"
+           if args.prune_min_counts is not None and args.minclade_metadata_cols is not None else "")
+        + f"\n out of {total} total tips"
+    )
 
 #plot_log_tip_length_distribution(kept_tree, f"results/tip_length_distr/{Path(args.tree).stem}.tip_length_loglog.png")

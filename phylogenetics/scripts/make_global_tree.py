@@ -1,3 +1,8 @@
+"""Stitch genotype-specific trees into one global tree using inferred subtree roots.
+
+Remove duplicate reference tips, infer one root sequence per subtree, and graft the subtrees onto a root tree.
+"""
+
 from Bio import Phylo, SeqRecord, Seq, SeqIO
 import numpy as np
 import glob, os
