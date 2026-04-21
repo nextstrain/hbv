@@ -6,8 +6,8 @@ reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
 
-#genomic_regions: defaults/phylogenetics/genomic_regions_genes.txt
-genomic_regions: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
+genomic_regions: defaults/phylogenetics/genomic_regions_genes.txt
+#genomic_regions: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
 
 # Current breakpoints based on https://journals.asm.org/doi/10.1128/jvi.79.24.15467-15476.2005, published in 2005
 breakpoints:
