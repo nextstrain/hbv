@@ -1,5 +1,9 @@
-# Reference sequence is to be included in the alignment but excluded from tree building to avoid it appearing in wrong individual clade-trees.
+"""
+Rules for tree inference, pruning, refinement, and ancestral reconstruction.
+"""
+
 rule augur_tree:
+    """Reference sequence is to be included in the alignment but excluded from tree building to avoid it appearing in wrong individual clade-trees."""
     input:
         alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     output:
@@ -13,8 +17,8 @@ rule augur_tree:
           --output {output.tree}
         """
 
-# TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however.
 rule prune_tree:
+    """TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however."""
     input:
         tree_nwk=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
         metadata=RESULTS + "/{mode}/{key}/filtered.tsv",
@@ -73,23 +77,26 @@ rule augur_refine:
           --output-tree {output.tree}
         """
 
-# NOTE THAT THIS MAPPING INCLUDES PRE-REGIONS IN C AND S
 rule alias_translations_for_augur:
+    """Translation aliases also cover the pre-regions in C and S."""
     input:
-        dir="../ingest/data/nextclade",
-        pol="../ingest/data/nextclade/cds_pol.fasta",
+        dir="../ingest/data/nextclade/translations",
+        pol="../ingest/data/nextclade/translations/cds_pol.fasta",
+        x="../ingest/data/nextclade/translations/cds_X.fasta",
     params: # for genes with muultiple transcripts
         s=config["gene_products_for_ancestral"]["S"], # "envL", "envM" or "envS"
         c=config["gene_products_for_ancestral"]["C"], # "pre-capsid" or "capsid"
     output:
-        p="../ingest/data/nextclade/cds_P.fasta", # maybe make those temp files...
-        s="../ingest/data/nextclade/cds_S.fasta",
-        c="../ingest/data/nextclade/cds_C.fasta"
+        p="data/ancestral_translations/cds_P.fasta",
+        s="data/ancestral_translations/cds_S.fasta",
+        c="data/ancestral_translations/cds_C.fasta",
+        x="data/ancestral_translations/cds_X.fasta",
     shell:
         r"""
         cp {input.pol} {output.p}
         cp {input.dir}/cds_{params.s}.fasta {output.s}
         cp {input.dir}/cds_{params.c}.fasta {output.c}
+        cp {input.x} {output.x}
         """
 
 # TODO take ref sequence as root here for reconstruction as well?
@@ -98,7 +105,7 @@ rule ancestral:
         tree=     RESULTS +  "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         alignment= RESULTS + "/{mode}/{key}/filtered.fasta", # Using non-masked alignment for ancestral reconstruction
         annotation= config["reference"]["gff"],
-        translations=expand("../ingest/data/nextclade/cds_{g}.fasta", g=config["genes"]),
+        translations=expand("data/ancestral_translations/cds_{g}.fasta", g=config["genes"]),
         root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
 
     output:
@@ -106,7 +113,7 @@ rule ancestral:
         sequences = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
     params:
         genes=" ".join(ANCESTRAL_GENES),
-        translation_pattern="../ingest/data/nextclade/cds_%GENE.fasta",
+        translation_pattern="data/ancestral_translations/cds_%GENE.fasta",
 
     threads: 4
     shell:

@@ -1,4 +1,9 @@
+"""
+Rules for ingest-derived filtering, clade-specific subsampling, and gene masking.
+"""
+
 rule length_filter:
+    """Filter ingest outputs by sequence length while keeping metadata and alignment in sync."""
     input:
         sequences = "../ingest/results/sequences.fasta",
         metadata  = "../ingest/results/metadata.tsv",
@@ -37,10 +42,19 @@ rule length_filter:
 ## around 40% of all sequences (including the entirety of some genotypes)
 ## have QC=bad mainly due to frameshifts and stop codons.
 
+def clade_query_for_key(key):
+    if key == "C":
+        return '(clade_nextclade=="C") | (clade_nextclade=="C_re")'
+    return f'clade_nextclade=="{key}"'
+
+
+def clade_query_for_keys(keys):
+    return " | ".join(f"({clade_query_for_key(key)})" for key in keys)
+
 def define_filters(mode, key):
 
     # Subsample based on dev mode and build
-    if str(config.get("dev", False)).lower() in ("1", "true", "yes"):
+    if config["dev"]:
         max_n = int(config.get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config.get("dev_n_totaltree", 500))
     else:
         max_n = int(config.get("n_stitched_parts", 800)) if mode == "stitched" else int(config.get("n_totaltree", 3000))
@@ -48,15 +62,15 @@ def define_filters(mode, key):
     query_exprs = []
 
     if mode in ("stitched", "single-clade"):
-        if key == "C":
-            query_exprs.append('(clade_nextclade=="C") | (clade_nextclade=="C_re")')
-        else:
-            query_exprs.append(f'clade_nextclade=="{key}"')
+        query_exprs.append(clade_query_for_key(key))
 
         if mode=="stitched" and config.get("subgenotype_filtering_fulltree", False) and key in ["A", "B", "C", "D", "F"]: #"I"
             query_exprs.append('subgenotype_genbank.notnull() & (subgenotype_genbank != "")')
         if mode=="single-clade" and config.get("subgenotype_filtering_singleclade", False) and key in ["A", "B", "C", "D", "F"]: #"I"
             query_exprs.append('subgenotype_genbank.notnull() & (subgenotype_genbank != "")')
+
+    elif mode == "basic" and config["dev"]:
+        query_exprs.append(clade_query_for_keys(ALL_GTS))
 
     elif mode != "basic":
         raise Exception("Unknown build parameter")
@@ -100,6 +114,7 @@ def get_previous_exclude_file(wildcards):
     return []
 
 rule combine_previous_excludes:
+    """Merge exclude lists from previous runs into one reusable exclude file."""
     output:
         exclude=PREVIOUS_EXCLUDE_FILE,
     params:
@@ -121,6 +136,7 @@ rule combine_previous_excludes:
         """
 
 rule filter_by_clade:
+    """Apply mode-specific clade filters and subsampling to the length-filtered alignment."""
     input:
         alignment="data/filtered/alignment.len_filtered.fasta",
         metadata="data/filtered/metadata.len_filtered.tsv",
@@ -154,9 +170,8 @@ rule filter_by_clade:
           --output-metadata {output.metadata}
         """
 
-#____________________________________________________________________________________________________________________________________________________________________________________________
-
 rule specify_genomic_regions_genes:
+    """Define genomic regions used to build gene-specific masks."""
     input:
         ref_gb=config["reference"]["genbank"],
         script="scripts/specify_genomic_regions_genes.py",
@@ -168,6 +183,7 @@ rule specify_genomic_regions_genes:
         """
 
 rule write_gene_mask:
+    """Write a mask file that keeps only the requested genomic region."""
     input:
         regions="defaults/genomic_regions_genes.txt",
         ref_gb=config["reference"]["genbank"],
@@ -186,6 +202,7 @@ rule write_gene_mask:
         """
 
 rule mask_gene:
+    """Mask the filtered alignment down to one configured genomic region."""
     input:
         alignment= RESULTS + "/{mode}/{key}/filtered.fasta",
         mask=RESULTS + "/masks/{gene}_mask.txt",
