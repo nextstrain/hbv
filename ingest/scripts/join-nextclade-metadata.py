@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""Join Nextclade output columns onto ingest metadata and write a QC summary report.
+
+The merged table becomes the downstream metadata handoff for phylogenetics and dataset builds.
+"""
 
 # Based on https://github.com/nextstrain/ncov-ingest/blob/c77c39cf18ace98631834e10047ac2e09101b504/bin/join-metadata-and-clades
 
