@@ -9,6 +9,7 @@ import pandas as pd
 GENOTYPES = list("ABCDEFGHI")
 QC_LEVELS = ["good", "mediocre", "bad"]
 
+
 def is_recombinant(df):
     return (
         df["clade_nextclade"].str.contains("_re", na=False)
@@ -21,10 +22,12 @@ def is_recombinant(df):
         )
     )
 
+
 def sample_random(df, n):
     if n <= 0 or df.empty:
         return df.iloc[0:0].copy()
     return df.sample(n=min(n, len(df)), random_state=42).copy()
+
 
 def take_evenly_across_qc(df, n, prefer_explicit_recombinant=False):
     if n <= 0 or df.empty:
@@ -82,6 +85,7 @@ def take_evenly_across_qc(df, n, prefer_explicit_recombinant=False):
 
     return out.head(n).copy()
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--metadata", required=True)
@@ -117,7 +121,9 @@ def main():
         used = set(selected["accession"]) if not selected.empty else set()
 
         rec = rec[~rec["accession"].isin(used)].copy()
-        rec_selected = take_evenly_across_qc(rec, n_recomb, prefer_explicit_recombinant=True)
+        rec_selected = take_evenly_across_qc(
+            rec, n_recomb, prefer_explicit_recombinant=True
+        )
         rec_selected["example_reason"] = "recombinant_or_discordant"
 
     else:  # random
@@ -145,6 +151,7 @@ def main():
     cols = [c for c in cols if c in out.columns]
 
     out[cols].to_csv(args.output, sep="\t", index=False)
+
 
 if __name__ == "__main__":
     main()

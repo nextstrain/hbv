@@ -14,19 +14,33 @@ from treetime import TreeAnc
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Make a global tree")
-    parser.add_argument("--tree-dir", type=str, required=True, help="Directory of trees to combine")
-    parser.add_argument("--alignment-dir", type=str, required=True, help="Directory of alignment files")
+    parser.add_argument(
+        "--tree-dir", type=str, required=True, help="Directory of trees to combine"
+    )
+    parser.add_argument(
+        "--alignment-dir", type=str, required=True, help="Directory of alignment files"
+    )
     parser.add_argument("--output", type=str, required=True, help="output file")
-    parser.add_argument("--ref-id", type=str, required=True, help="reference accession to remove before stitching")
-    parser.add_argument("--log", type=str, help="Optional destination for the temporary root-tree build log")
+    parser.add_argument(
+        "--ref-id",
+        type=str,
+        required=True,
+        help="reference accession to remove before stitching",
+    )
+    parser.add_argument(
+        "--log",
+        type=str,
+        help="Optional destination for the temporary root-tree build log",
+    )
     args = parser.parse_args()
 
     REF_ID = args.ref_id
     log_path = Path(args.log) if args.log else None
 
     root_sequences = {}  # subtype -> Seq
-    subtrees = {}        # subtype -> Bio.Phylo tree
+    subtrees = {}  # subtype -> Bio.Phylo tree
 
     with tempfile.TemporaryDirectory(prefix="make_global_tree_") as tempdir:
         tempdir = Path(tempdir)
@@ -40,7 +54,9 @@ if __name__ == "__main__":
             # prune duplicate reference tips (and any ref at all) from the subtree
             if REF_ID:
                 while True:
-                    hits = [tip for tip in sub_tree.get_terminals() if tip.name == REF_ID]
+                    hits = [
+                        tip for tip in sub_tree.get_terminals() if tip.name == REF_ID
+                    ]
                     if not hits:
                         break
                     sub_tree.prune(hits[0])
@@ -78,14 +94,24 @@ if __name__ == "__main__":
         # Build the temporary root-sequence alignment from one inferred root per subtree.
         root_fasta = tempdir / "root_seq.fasta"
         SeqIO.write(
-            [SeqRecord.SeqRecord(root_sequences[s], id=s, description="") for s in sorted(root_sequences)],
+            [
+                SeqRecord.SeqRecord(root_sequences[s], id=s, description="")
+                for s in sorted(root_sequences)
+            ],
             root_fasta,
             "fasta",
         )
 
         root_tree_raw = tempdir / "root_tree_raw.nwk"
         subprocess.run(
-            ["augur", "tree", "--alignment", str(root_fasta), "--output", str(root_tree_raw)],
+            [
+                "augur",
+                "tree",
+                "--alignment",
+                str(root_fasta),
+                "--output",
+                str(root_tree_raw),
+            ],
             check=True,
         )
 
@@ -106,7 +132,9 @@ if __name__ == "__main__":
         for n in T.get_terminals():
             st = subtrees.get(n.name)
             if st is None:
-                raise KeyError(f"Tip '{n.name}' in root tree not found among subtrees: {sorted(subtrees)[:5]} ...")
+                raise KeyError(
+                    f"Tip '{n.name}' in root tree not found among subtrees: {sorted(subtrees)[:5]} ..."
+                )
             n.clades = st.root.clades
 
         Phylo.write(T, args.output, "newick")

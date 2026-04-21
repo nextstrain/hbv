@@ -9,6 +9,7 @@ from pathlib import Path
 
 from Bio import SeqIO
 
+
 def read_regions(path):
     regions = {}
     with open(path) as fh:
@@ -22,8 +23,10 @@ def read_regions(path):
 
     return regions
 
+
 def genbank_length(path):
     return len(SeqIO.read(path, "genbank").seq)
+
 
 def mask_positions(start, end, length):
     if start < 1 or end < 1 or start > length or end > length:
@@ -36,6 +39,7 @@ def mask_positions(start, end, length):
         yield from range(end + 1, length + 1)
     else:
         yield from range(end + 1, start)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -60,6 +64,7 @@ def main():
     with open(output, "w") as fh:
         for position in mask_positions(start, end, length):
             fh.write(f"{position}\n")
+
 
 if __name__ == "__main__":
     main()
