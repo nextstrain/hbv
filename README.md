@@ -2,7 +2,7 @@
 
 > This repo is currently experimental and the results may not be scientifically accurate
 
-Based on work of James Hadfield, and in turn on Katie Kistler's work in [blab/adaptive-evolution](https://github.com/blab/adaptive-evolution)
+Based on work of James Hadfield, (and in turn on Katie Kistler's work in [blab/adaptive-evolution](https://github.com/blab/adaptive-evolution))
 
 This repository contains two workflows for the analysis of HBV virus data:
 
