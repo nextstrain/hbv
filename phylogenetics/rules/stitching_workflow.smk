@@ -36,10 +36,11 @@ rule group_trees:
         done=RESULTS + "/stitched/{gene}_global/collect.done"
     output:
         stitched_tree=RESULTS + "/stitched/{gene}_global/tree_raw.nwk"
+    log:
+        "logs/stitched.{gene}_global.root_tree.log"
     params:
         trees=RESULTS + "/stitched/{gene}_global/trees",
         aln=RESULTS + "/stitched/{gene}_global/aln",
-        outdir=directory(RESULTS + "/stitched/{gene}_global"),
         ref_id = config["reference"]["id"]
     shell:
         r"""
@@ -47,7 +48,7 @@ rule group_trees:
           --tree-dir {params.trees} \
           --alignment-dir {params.aln} \
           --output {output.stitched_tree} \
-          --outdir {params.outdir} \
+          --log {log} \
           --ref-id {params.ref_id}
         """
 

@@ -8,17 +8,23 @@ rule augur_tree:
         alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
     output:
         tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
+    log:
+        "logs/{mode}.{key}.{gene}_masked.tree.log"
     threads: 4
     shell:
-        """
+        r"""
         augur tree \
           --alignment {input.alignment} \
           --method fasttree \
           --output {output.tree}
+
+        if [ -f "{output.tree}.log" ]; then
+          mv "{output.tree}.log" "{log}"
+        fi
         """
 
 rule prune_tree:
-    """TO DO: Pruned nodes are written to exclude files that could be used in future runs directly. This is not implemented yet however."""
+    """Prune long-branch and small-clade outliers, then write the cleaned tree, metadata, and exclude list."""
     input:
         tree_nwk=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
         metadata=RESULTS + "/{mode}/{key}/filtered.tsv",
@@ -87,7 +93,7 @@ rule alias_translations_for_augur:
         dir="../ingest/data/nextclade/translations",
         pol="../ingest/data/nextclade/translations/cds_pol.fasta",
         x="../ingest/data/nextclade/translations/cds_X.fasta",
-    params: # for genes with muultiple transcripts
+    params: # for genes with multiple transcripts
         s=config["gene_products_for_ancestral"]["S"], # "envL", "envM" or "envS"
         c=config["gene_products_for_ancestral"]["C"], # "pre-capsid" or "capsid"
     output:
