@@ -1,3 +1,5 @@
+#__________________________________________________________________________________________________________ REFERENCE / DATASET INPUTS __________________________________________________________________________________________________________
+
 # Reference sequence used to derive regions and extract per-region GenBank files.
 reference:
   id: NC_003977
@@ -5,6 +7,8 @@ reference:
 
 # Path to the nextclade dataset, which will be used to align all sequences
 nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
+
+#__________________________________________________________________________________________________________ REGION DEFINITION __________________________________________________________________________________________________________
 
 # Region definition file used for the current exploratory run.
 genomic_regions: defaults/phylogenetics/genomic_regions_genes.txt
@@ -19,6 +23,8 @@ breakpoints:
   out: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
   map_out: defaults/phylogenetics/X02763_to_NC_003977_map.tsv
 
+#__________________________________________________________________________________________________________ FILTERING / COVERAGE __________________________________________________________________________________________________________
+
 # Whether to apply a length filter before regional extraction/tree building.
 length_filtering: true
 # Minimum retained sequence length for exploratory inputs.
@@ -27,6 +33,8 @@ min_length: 3000
 max_length: 3400
 
 min_coverage_per_region: 0.8  # Minimum fraction of region that must be covered in a sequence for it to be retained in that segment's alignment
+
+#__________________________________________________________________________________________________________ METADATA __________________________________________________________________________________________________________
 
 # Metadata columns retained in per-region metadata tables.
 metadata_keep_cols:
@@ -58,6 +66,8 @@ metadata_keep_cols:
   - circularise_shift_bp
   - clade_nextclade
 
+#__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
+
 # Development-mode settings for faster exploratory runs.
 dev_mode: true
 # Random seed used for deterministic dev-mode subsampling.
@@ -67,12 +77,18 @@ dev_tree_sample_size: 300
 # Number of sampled comparisons used by dev-mode metrics.
 dev_metric_subsample_size: 10
 
+#__________________________________________________________________________________________________________ COMPARISON SAMPLING __________________________________________________________________________________________________________
+
 # Number of pairwise tip-distance samples for the full comparison run.
 n_subsamples_pairwise_distance_comparison: 10000
+
+#__________________________________________________________________________________________________________ TREE PRUNING __________________________________________________________________________________________________________
 
 # all branches with length higher than this threshold will be pruned from the tree
 long_branch_threshold: 0.3
 tip_branch_threshold: 0.1
+
+#__________________________________________________________________________________________________________ TREEKNIT __________________________________________________________________________________________________________
 
 # TreeKnit sampling settings.
 treeknit:

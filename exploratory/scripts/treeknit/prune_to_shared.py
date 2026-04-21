@@ -4,7 +4,8 @@ Usage: prune_to_shared.py tree1.nwk tree2.nwk out1.nwk out2.nwk [n] [seed]
 """
 
 from Bio import Phylo
-import sys, random
+import random
+import sys
 
 t1_path, t2_path, out1, out2 = sys.argv[1:5]
 n = int(sys.argv[5]) if len(sys.argv) >= 6 and sys.argv[5] != "None" else None

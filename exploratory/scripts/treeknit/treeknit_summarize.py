@@ -3,7 +3,9 @@
 Usage: treeknit_summarize.py tree1.nwk tree2.nwk outdir [n_subset|None]
 """
 
-import json, os, sys
+import json
+import os
+import sys
 
 tree1, tree2, outdir = sys.argv[1:4]
 n_subset_arg = sys.argv[4] if len(sys.argv) >= 5 else None

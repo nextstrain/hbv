@@ -4,7 +4,8 @@ Append one TSV row per tree pair so the exploratory workflow can aggregate RF me
 """
 
 from ete3 import Tree
-import sys, os
+import os
+import sys
 
 t1 = Tree(sys.argv[1])
 t2 = Tree(sys.argv[2])
@@ -23,14 +24,7 @@ common_leaves = res[2]
 rf_norm = rf / max_rf if max_rf else 0.0
 print("RF:", rf, "max:", max_rf, "normalized:", rf_norm, "n_leaves:", len(common))
 
-header = (
-    "tree1\t"
-    "tree2\t"
-    "n_shared_leaves\t"
-    "rf\t"
-    "max_rf\t"
-    "rf_normalized\n"
-)
+header = "tree1\ttree2\tn_shared_leaves\trf\tmax_rf\trf_normalized\n"
 
 row = (
     f"{os.path.basename(sys.argv[1])}\t"

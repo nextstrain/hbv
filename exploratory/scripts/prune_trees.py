@@ -7,12 +7,14 @@ import argparse
 from pathlib import Path
 from ete3 import Tree
 
+
 def suppress_unary_nodes(t):
     for n in list(t.traverse()):
         if not n.is_root() and len(n.children) == 1:
             child = n.children[0]
             child.dist += n.dist
             n.delete(prevent_nondicotomic=False)
+
 
 def suppress_unary_root(t):
     while len(t.children) == 1:
@@ -22,12 +24,14 @@ def suppress_unary_root(t):
         t.dist = 0.0
     return t
 
+
 def keep_biggest_after_each_cut(t: Tree, cutoff_allbranches: float, excl_fh):
     removed = set()
 
     while True:
         candidates = [
-            n for n in t.traverse()
+            n
+            for n in t.traverse()
             if (not n.is_root()) and (n.dist > cutoff_allbranches)
         ]
         if not candidates:
@@ -56,8 +60,10 @@ def keep_biggest_after_each_cut(t: Tree, cutoff_allbranches: float, excl_fh):
         suppress_unary_nodes(t)
         t = suppress_unary_root(t)
 
-        assert all(len(node.children) != 1 for node in t.traverse()), \
+        assert all(len(node.children) != 1 for node in t.traverse()), (
             "Unary node detected after suppression"
+        )
+
 
 def prune_long_tips_iteratively(t: Tree, cutoff_tips: float, excl_fh=None):
     """
@@ -87,8 +93,10 @@ def prune_long_tips_iteratively(t: Tree, cutoff_tips: float, excl_fh=None):
 
         removed |= discarded
 
-        assert all(len(node.children) != 1 for node in t.traverse()), \
+        assert all(len(node.children) != 1 for node in t.traverse()), (
             "Unary node detected after tip pruning"
+        )
+
 
 def prune_metadata(metadata_in: str, metadata_out: str, removed: set):
     with open(metadata_in) as fin:
@@ -104,6 +112,7 @@ def prune_metadata(metadata_in: str, metadata_out: str, removed: set):
 
     with open(metadata_out, "w") as fout:
         fout.writelines(out)
+
 
 def plot_log_tip_length_distribution(t, out_png, bins=200):
     import matplotlib.pyplot as plt
@@ -124,6 +133,7 @@ def plot_log_tip_length_distribution(t, out_png, bins=200):
     plt.tight_layout()
     plt.savefig(out_png, dpi=300)
     plt.close()
+
 
 # -------------------- main --------------------
 
@@ -162,8 +172,9 @@ if args.cutoff_tips is not None:
         )
 
 # final sanity
-assert all(l.name not in (None, "") for l in kept_tree.iter_leaves()), \
+assert all(leaf.name not in (None, "") for leaf in kept_tree.iter_leaves()), (
     "Unnamed leaf present"
+)
 
 if kept_tree.name in (None, ""):
     kept_tree.name = "ROOT"
@@ -179,8 +190,11 @@ excluded_via_tips = len(removed_via_tips)
 print(
     f"[{Path(args.tree).name}] "
     f"Excluded {excluded_via_all} via long internal branches > {args.cutoff_allbranches}"
-    + (f" and {excluded_via_tips} via terminal branches > {args.cutoff_tips}"
-       if args.cutoff_tips is not None else "")
+    + (
+        f" and {excluded_via_tips} via terminal branches > {args.cutoff_tips}"
+        if args.cutoff_tips is not None
+        else ""
+    )
     + f" out of {total} total tips"
 )
 

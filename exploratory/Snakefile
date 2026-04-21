@@ -45,8 +45,8 @@ def as_bool(value):
 if not workflow.overwrite_configfiles:
     print(
         "No config provided, using defaults/config.yaml (genes by default).\n"
-        "For segment comparison run: snakemake --configfile defaults/config.segments.yaml comparison_targets\n"
-        "For gene comparison run explicitly: snakemake --configfile defaults/config.genes.yaml comparison_targets"
+        "For segment comparison run: snakemake comparison_targets --configfile defaults/config.segments.yaml\n"
+        "For gene comparison run explicitly: snakemake comparison_targets --configfile defaults/config.genes.yaml"
     )
 
 REGION_NAMES = region_names(config["genomic_regions"])
