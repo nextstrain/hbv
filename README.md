@@ -21,7 +21,7 @@ For standard use, create the environment from [`nextstrain.yml`](./nextstrain.ym
 > NOTE: Ingest dev mode is incompatible with other directories. First run ingest properly before rerunning phylogenetics or exploratory.
 ```bash
 mamba env create -f nextstrain.yml
-conda activate hbv
+conda activate hbv_env
 cd ingest && snakemake --cores 4
 cd ../phylogenetics && snakemake --cores 4 -pf
 ```
