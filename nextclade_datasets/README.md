@@ -1,6 +1,7 @@
 # Nextclade datasets
 
 - [`references/`](./references/NC_003977/versions/) -  Temporary folder for storing nextclade datasets for currently reference genome NC_003977
+- `dataset.json` - top-level Nextclade dataset descriptor defining the dataset name and default reference
 
 Available are:
 - [`2023-08-22/`](./references/NC_003977/versions/2023-08-22) Previous version with recombination-unaware phylogeny - by James Hadfiled

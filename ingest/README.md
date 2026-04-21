@@ -16,6 +16,8 @@ Follow the [standard installation instructions](https://docs.nextstrain.org/en/l
 snakemake --cores 4
 ```
 
+> NOTE: The initial data download step can take a very long time, in some runs up to about an hour.
+
 This produces a number of intermediate files in `data/` as well as three files in `results/` for downstream analysis:
 
 - `results/metadata.tsv`
@@ -65,6 +67,8 @@ sample at `data/dev/ncbi_records.dev_sample.ndjson`.
 Downstream curation always reads `data/active/ncbi_records.ndjson`:
 
 - with `dev: true`, the active NDJSON is built from the development sample
+- with `dev: true`, the Entrez/GenBank fetch is restricted to accessions present
+  in the active NCBI development sample
 - with `dev: false`, the active NDJSON is built from the full raw NCBI NDJSON in
   `data/raw/ncbi/ncbi_records.ndjson`
 
