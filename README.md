@@ -29,7 +29,9 @@ cd ../phylogenetics && snakemake --cores 4 -pf
 
 > The initial data download in `ingest/` can take a very long time, in some runs up to about an hour.
 
-This produces the main handoff files in `ingest/results/` (`metadata.tsv`, `sequences.fasta`, `aligned.fasta`) and then, by default, the Nextstrain/Auspice outputs in `phylogenetics/auspice_datasets/`. Running `phylogenetics/` with `defaults/nextclade/config_nextclade.yaml` instead builds a Nextclade dataset in [`nextclade_datasets/`](./nextclade_datasets). The `exploratory/` and `legacy/` directories are supplementary reference/development material rather than the main workflow path.
+This produces the main handoff files in `ingest/results/` (`metadata.tsv`, `sequences.fasta`, `aligned.fasta`) and then, by default, the Nextstrain/Auspice outputs in `phylogenetics/auspice_datasets/`. 
+Running `phylogenetics/` with `defaults/nextclade/config_nextclade.yaml` instead builds a Nextclade dataset in [`nextclade_datasets/`](./nextclade_datasets). 
+The `exploratory/` and `legacy/` directories are supplementary reference/development material rather than the main workflow path.
 
 
 For more information about HBV, recombination, and workflow options, see the [`report`](https://polybox.ethz.ch/index.php/s/xeAyC7tJqgqndpw) associated with the April 2026 version of this repository.
