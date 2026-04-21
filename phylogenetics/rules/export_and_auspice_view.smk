@@ -18,7 +18,9 @@ rule augur_export:
     output:
         auspice_json = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}.json",
     params:
-        colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
+        colours = " \\\n            ".join(
+            f'"{field}"' for field in config["auspice"]["color_by_metadata"]
+        )
     threads: 1
     shell:
         """
@@ -46,12 +48,13 @@ rule export_stitched:
             STITCHED_DIR + "/node_data/{gene}_muts.json",
             STITCHED_DIR + "/{gene}_subclades.json",
             STITCHED_DIR + "/{gene}_clades.json",]
-            #STITCHED_DIR + "/{gene}_node_metadata.json",
 
     output:
         auspice_json = STITCHED_DIR + "/{gene}.json",
     params:
-        colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
+        colours = " \\\n            ".join(
+            f'"{field}"' for field in config["auspice"]["color_by_metadata"]
+        )
     threads: 1
     shell:
         """

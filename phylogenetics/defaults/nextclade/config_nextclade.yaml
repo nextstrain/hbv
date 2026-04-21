@@ -1,4 +1,5 @@
 workflow: nextclade
+verbose: true
 version: "2026_04_jonas"
 
 nextclade_tree_build: "stitched/P_global/P.json"
@@ -25,12 +26,13 @@ genes: ["P", "S", "C", "X"]
 reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
+  fasta: ../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta
   gff: "defaults/NC_003977.2_version_2026.gff"
 
 #__________________________________________________________________________________________________________ FILTERING CRITERIA __________________________________________________________________________________________________________
 
 sampling:
-  augur_custom_filter: 'year > "1977" & (is_lab_host != True) & host == "Homo sapiens"'  # First sequenced genome is 1978, not sure if the earlier ones are old samples and relieable
+  augur_custom_filter: 'year > "1977" & ((is_lab_host != True) | is_lab_host.isnull()) & host == "Homo sapiens"'  # First sequenced genome is 1978, not sure if the earlier ones are old samples and relieable
   group_by:
     - genotype_genbank
     - subgenotype_genbank
@@ -93,9 +95,9 @@ gene_mask: ["P"]
 #__________________________________________________________________________________________________________ TARGETS / BUILDS __________________________________________________________________________________________________________
 
 # Defines which genotypes to include in the single build phylogeny
-#single_build_genotypes: ["A","B","C","D","F", "I"]
 single_build_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
-# TODO FOR SOME STRAINS ALL SEQUENCES GET FILTERED, and check if problem is somewhere else potentially
+# Warning: with small n, rare genotypes may be filtered out completely after the
+# metadata, length, and subtype filters. Avoid including rare genotypes in small builds.
 all_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 #all_genotypes: ["A", "B", "C", "D", "E"]

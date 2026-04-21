@@ -7,25 +7,36 @@ Expected ingest inputs:
 - ../ingest/results/aligned.fasta
 """
 from os.path import join
+configfile: "defaults/nextstrain/config_nextstrain.yaml"
 
-if not workflow.overwrite_configfiles:
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return bool(value)
+
+
+VERBOSE = parse_bool(config.get("verbose", False))
+DEV_MODE = parse_bool(config.get("dev", False))
+
+if not workflow.overwrite_configfiles and VERBOSE:
     print(
         "No config provided, using defaults/nextstrain/config_nextstrain.yaml.\n"
         "For nextclade workflow run: snakemake --configfile defaults/nextclade/config_nextclade.yaml"
     )
-configfile: "defaults/nextstrain/config_nextstrain.yaml"
 
-if config["dev"]:
+if DEV_MODE and VERBOSE:
     print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")
 
 GENE_MASKS = config["gene_mask"]
-ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if config["dev"] else config["ancestral_genes"]["prod"]
+ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if DEV_MODE else config["ancestral_genes"]["prod"]
 
 # Keep development runs small and consistent across stitched, single-clade,
 # and basic tree builds.
-DEV_TREE_GENOTYPES = ["A", "B", "C", "D"]
-ALL_GTS = DEV_TREE_GENOTYPES if config["dev"] else config["all_genotypes"]
-SINGLE_BUILD_GENOTYPES = DEV_TREE_GENOTYPES if config["dev"] else config["single_build_genotypes"]
+DEV_TREE_GENOTYPES = ["A", "C", "D"]
+ALL_GTS = DEV_TREE_GENOTYPES if DEV_MODE else config["all_genotypes"]
+SINGLE_BUILD_GENOTYPES = DEV_TREE_GENOTYPES if DEV_MODE else config["single_build_genotypes"]
 
 MODES = ["basic", "stitched", "single-clade"]
 
@@ -58,13 +69,13 @@ if wf == "nextclade":
 # Development mode also builds a small set of single-clade and full-tree targets.
 single_clade_targets = (
     expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES)
-    if config["dev"]
+    if DEV_MODE
     else []
 )
 
 full_tree_target = (
     expand("auspice_datasets/{gene}_masked/full-tree.json", gene=GENE_MASKS)
-    if config["dev"]
+    if DEV_MODE
     else []
 )
 

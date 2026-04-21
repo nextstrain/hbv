@@ -31,6 +31,7 @@ rule prune_tree:
         long_branch_threshold = config["long_branch_threshold"],
         tip_branch_threshold  = config["tip_branch_threshold"],
         metadata_col="subgenotype_genbank", # for clade purity filtering,
+        verbose=str(config.get("verbose", False)).lower(),
 
         purity_args=(
             f"--purity_metadata_col subgenotype_genbank "
@@ -46,7 +47,7 @@ rule prune_tree:
         ),
     shell:
         r"""
-        python {input.script} \
+        HBV_VERBOSE={params.verbose} python {input.script} \
           --tree {input.tree_nwk} \
           --metadata_in {input.metadata} \
           --metadata_out {output.metadata} \
@@ -57,11 +58,14 @@ rule prune_tree:
           {params.purity_args} \
           {params.minclade_args}
 
-        n=$(tr ' ' '\n' < {output.exclude} | sed '/^$/d' | sort -u | wc -l)
-        echo "$n unique accessions in {output.exclude}"
+        if [ "{params.verbose}" = "true" ]; then
+          n=$(tr ' ' '\n' < {output.exclude} | sed '/^$/d' | sort -u | wc -l)
+          echo "$n unique accessions in {output.exclude}"
+        fi
         """
 
 rule augur_refine:
+    """Refine branch lengths and rooting after custom pruning so downstream ancestral reconstruction uses the cleaned tree."""
     input:
         tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
         alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta"
@@ -100,12 +104,13 @@ rule alias_translations_for_augur:
         """
 
 rule ancestral:
+    """Infer ancestral states. Mutations are relative to the configured reference sequence."""
     input:
         tree=     RESULTS +  "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         alignment= RESULTS + "/{mode}/{key}/filtered.fasta", # Using non-masked alignment for ancestral reconstruction
         annotation= config["reference"]["gff"],
         translations=expand("data/ancestral_translations/cds_{g}.fasta", g=config["genes"]),
-        root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
+        root = config["reference"]["fasta"],
 
     output:
         node_data = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",

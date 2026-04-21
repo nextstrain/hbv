@@ -16,9 +16,11 @@ rule length_filter:
         length_filtering = config["length_filtering"]["use_as_filter"],
         min_length       = config["length_filtering"]["min_length"],
         max_length       = config["length_filtering"]["max_length"],
+        verbose          = str(config.get("verbose", False)).lower(),
     shell:
         r"""
         kept_ids="$(mktemp)"
+        before_n=$(grep -c '^>' {input.sequences})
 
         if [ "{params.length_filtering}" = "true" ] || [ "{params.length_filtering}" = "True" ] || [ "{params.length_filtering}" = "1" ]; then
             seqkit seq -g -m={params.min_length} -M={params.max_length} {input.sequences} > {output.sequences}
@@ -32,6 +34,12 @@ rule length_filter:
             cp {input.sequences} {output.sequences}
             cp {input.alignment} {output.alignment}
             cp {input.metadata} {output.metadata}
+        fi
+
+        if [ "{params.verbose}" = "true" ]; then
+            after_n=$(grep -c '^>' {output.sequences})
+            dropped=$((before_n-after_n))
+            echo "Length filter kept ${{after_n}}/${{before_n}} sequences and dropped ${{dropped}}."
         fi
 
         rm -f "$kept_ids"
@@ -49,7 +57,7 @@ def clade_query_for_keys(keys):
 def define_filters(mode, key):
 
     # Subsample based on dev mode and build
-    if config["dev"]:
+    if DEV_MODE:
         max_n = int(config.get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config.get("dev_n_totaltree", 500))
     else:
         max_n = int(config.get("n_stitched_parts", 800)) if mode == "stitched" else int(config.get("n_totaltree", 3000))
@@ -64,7 +72,7 @@ def define_filters(mode, key):
         if mode=="single-clade" and config.get("subgenotype_filtering_singleclade", False) and key in ["A", "B", "C", "D", "F"]: #"I"
             query_exprs.append('subgenotype_genbank.notnull() & (subgenotype_genbank != "")')
 
-    elif mode == "basic" and config["dev"]:
+    elif mode == "basic" and DEV_MODE:
         query_exprs.append(clade_query_for_keys(ALL_GTS))
 
     elif mode != "basic":
@@ -109,6 +117,7 @@ rule combine_previous_excludes:
         exclude=PREVIOUS_EXCLUDE_FILE,
     params:
         source_dir=RESULTS,
+        verbose=str(config.get("verbose", False)).lower(),
     shell:
         r"""
         if [ -d "{params.source_dir}" ]; then
@@ -121,8 +130,10 @@ rule combine_previous_excludes:
           : > "{output.exclude}"
         fi
 
-        n=$(wc -l < "{output.exclude}" | tr -d ' ')
-        echo "$n unique accessions written to {output.exclude}"
+        if [ "{params.verbose}" = "true" ]; then
+          n=$(wc -l < "{output.exclude}" | tr -d ' ')
+          echo "$n unique accessions written to {output.exclude}"
+        fi
         """
 
 rule filter_by_clade:
@@ -137,6 +148,7 @@ rule filter_by_clade:
     params:
         args=get_filter_args,
         filter_previously_excluded=str(config.get("filter_previously_excluded", False)).lower(),
+        verbose=str(config.get("verbose", False)).lower(),
     wildcard_constraints:
         mode="basic|stitched|single-clade",
         key="all|" + "|".join(ALL_GTS),
@@ -146,7 +158,7 @@ rule filter_by_clade:
         if [ "{params.filter_previously_excluded}" = "true" ]; then
           if [ -s "{input.exclude}" ]; then
             exclude_arg="--exclude {input.exclude}"
-          else
+          elif [ "{params.verbose}" = "true" ]; then
             echo "No previous exclude accessions found in {input.exclude}; continuing without --exclude"
           fi
         fi

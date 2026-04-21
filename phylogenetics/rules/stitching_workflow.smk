@@ -93,13 +93,13 @@ rule combine_stitched_alignments:
         """
 
 rule ancestral_stitched:
-    """Infer ancestral states on the stitched tree using the combined non-masked alignment."""
+    """Infer ancestral states on the stitched tree using the combined non-masked alignment. Mutations are relative to the configured reference sequence."""
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         alignment = STITCHED_DIR + "/combined_nonmasked_aln.fasta",
         annotation= config["reference"]["gff"],
         translations=expand("data/ancestral_translations/cds_{g}.fasta", g=config["genes"]),
-        root = "../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta",   # Mutations are relative to the reference sequence
+        root = config["reference"]["fasta"],
 
     output:
         node_data = STITCHED_DIR + "/node_data/{gene}_muts.json",
