@@ -5,40 +5,21 @@ and sequences.
 REQUIRED INPUTS:
 
     sequences = "results/sequences.fasta",
-    metadata = "data/circularised.tsv",
+    metadata = "data/circularised/circularised_metadata.tsv",
 
 OUTPUTS:
 
     metadata = "results/metadata.tsv",
     sequences = "results/sequences.fasta",
     aligned = "results/aligned.fasta"
-    summary = "data/metadata.summary.txt",
-    tree = "data/nextclade/nextclade.json",  # DOESNT BELONG HERE
+    summary = "data/qc/metadata_summary.txt",
 
 See Nextclade docs for more details on usage, inputs, and outputs if you would
 like to customize the rules:
 https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 """
 
-# TODO: upload dataset and add rule get_nextclade_dataset that properly fetches dataset instead of getting it from dataset folder
-
-#rule get_nextclade_dataset:
-#    output:
-#        "data/hbv.zip",
-#    params:
-#        dataset_name="HBV",  # CHANGE
-#    log:
-#        "logs/get_nextclade_dataset.txt",
-#    benchmark:
-#        "benchmarks/get_nextclade_dataset.txt"
-#    shell:
-#        r"""
-#        exec &> >(tee {log:q})
-#
-#        nextclade3 dataset get \
-#            --name {params.dataset_name:q} \
-#            --output-zip {output:q}
-#        """
+# TODO: fetch the Nextclade dataset directly instead of relying on a local dataset path.
 
 rule nextclade:
     """
@@ -50,12 +31,12 @@ rule nextclade:
     input:
         sequences = "results/sequences.fasta",
     output:
-        alignment = "data/nextclade/aligned.fasta",
-        translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
-        metadata = "data/nextclade/metadata.tsv",
+        alignment = temp("data/nextclade/aligned_sequences.fasta"),
+        translations_snakemake = expand("data/nextclade/translations/cds_{gene}.fasta", gene=config['genes']),
+        metadata = "data/nextclade/nextclade_metadata.tsv",
     params:
         dataset = config['nextclade_dataset'],
-        translations_pattern = lambda w: "data/nextclade/cds_{cds}.fasta",
+        translations_pattern = lambda w: "data/nextclade/translations/cds_{cds}.fasta",
     threads: 4
     shell:
         """
@@ -69,12 +50,13 @@ rule nextclade:
         """
 
 rule join_nextclade_metadata:
+    """Join Nextclade outputs back onto the circularised ingest metadata."""
     input:
-        metadata = "data/circularised.tsv",
-        nextclade = "data/nextclade/metadata.tsv"
+        metadata = "data/circularised/circularised_metadata.tsv",
+        nextclade = "data/nextclade/nextclade_metadata.tsv"
     output:
         metadata = "results/metadata.tsv",
-        summary = "data/metadata.summary.txt",
+        summary = "data/qc/metadata_summary.txt",
     shell:
         """
         scripts/join-nextclade-metadata.py \
@@ -83,8 +65,9 @@ rule join_nextclade_metadata:
         """
 
 rule copy_ingest_alignment:
+    """Promote the Nextclade alignment to the final ingest results directory."""
     input:
-        aligned = "data/nextclade/aligned.fasta",
+        aligned = "data/nextclade/aligned_sequences.fasta",
     output:
         aligned = "results/aligned.fasta"
     shell:

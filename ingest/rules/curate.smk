@@ -3,12 +3,12 @@ This part of the workflow handles the curation of data from NCBI
 
 REQUIRED INPUTS:
 
-    ndjson      = data/ncbi.ndjson
+    ndjson      = "data/active/ncbi_records.ndjson"
 
 OUTPUTS:
 
     sequences = "results/sequences.fasta",
-    metadata = "data/circularised.tsv",
+    metadata = "data/circularised/circularised_metadata.tsv",
 
 """
 
@@ -19,37 +19,32 @@ def format_field_map(field_map: dict[str, str]) -> str:
     return " ".join([f'"{key}"="{value}"' for key, value in field_map.items()])
 
 rule curate_genbank_metadata:
+    """
+    Normalize curated GenBank metadata and apply the HBV subgenotype correction table.
+    """
     input:
-        ndjson = "data/genbank.ndjson",
+        ndjson = "data/raw/entrez/genbank_records.ndjson",
         geolocations = "defaults/geoLocationRules.tsv",
         mapping = "defaults/subgenotype_correction.tsv",
 
     output:
-        metadata = "data/curated-genbank-metadata.tsv",
-        sequences = "data/curated-genbank-sequences.fasta",
-
-    params:
-        metadata_columns = ['name', 'accession', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
-        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
-        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
-        "QC_frame_shifts","QC_stop_codons"],
-        tmp_metadata = "data/curated-genbank-metadata.raw.tsv"
-
+        metadata = "data/curated/genbank/curated_metadata.tsv",
+        sequences = temp("data/curated/genbank/curated_sequences.fasta"),
+        metadata_pre_mapping = temp(
+            "data/curated/genbank/curated_metadata_pre_subgenotype_mapping.tsv"
+        ),
     shell:
-        # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
-        # vendored/apply-geolocation-rules
-        # scripts/add-year.py adds "year" to NDJSON entries
         """
         cat {input.ndjson} \
             | scripts/fix_country_field.py \
-            | vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv \
+            | vendored/apply-geolocation-rules --geolocation-rules {input.geolocations} \
             | scripts/add-year.py \
             | augur curate passthru \
                 --output-seq-field sequence --output-id-field accession \
-                --output-metadata {params.tmp_metadata} --output-fasta {output.sequences}
+                --output-metadata {output.metadata_pre_mapping} --output-fasta {output.sequences}
 
         python "scripts/subgenotype_mapping.py" \
-            --metadata-in {params.tmp_metadata} \
+            --metadata-in {output.metadata_pre_mapping} \
             --mapping {input.mapping} \
             --metadata-out {output.metadata}
 
@@ -64,18 +59,15 @@ rule curate_genbank_metadata:
 # separate files: a metadata TSV and a sequences FASTA.
 rule curate_ncbi:
     input:
-        #sequences_ndjson="data/ncbi.ndjson",
-        sequences_ndjson=ACTIVE_NDJSON,
+        sequences_ndjson="data/active/ncbi_records.ndjson",
         geolocations = "defaults/geoLocationRules.tsv"
 
     output:
-        metadata = "data/curated-metadata.tsv",
-        sequences = "data/curated-sequences.fasta",
+        metadata = "data/curated/ncbi/curated_metadata.tsv",
+        sequences = "data/curated/ncbi/curated_sequences.fasta",
 
     log:
         "logs/curate.txt",
-    benchmark:
-        "benchmarks/curate.txt"
     params:
         field_map=format_field_map(config["curate"]["field_map"]),
         strain_regex=config["curate"]["strain_regex"],
@@ -93,37 +85,37 @@ rule curate_ncbi:
         sequence_field=config["curate"]["output_sequence_field"],
     shell:
         r"""
-        exec &> >(tee {log:q})
-
-        cat {input.sequences_ndjson} \
-            | augur curate rename \
-                --field-map {params.field_map} \
-            | augur curate normalize-strings \
-            | augur curate transform-strain-name \
-                --strain-regex {params.strain_regex} \
-                --backup-fields {params.strain_backup_fields} \
-            | augur curate format-dates \
-                --date-fields {params.date_fields} \
-                --expected-date-formats {params.expected_date_formats} \
-            | augur curate parse-genbank-location \
-                --location-field {params.genbank_location_field} \
-            | augur curate titlecase \
-                --titlecase-fields {params.titlecase_fields} \
-                --articles {params.articles} \
-                --abbreviations {params.abbreviations} \
-            | augur curate abbreviate-authors \
-                --authors-field {params.authors_field} \
-                --default-value {params.authors_default_value} \
-                --abbr-authors-field {params.abbr_authors_field} \
-            | scripts/fix_country_field.py \
-            | vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv \
-            | scripts/add-year.py \
-            | jq -c '.name = (.name // .accession // .accession_version // "")' \
-            | augur curate passthru \
-                --output-metadata {output.metadata} \
-                --output-fasta {output.sequences} \
-                --output-id-field {params.id_field} \
-                --output-seq-field {params.sequence_field}
+        (
+            cat {input.sequences_ndjson} \
+                | augur curate rename \
+                    --field-map {params.field_map} \
+                | augur curate normalize-strings \
+                | augur curate transform-strain-name \
+                    --strain-regex {params.strain_regex} \
+                    --backup-fields {params.strain_backup_fields} \
+                | augur curate format-dates \
+                    --date-fields {params.date_fields} \
+                    --expected-date-formats {params.expected_date_formats} \
+                | augur curate parse-genbank-location \
+                    --location-field {params.genbank_location_field} \
+                | augur curate titlecase \
+                    --titlecase-fields {params.titlecase_fields} \
+                    --articles {params.articles} \
+                    --abbreviations {params.abbreviations} \
+                | augur curate abbreviate-authors \
+                    --authors-field {params.authors_field} \
+                    --default-value {params.authors_default_value} \
+                    --abbr-authors-field {params.abbr_authors_field} \
+                | scripts/fix_country_field.py \
+                | vendored/apply-geolocation-rules --geolocation-rules {input.geolocations} \
+                | scripts/add-year.py \
+                | jq -c '.name = (.name // .accession // .accession_version // "")' \
+                | augur curate passthru \
+                    --output-metadata {output.metadata} \
+                    --output-fasta {output.sequences} \
+                    --output-id-field {params.id_field} \
+                    --output-seq-field {params.sequence_field}
+        ) > {log:q} 2>&1
         """
 
 rule add_metadata_columns:
@@ -133,50 +125,49 @@ rule add_metadata_columns:
     - "genotype_genbank", "subgenotype_genbank": (self-assigned) strain annotation from Genbank records
     """
     input:
-        metadata="data/curated-metadata.tsv",
-        metadata_genbank="data/curated-genbank-metadata.tsv",
+        metadata="data/curated/ncbi/curated_metadata.tsv",
+        metadata_genbank="data/curated/genbank/curated_metadata.tsv",
     output:
-        metadata=temp("data/all_metadata_added.tsv"),
+        metadata=temp("data/merged/metadata_with_genbank_annotations.tsv"),
     log:
         "logs/add_metadata_columns.txt"
     params:
         accession_col="accession"
     shell:
         r"""
-        exec &> >(tee {log:q})
-
-        scripts/add_genbank_metadata.py \
+        python scripts/add_genbank_metadata.py \
           --metadata {input.metadata} \
           --metadata-genbank {input.metadata_genbank} \
           --accession-col {params.accession_col} \
-          --out {output.metadata}
+          --out {output.metadata} \
+          > {log:q} 2>&1
     """
 
-# TO DO: Add new cols
 rule subset_metadata:
+    """Keep only the metadata columns needed by the recircularisation step."""
     input:
-        metadata="data/all_metadata_added.tsv",
+        metadata="data/merged/metadata_with_genbank_annotations.tsv",
     output:
-        subset_metadata="data/subset_metadata.tsv",
+        subset_metadata=temp("data/merged/metadata_for_circularisation.tsv"),
     log:
         "logs/subset_metadata.txt"
     params:
         metadata_fields=",".join(config["curate"]["metadata_columns"]),
     shell:
         r"""
-        exec &> >(tee {log:q})
-
         csvtk cut -t -f {params.metadata_fields} \
-            {input.metadata} > {output.subset_metadata}
+            {input.metadata} > {output.subset_metadata} 2> {log:q}
         """
 
 rule recircularise:
+    """Rotate sequences to a consistent origin and annotate the corresponding metadata."""
     input:
-        metadata = "data/subset_metadata.tsv",
-        sequences = "data/curated-sequences.fasta",
+        metadata = "data/merged/metadata_for_circularisation.tsv",
+        sequences = "data/curated/ncbi/curated_sequences.fasta",
+        reference_genbank = config["reference_genbank"],
     output:
-        sequences = "data/circularised.fasta",
-        metadata = "data/circularised.tsv",
+        sequences = "data/circularised/circularised_sequences.fasta",
+        metadata = "data/circularised/circularised_metadata.tsv",
     params:
         reference = config['reference_accession']
     shell:
@@ -184,12 +175,14 @@ rule recircularise:
         scripts/re-circularise.py \
             --seqs-in {input.sequences} --meta-in {input.metadata} \
             --seqs-out {output.sequences} --meta-out {output.metadata} \
-            --reference {params.reference}
+            --reference {params.reference} \
+            --reference-genbank {input.reference_genbank}
         """
 
 rule copy_ingest_sequences:
+    """Copy the circularised sequences to the final ingest results directory."""
     input:
-        sequences = "data/circularised.fasta",
+        sequences = "data/circularised/circularised_sequences.fasta",
     output:
         sequences = "results/sequences.fasta",
     shell:
@@ -204,9 +197,9 @@ rule align_unrotated:
     This rule must be called explicitly, it is not part of the DAG to produce the outputs of `rule all`
     """
     input:
-        sequences = "data/curated-sequences.fasta",
+        sequences = "data/curated/ncbi/curated_sequences.fasta",
     output:
-        alignment = "data/curated-sequences.aligned.fasta",
+        alignment = "data/qc/unrotated_aligned_sequences.fasta",
     params:
         dataset = config['nextclade_dataset'],
     threads: 4

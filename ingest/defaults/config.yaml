@@ -18,8 +18,19 @@ genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']
 
 ncbi_taxon_id: 3431302
 
+# Development mode:
+# - when `dev: true`, ingest creates a small development-only NDJSON sample at
+#   `data/dev/ncbi_records.dev_sample.ndjson`
+# - curate always reads `data/active/ncbi_records.ndjson`
+# - `dev_n_ingest` controls the active NCBI dev sample size
+# - the NCBI sample always keeps the configured reference accession when present
+#   and then adds the first `dev_n_ingest` records from the raw NCBI NDJSON
+# - the Entrez/GenBank fetch is restricted to the accessions present in the
+#   active NCBI dev sample
+# - when `dev: false`, the active NDJSON is copied directly from the full raw
+#   NCBI NDJSON
 dev: false
-dev_n: 100
+dev_n_ingest: 2000
 
 ncbi_datasets_fields:
   - accession

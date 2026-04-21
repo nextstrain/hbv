@@ -21,7 +21,21 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import csv
 
-def analyse_ref(seq_fname, ref_name):
+
+def load_reference_from_genbank(ref_genbank, ref_name):
+    for record in SeqIO.parse(open(ref_genbank, "r"), "genbank"):
+        accession = record.id.split(".")[0]
+        if accession == ref_name:
+            return SeqRecord(
+                record.seq,
+                id=accession,
+                name=accession,
+                description="",
+            )
+    return None
+
+
+def analyse_ref(seq_fname, ref_name, ref_genbank=None):
     ref = None
     records = {}
     for record in SeqIO.parse(open(seq_fname,"r"), "fasta"):
@@ -29,7 +43,12 @@ def analyse_ref(seq_fname, ref_name):
         if record.name == ref_name:
             ref = record
     if not ref:
-        raise Exception("Ref not found")
+        if ref_genbank:
+            ref = load_reference_from_genbank(ref_genbank, ref_name)
+        if not ref:
+            source = ref_genbank or seq_fname
+            raise Exception(f"Reference {ref_name!r} not found in {source}")
+        print(f"Loaded reference {ref_name} from {ref_genbank}")
     seed_len = 30
     seeds = [
         {'start':0, 'seq': str(ref.seq[0:seed_len])},
@@ -176,7 +195,11 @@ def append_to_metadata(origins, fname_in, fname_out):
                 writer.writerow([*[row[field] for field in header], *s])
 
 def main(args):
-    reference, records, seeds = analyse_ref(args.seqs_in, args.reference)
+    reference, records, seeds = analyse_ref(
+        args.seqs_in,
+        args.reference,
+        args.reference_genbank,
+    )
     print("seeds:", seeds)
 
     origins = identify_origin(records, seeds, 0)
@@ -198,5 +221,6 @@ if __name__ == '__main__':
     parser.add_argument("--seqs-out")
     parser.add_argument("--meta-out")
     parser.add_argument("--reference")
+    parser.add_argument("--reference-genbank")
     args = parser.parse_args()
     main(args)
