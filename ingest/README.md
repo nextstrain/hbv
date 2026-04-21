@@ -51,11 +51,13 @@ Curated and post-curation outputs are organized under:
 
 #### Genomes rotated to use a consistent origin
 
-There is a jupyter notebook exploring the process behind this - see `../notebooks/alignment-qc.ipynb`
+There is a jupyter notebook exploring the process behind this - see `../legacy/notebooks/alignment-qc.ipynb`
 
 #### Accuracy of Nextclade inference
 
 Nextclade v3 is used to align all genomes and assign genotype based on a guide tree we have created.
+The local dataset used for this step is configured via `nextclade_dataset` in `defaults/config.yaml`.
+The translated CDS FASTAs in `data/nextclade/translations/` are also used downstream by the phylogenetics workflow.
 
 Preliminary stats can be seen in `ingest/data/qc/metadata_summary.txt` after an ingest build has completed.
 
