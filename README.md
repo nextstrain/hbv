@@ -18,15 +18,14 @@ Each folder contains a `README.md` with more information.
 
 For standard use, create the environment from [`nextstrain.yml`](./nextstrain.yml), run `ingest/` first, and then `phylogenetics/`:
 
-> Note that after running ingest in dev mode, the subsampling in phylogenetics will likely  not recover enough sequences! Run ingest in normal mode before proceeding!
-
-
 ```bash
 mamba env create -f nextstrain.yml
 conda activate hbv
 cd ingest && snakemake --cores 4
 cd ../phylogenetics && snakemake --cores 4 -pf
 ```
+
+> Note that after running ingest in dev mode, the subsampling in phylogenetics will likely  not recover enough sequences! Run ingest in normal mode before proceeding!
 
 > The initial data download in `ingest/` can take a very long time, in some runs up to about an hour.
 
