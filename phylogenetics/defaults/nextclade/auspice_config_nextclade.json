@@ -20,13 +20,12 @@
     "region",
     "country",
     "host",
-    "is_lab_host",
     "strain"
   ],
   "geo_resolutions": ["country", "region"],
   "panels": ["tree", "map", "entropy"],
   "display_defaults": {
-    "color_by": "Node Type",
+    "color_by": "HBV Type",
     "geo_resolution": "country",
     "distance_measure": "div"
   }

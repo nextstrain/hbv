@@ -58,9 +58,9 @@ def define_filters(mode, key):
 
     # Subsample based on dev mode and build
     if DEV_MODE:
-        max_n = int(config.get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config.get("dev_n_totaltree", 500))
+        max_n = int(config.get("dev_n_stitched_parts", 100)) if mode == "stitched" else int(config.get("dev_n_nonstitched_builds", 500))
     else:
-        max_n = int(config.get("n_stitched_parts", 800)) if mode == "stitched" else int(config.get("n_totaltree", 3000))
+        max_n = int(config.get("n_stitched_parts", 800)) if mode == "stitched" else int(config.get("n_nonstitched_builds", 3000))
 
     query_exprs = []
 

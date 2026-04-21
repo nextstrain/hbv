@@ -27,19 +27,17 @@ if not workflow.overwrite_configfiles and VERBOSE:
     )
 
 if DEV_MODE and VERBOSE:
-    print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")
+    print("Development mode enabled; sampling limits and extra dev targets are active.")
 
 GENE_MASKS = config["gene_mask"]
 ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if DEV_MODE else config["ancestral_genes"]["prod"]
 
-# Keep development runs small and consistent across stitched, single-clade,
-# and basic tree builds.
-DEV_TREE_GENOTYPES = ["A", "C", "D"]
-ALL_GTS = DEV_TREE_GENOTYPES if DEV_MODE else config["all_genotypes"]
-SINGLE_BUILD_GENOTYPES = DEV_TREE_GENOTYPES if DEV_MODE else config["single_build_genotypes"]
+ALL_GTS = config["all_genotypes"]
+SINGLE_BUILD_GENOTYPES = config["single_build_genotypes"]
 
 MODES = ["basic", "stitched", "single-clade"]
 
+# Throughout phylogenetics outputs, {gene} refers to the masked genomic region (P/S/C/X), not an HBV genotype.
 RESULTS = join("results", config["workflow"])
 STITCHED_DIR = RESULTS + "/stitched/{gene}_global"
 
@@ -96,7 +94,7 @@ elif wf == "nextclade":
 else:
     raise ValueError(f"Unknown workflow: {wf}")
 
-# Length filtering, other filter steps that specifcy the different builds, and gene masking
+# Length filtering, other filter steps that specify the different builds, and gene masking
 include: "rules/filter_and_masking.smk"
 # Augur tree, pruning problematic clades, refinement and ancestral reconstruction
 include: "rules/generating_tree.smk"
