@@ -7,6 +7,8 @@ Expected ingest inputs:
 - ../ingest/results/aligned.fasta
 """
 
+import os
+
 configfile: "defaults/config.yaml"
 
 def region_names(path):
@@ -39,6 +41,13 @@ def as_bool(value):
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "yes", "on"}
     return bool(value)
+
+if not workflow.overwrite_configfiles:
+    print(
+        "No config provided, using defaults/config.yaml (genes by default).\n"
+        "For segment comparison run: snakemake --configfile defaults/config.segments.yaml comparison_targets\n"
+        "For gene comparison run explicitly: snakemake --configfile defaults/config.genes.yaml comparison_targets"
+    )
 
 REGION_NAMES = region_names(config["genomic_regions"])
 REGION_TAG = "_".join(REGION_NAMES)
@@ -155,6 +164,10 @@ rule specify_genomic_regions_genes:
 
 # Writes segments file based on previously identified breakpoints
 rule specify_genomic_regions_breakpoints:
+    """
+    Lift breakpoints from the old reference and write the derived regions file.
+    Verify that the lifted breakpoints work as intended before using them.
+    """
     input:
         ref_gb=config["reference"]["genbank"],
         script="scripts/specify_genomic_regions_breakpoints.py",
@@ -167,6 +180,7 @@ rule specify_genomic_regions_breakpoints:
         buffer=int(config["breakpoints"].get("buffer", 0)),
     shell:
         r"""
+        echo "WARNING: Verify that the lifted breakpoints work as intended before use." >&2
         python {input.script} \
           --ref-gb {input.ref_gb} \
           --old-ref {params.old_ref} \
@@ -222,6 +236,7 @@ rule augur_tree:
         """
 
 rule cut_outliers:
+    """Prune long-branch outliers from each regional tree and record excluded accessions for later merging."""
     input:
         tree_nwk = f"{OUTDIR}/{{name}}/{{name}}.tree.nwk",
         metadata = f"{OUTDIR}/{{name}}/{{name}}_metadata.tsv",
@@ -247,6 +262,7 @@ rule cut_outliers:
         """
 
 rule joint_exclude_file:
+    """Merge region-specific exclude lists into one combined file used for downstream review and reference."""
     input:
         excludes=expand(f"defaults/phylogenetics/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
     output:
@@ -297,6 +313,7 @@ rule ancestral:
         """
 
 rule augur_export:
+    """Export each regional tree plus ancestral data as an Auspice JSON dataset."""
     input:
         tree         = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
         node_data    = f"{OUTDIR}/{{name}}/{{name}}.ancestral.json",
@@ -334,6 +351,7 @@ rule augur_export:
         """
 
 rule copy_auspice_view:
+    """Copy regional Auspice JSONs into the top-level exploratory viewer directory."""
     input:
         json=f"{OUTDIR}" + "/{name}/{name}.json",
     output:
