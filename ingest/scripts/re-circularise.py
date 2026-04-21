@@ -70,8 +70,8 @@ def print_match(a, b):
     print(f"\t{b}")
 
 def identify_origin(records, seeds, verbose=0):
-    BAD_SEED_MISMATCH_COUNT = 10 # TODO XXX make argument
-    START_BUFFER = 300 # TODO XXX make argument
+    BAD_SEED_MISMATCH_COUNT = 10
+    START_BUFFER = 300
 
     count = 0
     origins = {}

@@ -190,7 +190,6 @@ rule copy_ingest_sequences:
         cp {input.sequences} {output.sequences}
         """
 
-####### OPTIONAL #########
 rule align_unrotated:
     """
     Align all genomes before rotation for parsing by our notebook.

@@ -174,7 +174,7 @@ def parse_metadata(record):
     note = extract(source, 'note')
 
     metadata = {}
-    metadata['name'] = accession # TODO XXX - change once new augur release is out with https://github.com/nextstrain/augur/pull/1240,
+    metadata['name'] = accession
     metadata['accession'] = accession
     metadata['strain_name'] = extract(source, 'strain') or extract(source, 'isolate') or 'None'
     metadata['country'] = extract(source, 'country') or 'None'
