@@ -33,4 +33,4 @@ snakemake --cores 4 results/segments/treeknit/plots/.done
 
 If the config is switched to genes instead of segments, replace `results/segments/...` with `results/genes/...`.
 
-> NOTE THAT THESE ARE NOT FINAL SCIENTIFIC RESULTS! The breakpoint lifting procedure between references needs to be reviewed again and the current results cannot be trusted! Running the rules with current tip sampling numbers takes very long so change these in the config file beforehand. Please note that the comparison results in `/results` are kept in the repo for reference so that the exploratory workflow does not have to be rerun, while the generated Auspice JSONs are not intended to be kept in git.
+> NOTE THAT THESE ARE NOT FINAL SCIENTIFIC RESULTS! The breakpoint lifting procedure between references needs to be reviewed again and the current results cannot be trusted! Running the rules with current tip sampling numbers takes very long so change these in the config file beforehand. Please note that the comparison results in `/results` are kept in the repo for reference so that the comparison target does not have to be rerun.
