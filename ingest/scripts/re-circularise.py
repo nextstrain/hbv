@@ -95,13 +95,13 @@ def identify_origin(records, seeds, verbose=0):
 
         try:
             for seed in seeds:
-                l = len(seed["seq"])
-                max_i = len(record.seq) - l - seed["start"] - 1
+                seed_len = len(seed["seq"])
+                max_i = len(record.seq) - seed_len - seed["start"] - 1
                 if max_i <= 0:
                     continue
 
                 for i in range(0, max_i):
-                    c = seq_diff(seed["seq"], str(record.seq[i:i + l]))
+                    c = seq_diff(seed["seq"], str(record.seq[i:i + seed_len]))
                     if c < mismatches:
                         mismatches = c
                         match_start = i

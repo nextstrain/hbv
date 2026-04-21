@@ -1,6 +1,8 @@
 # This configuration file should contain all required configuration parameters
 # for the ingest workflow to run to completion.
 
+#__________________________________________________________________________________________________________ REFERENCE / DATASET __________________________________________________________________________________________________________
+
 # Used to re-circularise genomes. This should be the same as the reference in the nextclade dataset!
 # Also force-included for a number of datasets
 reference_accession: "NC_003977"
@@ -13,6 +15,8 @@ nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-
 # These should be the entire list of CDSs in the nextclade dataset's genemap
 genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']
 
+#__________________________________________________________________________________________________________ FETCH SETTINGS __________________________________________________________________________________________________________
+
 # Entrez query used for the GenBank branch.
 entrez_query: 'Hepatitis B virus[Organism]'   # For all genomes
 # Restrict the Entrez branch to records annotated as complete genomes.
@@ -23,6 +27,8 @@ entrez_complete_genomes_only: false
 
 # NCBI taxon used for the Datasets package download.
 ncbi_taxon_id: 3431302
+
+#__________________________________________________________________________________________________________ NCBI DATASETS FIELDS __________________________________________________________________________________________________________
 
 # Fields requested from the NCBI Datasets report before curate field remapping.
 ncbi_datasets_fields:
@@ -43,6 +49,8 @@ ncbi_datasets_fields:
   - virus-name
   - virus-tax-id
 
+#__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
+
 # Enable helper-script logging during ingest runs.
 verbose: true
 
@@ -61,6 +69,8 @@ verbose: true
 #   the full raw NCBI NDJSON and Entrez runs on the full query
 dev: false
 dev_n_ingest: 100
+
+#__________________________________________________________________________________________________________ CURATE PIPELINE __________________________________________________________________________________________________________
 
 # Config parameters related to the curate pipeline
 curate:
