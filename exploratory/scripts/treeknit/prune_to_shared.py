@@ -14,6 +14,7 @@ seed = int(sys.argv[6]) if len(sys.argv) >= 7 and sys.argv[6] != "None" else Non
 t1 = Phylo.read(t1_path, "newick")
 t2 = Phylo.read(t2_path, "newick")
 
+
 def norm(x):
     if x is None:
         return None
@@ -21,6 +22,7 @@ def norm(x):
     if len(x) >= 2 and x[0] == x[-1] == '"':
         x = x[1:-1]
     return x
+
 
 for term in t1.get_terminals():
     term.name = norm(term.name)
@@ -38,7 +40,9 @@ if n is not None:
     if n <= 0:
         raise SystemExit("n must be > 0")
     if n > len(shared):
-        print(f"Requested n={n} but only #shared={len(shared)}; keeping all shared leaves (no subsetting).")
+        print(
+            f"Requested n={n} but only #shared={len(shared)}; keeping all shared leaves (no subsetting)."
+        )
         # keep shared as-is
     else:
         rng = random.Random(seed)

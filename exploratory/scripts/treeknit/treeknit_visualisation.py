@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import argparse
 
+
 def short_name(x):
     return Path(x).stem.replace(".tree", "")
+
 
 def make_sym_matrix(df_sub, value_col):
     labels = sorted(set(df_sub["name1"]) | set(df_sub["name2"]))
@@ -24,12 +26,17 @@ def make_sym_matrix(df_sub, value_col):
 
     if value_col == "sum_mcc_frac_K":
         np.fill_diagonal(mat.values, 100.0)
-    elif value_col in {"largest_mcc_frac_K", "singleton_frac_K", "non_singleton_leaf_frac_K"}:
+    elif value_col in {
+        "largest_mcc_frac_K",
+        "singleton_frac_K",
+        "non_singleton_leaf_frac_K",
+    }:
         np.fill_diagonal(mat.values, np.nan)
     else:
         np.fill_diagonal(mat.values, 0.0)
 
     return mat
+
 
 def plot_matrix(mat, title, out, cmap="viridis", vmin=None, vmax=None, fmt=".2f"):
     fig, ax = plt.subplots(figsize=(1.2 * len(mat.columns), 1.0 * len(mat.index)))
@@ -52,6 +59,7 @@ def plot_matrix(mat, title, out, cmap="viridis", vmin=None, vmax=None, fmt=".2f"
     fig.savefig(out, dpi=300)
     plt.close(fig)
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("in_csv")
@@ -67,11 +75,29 @@ def main():
     df["name2"] = df["tree2"].map(short_name)
 
     metrics = {
-        "n_mcc": dict(title="Number of MCCs", cmap="viridis", vmin=0, vmax=None, fmt=".0f"),
-        "largest_mcc_frac_K": dict(title="Largest MCC (% of K)", cmap="magma", vmin=0, vmax=None, fmt=".2f"),
-        "singleton_frac_K": dict(title="Singleton leaves (% of K)", cmap="magma", vmin=0, vmax=100, fmt=".2f"),
-        "non_singleton_leaf_frac_K": dict(title="Leaves in non-singleton MCCs (% of K)", cmap="magma", vmin=0, vmax=100, fmt=".2f"),
-        "mcc_max": dict(title="Largest MCC size (n leaves)", cmap="viridis", vmin=0, vmax=None, fmt=".0f"),
+        "n_mcc": dict(
+            title="Number of MCCs", cmap="viridis", vmin=0, vmax=None, fmt=".0f"
+        ),
+        "largest_mcc_frac_K": dict(
+            title="Largest MCC (% of K)", cmap="magma", vmin=0, vmax=None, fmt=".2f"
+        ),
+        "singleton_frac_K": dict(
+            title="Singleton leaves (% of K)", cmap="magma", vmin=0, vmax=100, fmt=".2f"
+        ),
+        "non_singleton_leaf_frac_K": dict(
+            title="Leaves in non-singleton MCCs (% of K)",
+            cmap="magma",
+            vmin=0,
+            vmax=100,
+            fmt=".2f",
+        ),
+        "mcc_max": dict(
+            title="Largest MCC size (n leaves)",
+            cmap="viridis",
+            vmin=0,
+            vmax=None,
+            fmt=".0f",
+        ),
     }
 
     for metric, opts in metrics.items():
@@ -85,6 +111,7 @@ def main():
             vmax=opts["vmax"],
             fmt=opts["fmt"],
         )
+
 
 if __name__ == "__main__":
     main()

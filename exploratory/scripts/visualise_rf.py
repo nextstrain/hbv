@@ -27,7 +27,7 @@ for _, r in df.iterrows():
     M[i, j] = r.rf_normalized
     M[j, i] = r.rf_normalized  # mirror
 
-fig, ax = plt.subplots(figsize=(0.8*n, 0.8*n))
+fig, ax = plt.subplots(figsize=(0.8 * n, 0.8 * n))
 im = ax.imshow(M, vmin=0, vmax=1)
 
 # ticks
@@ -38,11 +38,11 @@ ax.set_yticklabels(segs)
 
 # overlay numbers (only upper triangle)
 for i in range(n):
-    for j in range(i+1, n):
+    for j in range(i + 1, n):
         if not np.isnan(M[i, j]):
-            ax.text(j, i, f"{M[i,j]:.2f}", ha="center", va="center", fontsize=8)
+            ax.text(j, i, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=8)
 
-plt.title("Normalised Robinson-Foulds-Distance: \n (RF/RF_max)",fontsize=7)
+plt.title("Normalised Robinson-Foulds-Distance: \n (RF/RF_max)", fontsize=7)
 plt.colorbar(im, ax=ax, label="RF Normalised")
 plt.tight_layout()
 plt.savefig(out_pdf)

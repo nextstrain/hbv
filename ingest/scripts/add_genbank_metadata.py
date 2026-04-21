@@ -28,12 +28,12 @@ def main():
     args = ap.parse_args()
 
     meta = pd.read_csv(args.metadata, sep="\t", dtype=str)
-    gb   = pd.read_csv(args.metadata_genbank, sep="\t", dtype=str)
+    gb = pd.read_csv(args.metadata_genbank, sep="\t", dtype=str)
 
     key = args.accession_col
 
     meta = meta[meta[key].notna() & (meta[key] != "")]
-    gb   = gb[gb[key].notna() & (gb[key] != "")]
+    gb = gb[gb[key].notna() & (gb[key] != "")]
 
     meta_ids = set(meta[key].astype(str))
     gb_ids = set(gb[key].astype(str))
@@ -70,6 +70,7 @@ def main():
     out["url"] = "https://www.ncbi.nlm.nih.gov/nuccore/" + out[key].astype(str)
 
     out.to_csv(args.out, sep="\t", index=False)
+
 
 if __name__ == "__main__":
     main()
