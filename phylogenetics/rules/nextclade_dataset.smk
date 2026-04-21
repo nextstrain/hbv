@@ -1,4 +1,19 @@
+"""
+Rules for assembling and testing the HBV Nextclade dataset.
+"""
+
 from os.path import join
+
+
+def describe_nextclade_tree_build(tree_build):
+    parts = tree_build.split("/")
+    if len(parts) >= 3 and parts[-1].endswith(".json"):
+        build_mode = parts[0]
+        tree_name = parts[-1].removesuffix(".json")
+        if parts[1].endswith("_global"):
+            return f"`{build_mode}` build using the `{tree_name}`-masked global tree"
+        return f"`{build_mode}` build using `{tree_name}`"
+    return f"build `{tree_build}`"
 
 rule generate_example_sequences:
     input:
@@ -42,6 +57,9 @@ rule assemble_dataset:
         reference=  DATASET_DIR + "reference.fasta",
         sequences=  DATASET_DIR + "sequences.fasta",
         pathogen =  DATASET_DIR + "pathogen.json"
+    params:
+        tree_build=config["nextclade_tree_build"],
+        tree_description=describe_nextclade_tree_build(config["nextclade_tree_build"])
     shell:
         """
         cp {input.tree} {output.tree}
@@ -49,7 +67,15 @@ rule assemble_dataset:
         cp {input.reference} {output.reference}
         cp {input.sequences} {output.sequences}
         cp {input.pathogen} {output.pathogen}
-        printf "# Example dataset for HepB virus\n\nDataset for Hepatitis B Virus. Work in progress. \n\nNote that alignment parameters are set to those suggested for highly diverse viruses and not adapted for HBV specifically." > {output.readme}
+        cat > {output.readme} <<'EOF'
+# Example dataset for Hepatitis B virus (HBV)
+
+Dataset for Hepatitis B virus. Work in progress.
+
+Source tree: {params.tree_description} (`{params.tree_build}`).
+
+Note that alignment parameters are set to those suggested for highly diverse viruses and not adapted for HBV specifically.
+EOF
         printf "## Unreleased\n\nInitial release.\n" > {output.changelog}
         """
 
@@ -74,13 +100,12 @@ rule test_dataset:
             --output-all {output.outdir}
         """
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
-#______________________________________________________________________________________________________________________________________________________________________________________________
+# Optional deployment helpers for the generated dataset.
 
 # TODO: UPLOAD DATASETS TO NEXTSTRAIN.ORG
 
-# Does not run by default as part of rule all
 rule deploy_to_nextstrain_staging:
+    """Does not run by default as part of rule all."""
     input:
         rules.all.input
     shell:

@@ -1,4 +1,9 @@
+"""
+Rules for exporting Auspice JSON and copying the final viewer entry points.
+"""
+
 rule augur_export:
+    """Export a non-stitched build as an Auspice JSON dataset."""
     wildcard_constraints:
         gene="P|S|C|X"
     input:
@@ -29,6 +34,7 @@ rule augur_export:
         """
 
 rule export_stitched:
+    """Export a stitched global build as an Auspice JSON dataset."""
     wildcard_constraints:
         gene="P|S|C|X"
     input:
@@ -61,7 +67,7 @@ rule export_stitched:
             --include-root-sequence-inline
         """
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
+# Create final Auspice dataset entry points.
 
 rule create_auspice_view_main_clades:
     input:

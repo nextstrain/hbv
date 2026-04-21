@@ -1,4 +1,9 @@
+"""
+Rules for assigning clades and subclades to stitched and non-stitched trees.
+"""
+
 rule clades_stitched:
+    """Assign major clades on the stitched global trees."""
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
@@ -27,6 +32,7 @@ rule clades_stitched:
          """
 
 rule sub_clades_stitched:
+    """Assign subclades on the stitched global trees, with major clades as fallback annotations."""
     input:
         tree = STITCHED_DIR + "/{gene}_tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
@@ -60,9 +66,8 @@ rule sub_clades_stitched:
           {params.branch_display_flag}
         """
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
-
 rule clades_non_stitched:
+    """Assign major clades for non-stitched builds."""
     input:
         tree = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
@@ -91,6 +96,7 @@ rule clades_non_stitched:
         """
 
 rule sub_clades_non_stitched:
+    """Assign subclades for non-stitched builds, with major clades as fallback annotations."""
     input:
         tree = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
         metadata = "data/filtered/metadata.len_filtered.tsv",
