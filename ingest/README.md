@@ -29,7 +29,9 @@ This produces a number of intermediate files in `data/` as well as three files i
 #### GenBank data as inputs
 
 GenBank sequences and metadata are fetched via a NCBI Entrez query.
-As of mid 2024 there are around ~11.5k genomes and the full GenBank file is ~150Mb.
+As of April 21, 2026, the default `Hepatitis B virus[Organism]` query returns about 138k nucleotide records. About 16.6k of these are longer than 3000 nt, and about 11.7k match a `complete genome` query.
+
+> NOTE: Genotype and subgenotype annotations are extracted manually from free-text GenBank annotation. The current parsing script is likely still too harsh for some common note formats and should be reviewed again before relying on these fields.
 
 Raw NCBI- and Entrez-derived inputs are organized under:
 
@@ -51,7 +53,7 @@ Curated and post-curation outputs are organized under:
 
 #### Genomes rotated to use a consistent origin
 
-There is a jupyter notebook exploring the process behind this - see `../legacy/notebooks/alignment-qc.ipynb`
+There is a jupyter notebook exploring the process behind this - see `../legacy/notebooks/alignment-qc.ipynb` (using old reference!)
 
 #### Accuracy of Nextclade inference
 
@@ -64,13 +66,13 @@ Preliminary stats can be seen in `ingest/data/qc/metadata_summary.txt` after an 
 ### Development mode
 
 Set `dev: true` in `defaults/config.yaml` to generate a small development-only
-sample at `data/dev/ncbi_records.dev_sample.ndjson`.
+cohort controlled by `dev_n_ingest`.
 
 Downstream curation always reads `data/active/ncbi_records.ndjson`:
 
-- with `dev: true`, the active NDJSON is built from the development sample
-- with `dev: true`, the Entrez/GenBank fetch is restricted to accessions present
-  in the active NCBI development sample
+- with `dev: true`, ingest builds a small Entrez/GenBank development cohort and
+  uses subgenotype-focused queries for genotypes A, B, C, D, F, and I
+- with `dev: true`, the active NDJSON is then filtered to those accessions
 - with `dev: false`, the active NDJSON is built from the full raw NCBI NDJSON in
   `data/raw/ncbi/ncbi_records.ndjson`
 
