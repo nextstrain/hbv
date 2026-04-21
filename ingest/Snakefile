@@ -6,6 +6,19 @@ and defines its default outputs.
 # Use default configuration values. Override with Snakemake's --configfile/--config options.
 configfile: "defaults/config.yaml"
 
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return bool(value)
+
+
+DEV_MODE = parse_bool(config.get("dev", False))
+COMPLETE_GENOMES_ONLY = parse_bool(config.get("entrez_complete_genomes_only", False))
+SUBSET_ACTIVE_NCBI = DEV_MODE or COMPLETE_GENOMES_ONLY
+
 # This is the default rule that Snakemake will run when there are no specified targets.
 # The default output of the ingest workflow is usually the curated metadata and sequences.
 # Nextstrain-maintained ingest workflows will produce metadata files with the
@@ -14,7 +27,6 @@ configfile: "defaults/config.yaml"
 # the customizations you will need for the downstream phylogenetic workflow.
 rule all:
     input:
-        #"data/ncbi.subset3.ndjson",
         "results/aligned.fasta",
         "results/sequences.fasta",
         "results/metadata.tsv",

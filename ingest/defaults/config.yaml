@@ -6,8 +6,12 @@
 reference_accession: "NC_003977"
 reference_genbank: "defaults/NC_003977.gb"
 
-# entrez_query: 'Hepatitis+B+virus[All+Fields]complete+genome[All+Fields]' # For complete genomes only
 entrez_query: 'Hepatitis B virus[Organism]'   # For all genomes
+# Restrict the Entrez branch to records annotated as complete genomes.
+# Development mode enables this automatically regardless of the setting here.
+# When enabled outside development mode, the active NCBI NDJSON is also subset
+# to the fetched Entrez accession set.
+entrez_complete_genomes_only: false
 
 # Path to the nextclade dataset, which will be used to align all sequences
 nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
@@ -18,19 +22,23 @@ genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']
 
 ncbi_taxon_id: 3431302
 
+verbose: true
+
 # Development mode:
-# - when `dev: true`, ingest creates a small development-only NDJSON sample at
-#   `data/dev/ncbi_records.dev_sample.ndjson`
 # - curate always reads `data/active/ncbi_records.ndjson`
-# - `dev_n_ingest` controls the active NCBI dev sample size
-# - the NCBI sample always keeps the configured reference accession when present
-#   and then adds the first `dev_n_ingest` records from the raw NCBI NDJSON
-# - the Entrez/GenBank fetch is restricted to the accessions present in the
-#   active NCBI dev sample
-# - when `dev: false`, the active NDJSON is copied directly from the full raw
-#   NCBI NDJSON
+# - when `dev: true`, ingest first fetches the first `dev_n_ingest` Entrez
+#   GenBank records from the query result
+# - development-mode Entrez fetching always restricts to `complete genome`
+#   records, regardless of `entrez_complete_genomes_only`
+# - the parsed accessions from that Entrez sample are written to
+#   `data/active/active_entrez_accessions.txt`
+# - the active NCBI NDJSON is then filtered to those accessions so the NCBI and
+#   Entrez branches use the same development cohort
+# - when `dev: false`, the active NDJSON is still subset if
+#   `entrez_complete_genomes_only: true`; otherwise it is copied directly from
+#   the full raw NCBI NDJSON and Entrez runs on the full query
 dev: false
-dev_n_ingest: 2000
+dev_n_ingest: 100
 
 ncbi_datasets_fields:
   - accession
@@ -106,8 +114,6 @@ curate:
   authors_default_value: "?"
   # Name to use for the generated abbreviated authors field
   abbr_authors_field: "authors"
-  # Path to fieldmap to infer MuV_genotype from NCBI Taxon ID
-  #mumps_genotype_map: "MuV_genotype_map.tsv"
   # Path to the manual annotations file
   # The path should be relative to the working directory (e.g. --directory).
   # If the path doesn't exist in the working directory, the file in the workflow's defaults/ directory it used instead (if it exists).
