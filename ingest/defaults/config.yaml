@@ -1,13 +1,12 @@
 # This configuration file should contain all required configuration parameters
 # for the ingest workflow to run to completion.
 
+#__________________________________________________________________________________________________________ REFERENCE / DATASET __________________________________________________________________________________________________________
+
 # Used to re-circularise genomes. This should be the same as the reference in the nextclade dataset!
 # Also force-included for a number of datasets
 reference_accession: "NC_003977"
 reference_genbank: "defaults/NC_003977.gb"
-
-# entrez_query: 'Hepatitis+B+virus[All+Fields]complete+genome[All+Fields]' # For complete genomes only
-entrez_query: 'Hepatitis B virus[Organism]'   # For all genomes
 
 # Path to the nextclade dataset, which will be used to align all sequences
 nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
@@ -16,11 +15,22 @@ nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-
 # These should be the entire list of CDSs in the nextclade dataset's genemap
 genes: ['envS', 'envM', 'envL', 'X', 'pre-capsid', 'capsid', 'pol']
 
+#__________________________________________________________________________________________________________ FETCH SETTINGS __________________________________________________________________________________________________________
+
+# Entrez query used for the GenBank branch.
+entrez_query: 'Hepatitis B virus[Organism]'   # For all genomes
+# Restrict the Entrez branch to records annotated as complete genomes.
+# Development mode enables this automatically regardless of the setting here.
+# When enabled outside development mode, the active NCBI NDJSON is also subset
+# to the fetched Entrez accession set.
+entrez_complete_genomes_only: false
+
+# NCBI taxon used for the Datasets package download.
 ncbi_taxon_id: 3431302
 
-dev: false
-dev_n: 100
+#__________________________________________________________________________________________________________ NCBI DATASETS FIELDS __________________________________________________________________________________________________________
 
+# Fields requested from the NCBI Datasets report before curate field remapping.
 ncbi_datasets_fields:
   - accession
   - isolate-lineage
@@ -38,6 +48,29 @@ ncbi_datasets_fields:
   - submitter-country
   - virus-name
   - virus-tax-id
+
+#__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
+
+# Enable helper-script logging during ingest runs.
+verbose: true
+
+# Development mode:
+# - curate always reads `data/active/ncbi_records.ndjson`
+# - when `dev: true`, ingest first fetches the first `dev_n_ingest` Entrez
+#   GenBank records from the query result
+# - development-mode Entrez fetching always restricts to `complete genome`
+#   records, regardless of `entrez_complete_genomes_only`
+# - the parsed accessions from that Entrez sample are written to
+#   `data/active/active_entrez_accessions.txt`
+# - the active NCBI NDJSON is then filtered to those accessions so the NCBI and
+#   Entrez branches use the same development cohort
+# - when `dev: false`, the active NDJSON is still subset if
+#   `entrez_complete_genomes_only: true`; otherwise it is copied directly from
+#   the full raw NCBI NDJSON and Entrez runs on the full query
+dev: false
+dev_n_ingest: 100
+
+#__________________________________________________________________________________________________________ CURATE PIPELINE __________________________________________________________________________________________________________
 
 # Config parameters related to the curate pipeline
 curate:
@@ -95,8 +128,6 @@ curate:
   authors_default_value: "?"
   # Name to use for the generated abbreviated authors field
   abbr_authors_field: "authors"
-  # Path to fieldmap to infer MuV_genotype from NCBI Taxon ID
-  #mumps_genotype_map: "MuV_genotype_map.tsv"
   # Path to the manual annotations file
   # The path should be relative to the working directory (e.g. --directory).
   # If the path doesn't exist in the working directory, the file in the workflow's defaults/ directory it used instead (if it exists).

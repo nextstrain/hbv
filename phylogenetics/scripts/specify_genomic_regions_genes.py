@@ -1,3 +1,8 @@
+"""Write phylogenetics gene intervals from the reference GenBank annotation.
+
+Handle wrapped coordinates on the circular HBV genome for the C, P, S, and X genes.
+"""
+
 from Bio import SeqIO
 import sys
 
@@ -17,14 +22,14 @@ for f in rec.features:
 
     if len(parts) == 1:
         start = int(parts[0].start) + 1
-        end   = int(parts[0].end)
+        end = int(parts[0].end)
     else:
         # exactly 2 parts, one starts at 0
         p0, p1 = parts
         tail = p0 if int(p0.start) > int(p1.start) else p1
         head = p1 if tail is p0 else p0
         start = int(tail.start) + 1
-        end   = int(head.end)
+        end = int(head.end)
 
     genes[name] = (start, end)
 

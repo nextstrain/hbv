@@ -1,3 +1,8 @@
+"""Compare tip-to-tip distances across multiple regional trees.
+
+Sample tip pairs, compute patristic or topological correlations, and write summary plots.
+"""
+
 import argparse
 import os
 import random
@@ -7,25 +12,28 @@ import numpy as np
 from Bio import Phylo
 from math import ceil
 from scipy.stats import pearsonr
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
 
 def read_tree(path: str):
     return Phylo.read(path, "newick")
 
+
 def tip_names(tree):
     return {t.name for t in tree.get_terminals() if t.name is not None}
 
+
 def prune_to_set(tree, keep):
-    # prune all leaves not in keep
     to_prune = [t for t in tree.get_terminals() if t.name not in keep]
     for t in to_prune:
         tree.prune(t)
+
 
 def select_random_pairs(names, n_pairs, rng):
     names = sorted(names)
     if len(names) < 2:
         raise ValueError("Need at least 2 tips to form pairs")
     return [tuple(rng.sample(names, 2)) for _ in range(n_pairs)]
+
 
 def calculate_distances_both(trees, pairs):
     pat_all, topo_all = [], []
@@ -40,38 +48,50 @@ def calculate_distances_both(trees, pairs):
 
             # topological (edges)
             m = tree.common_ancestor(a, b)
-            topo.append(len(tree.get_path(a)) + len(tree.get_path(b)) - 2 * len(tree.get_path(m)))
+            topo.append(
+                len(tree.get_path(a))
+                + len(tree.get_path(b))
+                - 2 * len(tree.get_path(m))
+            )
 
         pat_all.append(pat)
         topo_all.append(topo)
     return pat_all, topo_all
 
-def calculate_correlation(values_per_tree, pairs, out_csv, labels, metric, top_frac=0.05):
+
+def calculate_correlation(
+    values_per_tree, pairs, out_csv, labels, metric, top_frac=0.05
+):
 
     n = len(values_per_tree)
-    if n == 0: raise ValueError("values_per_tree is empty")
+    if n == 0:
+        raise ValueError("values_per_tree is empty")
 
     for k, v in enumerate(values_per_tree):
-        if len(v) != len(pairs): raise ValueError(f"Tree {k}: expected {len(pairs)} values (len(pairs)), got {len(v)}")
+        if len(v) != len(pairs):
+            raise ValueError(
+                f"Tree {k}: expected {len(pairs)} values (len(pairs)), got {len(v)}"
+            )
 
     # --- correlation matrix ---
     corr_matrix = np.zeros((n, n), dtype=float)
     for i in range(n):
         for j in range(i, n):
-            if i == j: corr = 1.0
+            if i == j:
+                corr = 1.0
             else:
                 r = pearsonr(values_per_tree[i], values_per_tree[j])[0]
                 corr = 0.0 if (r != r) else float(r)  # NaN -> 0
             corr_matrix[i, j] = corr
             corr_matrix[j, i] = corr
 
-    if metric=="topo":
+    if metric == "topo":
         return corr_matrix
 
     # --- outliers for EACH tree pair (i<j), one CSV per pair, only for patristic distance ---
     for i in range(n):
         x = np.asarray(values_per_tree[i], dtype=float)
-        for j in range(i+1, n):
+        for j in range(i + 1, n):
             y = np.asarray(values_per_tree[j], dtype=float)
 
             # best-fit line y = a*x + b
@@ -84,24 +104,32 @@ def calculate_correlation(values_per_tree, pairs, out_csv, labels, metric, top_f
             k = max(1, int(ceil(top_frac * len(pairs))))
             idx = np.argsort(-orth)[:k]
 
-            out_csv_ij = os.path.join(
-                out_csv,
-                f"{labels[i]}_vs_{labels[j]}.csv"
-            )
+            out_csv_ij = os.path.join(out_csv, f"{labels[i]}_vs_{labels[j]}.csv")
 
             rows = []
             for t in idx:
                 n1, n2 = pairs[t]
-                rows.append((n1, n2, round(x[t], 2), round(y[t], 2), round((orth[t]),2)))
+                rows.append(
+                    (n1, n2, round(x[t], 2), round(y[t], 2), round((orth[t]), 2))
+                )
 
             rows.sort(key=lambda r: r[-1], reverse=True)
 
             with open(out_csv_ij, "w", newline="") as f:
                 w = csv.writer(f)
-                w.writerow(["tip1", "tip2", f"dist_{labels[i]}", f"dist_{labels[j]}", "orthogonal_distance"])
+                w.writerow(
+                    [
+                        "tip1",
+                        "tip2",
+                        f"dist_{labels[i]}",
+                        f"dist_{labels[j]}",
+                        "orthogonal_distance",
+                    ]
+                )
                 w.writerows(rows)
 
     return corr_matrix
+
 
 def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
 
@@ -115,15 +143,18 @@ def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
     ax.set_xticklabels(labels, rotation=45, ha="right")
     ax.set_yticklabels(labels)
 
-    ax.tick_params(top=True, bottom=False,
-                   labeltop=True, labelbottom=False)
+    ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
 
     for i in range(len(labels)):
         for j in range(len(labels)):
-            ax.text(j, i, f"{corr_matrix[i, j]:.2f}",
-                    ha="center", va="center", fontsize=8)
-    metric="Patristic" if metric=="patristic" else "Topological"
-    ax.set_title(f"Pairwise tip-distance correlation (n = {n_pairs} pairs), metric={metric}.", pad=20)
+            ax.text(
+                j, i, f"{corr_matrix[i, j]:.2f}", ha="center", va="center", fontsize=8
+            )
+    metric = "Patristic" if metric == "patristic" else "Topological"
+    ax.set_title(
+        f"Pairwise tip-distance correlation (n = {n_pairs} pairs), metric={metric}.",
+        pad=20,
+    )
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label("Pearson correlation")
@@ -131,6 +162,7 @@ def save_corr_heatmap(corr_matrix, labels, n_pairs, out_png, metric):
     plt.tight_layout()
     plt.savefig(out_png, dpi=300)
     plt.close()
+
 
 def plot_correlation_grid(values, labels, metric, out_pdf):
     n = len(values)
@@ -146,7 +178,9 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
 
     # --- hexbin grid (reserve right margin for shared colorbar) ---
     fig_hex, axes_hex = plt.subplots(n, n, figsize=(2 * n, 2 * n))
-    fig_hex.subplots_adjust(left=0.06, right=0.86, bottom=0.06, top=0.92, wspace=0.35, hspace=0.35)
+    fig_hex.subplots_adjust(
+        left=0.06, right=0.86, bottom=0.06, top=0.92, wspace=0.35, hspace=0.35
+    )
 
     hbs = []
 
@@ -172,19 +206,16 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
             ax_ij.set_ylabel(labels[i])
             ax_ij.tick_params(labelsize=10)
             fig_ij.savefig(
-                os.path.join(out_dir_scatter, f"{metric}_{labels[i]}_vs_{labels[j]}.pdf"),
-                bbox_inches="tight"
+                os.path.join(
+                    out_dir_scatter, f"{metric}_{labels[i]}_vs_{labels[j]}.pdf"
+                ),
+                bbox_inches="tight",
             )
             plt.close(fig_ij)
 
             # ------------------ hexbin grid ------------------
             axh = axes_hex[i, j]
-            hb = axh.hexbin(
-                x, y,
-                gridsize=40,
-                bins="log",
-                mincnt=1
-            )
+            hb = axh.hexbin(x, y, gridsize=40, bins="log", mincnt=1)
             hbs.append(hb)
 
             axh.tick_params(labelsize=8)
@@ -195,12 +226,7 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
 
             # ---- individual hexbin plot with its own colorbar ----
             fig_h, ax_h = plt.subplots(figsize=(4, 4))
-            hb2 = ax_h.hexbin(
-                x, y,
-                gridsize=60,
-                bins="log",
-                mincnt=1
-            )
+            hb2 = ax_h.hexbin(x, y, gridsize=60, bins="log", mincnt=1)
             ax_h.set_xlabel(labels[j])
             ax_h.set_ylabel(labels[i])
             ax_h.tick_params(labelsize=10)
@@ -211,7 +237,7 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
 
             fig_h.savefig(
                 os.path.join(out_dir_hex, f"{metric}_{labels[i]}_vs_{labels[j]}.pdf"),
-                bbox_inches="tight"
+                bbox_inches="tight",
             )
             plt.close(fig_h)
 
@@ -232,17 +258,22 @@ def plot_correlation_grid(values, labels, metric, out_pdf):
     plt.close(fig)
 
     # --- save hexbin grid (NO tight_layout) ---
-    fig_hex.suptitle(f"{metric} distance hexbin matrix (log density). Log-10 transformed.")
+    fig_hex.suptitle(
+        f"{metric} distance hexbin matrix (log density). Log-10 transformed."
+    )
     fig_hex.savefig(out_base + "_hexbin.pdf", bbox_inches="tight")
     plt.close(fig_hex)
+
 
 def main():
     ap = argparse.ArgumentParser(
         description="Keep only shared tips across Newick trees, sample random tip pairs, correlate distances between trees."
     )
     ap.add_argument("trees", nargs="+", help="Input .nwk tree files")
-    ap.add_argument("sample_pairs", type=int, help="Number of random tip pairs to sample")
-    ap.add_argument("outdir", default="results/correlation_analysis", help="output directory")
+    ap.add_argument(
+        "sample_pairs", type=int, help="Number of random tip pairs to sample"
+    )
+    ap.add_argument("outdir", help="output directory")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -273,17 +304,31 @@ def main():
     os.makedirs(os.path.join(outdir, "outliers"), exist_ok=True)
 
     for metric, values_per_tree in (("patristic", pat_dists), ("topo", topo_dists)):
+        corr_matrix = calculate_correlation(
+            values_per_tree,
+            pairs,
+            out_csv=os.path.join(outdir, "outliers"),
+            top_frac=0.05,
+            labels=labels,
+            metric=metric,
+        )
 
-        corr_matrix = calculate_correlation(values_per_tree,pairs, out_csv=os.path.join(outdir, "outliers"), top_frac=0.05, labels=labels, metric=metric)
-
-        tsv_out = os.path.join(outdir, "corr_matrix", f"pw_tip_distance_correlation_matrix.{metric}.tsv")
-        png_out = os.path.join(outdir, "corr_matrix", f"pw_tip_distance_correlation_matrix.{metric}.png")
+        tsv_out = os.path.join(
+            outdir, "corr_matrix", f"pw_tip_distance_correlation_matrix.{metric}.tsv"
+        )
+        png_out = os.path.join(
+            outdir, "corr_matrix", f"pw_tip_distance_correlation_matrix.{metric}.png"
+        )
 
         with open(tsv_out, "w") as f:
             header = "\t" + "\t".join(os.path.basename(p) for p in args.trees)
             print(header, file=f)
             for i, row in enumerate(corr_matrix):
-                line = os.path.basename(args.trees[i]) + "\t" + "\t".join(f"{v:.4f}" for v in row)
+                line = (
+                    os.path.basename(args.trees[i])
+                    + "\t"
+                    + "\t".join(f"{v:.4f}" for v in row)
+                )
                 print(line, file=f)
 
         save_corr_heatmap(corr_matrix, labels, args.sample_pairs, png_out, metric)
@@ -296,6 +341,7 @@ def main():
             metric=metric,
             out_pdf=grid_out,
         )
+
 
 if __name__ == "__main__":
     main()

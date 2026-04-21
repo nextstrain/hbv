@@ -1,14 +1,22 @@
-workflow: nextstrain
+#__________________________________________________________________________________________________________ WORKFLOW / REFERENCE / AUSPICE __________________________________________________________________________________________________________
 
 # All HBV genes
 genes: ["P", "S", "C", "X"]
+
+# Workflow selector for the main Nextstrain build.
+workflow: nextstrain
+# Enable workflow/helper verbosity.
+verbose: true
 
 # Reference sequence
 reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
+  # FASTA used where augur expects a plain-sequence root input.
+  fasta: ../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta
   gff: "defaults/NC_003977.2_version_2026.gff"
 
+# Auspice export settings for the main workflow outputs.
 auspice:
   auspice_config: "defaults/nextstrain/auspice_config_nextstrain.json"
   color_by_metadata:
@@ -22,18 +30,20 @@ auspice:
 #__________________________________________________________________________________________________________ FILTERING CRITERIA __________________________________________________________________________________________________________
 
 sampling:
-  augur_custom_filter: 'year > "1977" & (is_lab_host != True) & host == "Homo sapiens"'  # First sequenced genome is 1978, not sure if the earlier ones are old samples and relieable
+  augur_custom_filter: 'year > "1977" & ((is_lab_host != True) | is_lab_host.isnull()) & host == "Homo sapiens"'  # First sequenced genome is 1978; earlier dates may reflect older samples and should be treated cautiously
   group_by:
     - region
     - year
 
-# Defines whether we filter by sequence completeness (length) and which thresholds to use. DO NOT use small genes in ancestr^al reconstruction if length filtering is not strict.
+# Defines whether we filter by sequence completeness (length) and which thresholds to use. DO NOT use small genes in ancestral reconstruction if length filtering is not strict.
 length_filtering:
   use_as_filter: true
   min_length: 3000
   max_length: 3400
 
-# Defines whether only sequenes with a known subgenotype will be sampled for the phylogeny and nextclade dataset
+#__________________________________________________________________________________________________________ CLADE HANDLING / PRUNING __________________________________________________________________________________________________________
+
+# Defines whether only sequences with a known subgenotype will be sampled for the phylogeny and Nextclade dataset
 subgenotype_filtering_fulltree: true
 subgenotype_filtering_singleclade: false
 
@@ -41,7 +51,9 @@ subgenotype_filtering_singleclade: false
 long_branch_threshold:  0.25  # 0.3
 tip_branch_threshold: 0.1  #0.1 # 0.1 works for pretty clean tree to still see some recent recombinants.
 
+# Whether to drop records when GenBank and Nextclade genotype assignments disagree.
 filter_genbank_vs_nextclade: true
+# Whether to reuse exclude files collected from previous runs.
 filter_previously_excluded: false
 
 # There are 2 ways to filter messy subgenotype annotation so that trees appear cleaner:
@@ -59,17 +71,26 @@ clade_settings:
   min_count_per_subclade: 5
   min_count_mode: "use_for_pruning" # chose from ["use_for_branch_display", "use_for_annotation","use_for_pruning"]  -> monophyletic clades of any subtype of size <min_count are either just not displayed with branch-labels, annotated as "other", or pruned completely from the tree
   branch_display_only_largest: false # if only_monophyletic is true: branch labels for non-monophyletic subtypes are per default (False) displayed for ALL monophyletic clades of a subtype. Change to True to display labels ONCE only for the largest monophyletic clade.
-#________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-# n is number of sequences to use (build-specific), Development mode defines supplementary targets, dev_n is number of sequences per build to use in dev mode
-n_totaltree: 3000
-n_stitched_parts: 800
-dev: true
-dev_n_ingest: 300
-dev_n_totaltree: 100
-dev_n_stitched_parts: 50
+#__________________________________________________________________________________________________________ BUILD SIZES __________________________________________________________________________________________________________
 
-# Defines which exact transcript to use for the acestral reconstruction,
+# Sequence limits used by augur filter. `n_stitched_parts` applies to stitched per-genotype builds; `n_nonstitched_builds` applies to basic and single-clade builds. The `dev_*` values override these limits in development mode.
+n_nonstitched_builds: 15000
+n_stitched_parts: 1000
+
+#__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
+
+# Development mode overrides build-size limits and uses the development ancestral gene set.
+dev: false 
+# Number of sequences to use in development-mode non-stitched builds.
+dev_n_nonstitched_builds: 2000
+# Number of sequences to use per stitched part in development mode.
+dev_n_stitched_parts: 800
+
+#__________________________________________________________________________________________________________ ANCESTRAL RECONSTRUCTION / GENE MASKS __________________________________________________________________________________________________________
+
+
+# Defines which exact transcript to use for the ancestral reconstruction.
 gene_products_for_ancestral:
   S: "envL"                    #can be either: "envL", "envM" or "envS"
   C: "pre-capsid"              #can be either: "pre-capsid" or "capsid"
@@ -83,11 +104,13 @@ gene_mask: ["P"]
 #__________________________________________________________________________________________________________ TARGETS / BUILDS __________________________________________________________________________________________________________
 
 # Defines which genotypes to include in the single build phylogeny
-#single_build_genotypes: ["A","B","C","D","F", "I"]
 single_build_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
 
-# TODO FOR SOME STRAINS ALL SEQUENCES GET FILTERED, and check if problem is somewhere else potentially
+# Warning: with small n, rare genotypes may be filtered out completely after the
+# metadata, length, and subtype filters. Avoid including rare genotypes in small builds.
 all_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
-#all_genotypes: ["A", "B", "C", "D", "E"]
 
+#__________________________________________________________________________________________________________ DEPLOY __________________________________________________________________________________________________________
+
+# Deploy target for published/staging builds.
 deploy_destination: 's3://nextstrain-staging'

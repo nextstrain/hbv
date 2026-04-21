@@ -1,9 +1,15 @@
-configfile: "defaults/config.yaml"
+"""
+HBV exploratory workflow.
 
-#    Expcted inputs from ingest:
-#        sequences="../ingest/results/sequences.fasta",
-#        metadata="../ingest/results/metadata.tsv",
-#        alignment="../ingest/results/aligned.fasta",
+Expected ingest inputs:
+- ../ingest/results/sequences.fasta
+- ../ingest/results/metadata.tsv
+- ../ingest/results/aligned.fasta
+"""
+
+import os
+
+configfile: "defaults/config.yaml"
 
 def region_names(path):
     names = []
@@ -22,13 +28,40 @@ def make_tag(regions):
         return "segments1-8"
     return "_".join(regions)
 
+def make_result_group(regions):
+    if set(regions) == {"C","P","S","X"}:
+        return "genes"
+    if set(regions) == {"segment1","segment2","segment3","segment4","segment5","segment6","segment7","segment8"}:
+        return "segments"
+    return "_".join(regions)
+
+def as_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+if not workflow.overwrite_configfiles:
+    print(
+        "No config provided, using defaults/config.yaml (genes by default).\n"
+        "For segment comparison run: snakemake comparison_targets --configfile defaults/config.segments.yaml\n"
+        "For gene comparison run explicitly: snakemake comparison_targets --configfile defaults/config.genes.yaml"
+    )
+
 REGION_NAMES = region_names(config["genomic_regions"])
 REGION_TAG = "_".join(REGION_NAMES)
+RESULT_GROUP = make_result_group(REGION_NAMES)
+RESULTS = f"results/{RESULT_GROUP}"
 OUTDIR = "data/regions"
 GENES = {"X", "P", "S", "C"}
 PAIRS = [(REGION_NAMES[i], REGION_NAMES[j])
          for i in range(len(REGION_NAMES))
          for j in range(i+1, len(REGION_NAMES))]
+DEV_MODE = as_bool(config.get("dev_mode", False))
+FILTERED_SEQUENCES = "data/filtered/sequences.dev_sample.fasta" if DEV_MODE else "data/filtered/sequences.len_filtered.fasta"
+FILTERED_ALIGNMENT = "data/filtered/alignment.dev_sample.fasta" if DEV_MODE else "data/filtered/alignment.len_filtered.fasta"
+FILTERED_METADATA = "data/filtered/metadata.dev_sample.tsv" if DEV_MODE else "data/filtered/metadata.len_filtered.tsv"
 
 rule all:
     input:
@@ -37,7 +70,7 @@ rule all:
         tree_json     = expand(f"{OUTDIR}" + "/{name}/{name}.json", name=REGION_NAMES),
         auspice_json  = expand("auspice_datasets/{name}.json", name=REGION_NAMES),
         node_data     = expand(f"{OUTDIR}/{{name}}/{{name}}.ancestral.json", name=REGION_NAMES),
-        joint_exclude ="defaults/exclude.txt",
+        joint_exclude ="defaults/phylogenetics/exclude.txt",
 
 rule copy:
     input:
@@ -89,13 +122,41 @@ rule length_filter:
         rm -f "$kept_ids"
         """
 
+rule dev_subsample_tree_inputs:
+    input:
+        sequences = "data/filtered/sequences.len_filtered.fasta",
+        alignment = "data/filtered/alignment.len_filtered.fasta",
+        metadata = "data/filtered/metadata.len_filtered.tsv",
+        script = "scripts/dev_subsample_tree_inputs.py",
+    output:
+        sequences = "data/filtered/sequences.dev_sample.fasta",
+        alignment = "data/filtered/alignment.dev_sample.fasta",
+        metadata = "data/filtered/metadata.dev_sample.tsv",
+    params:
+        reference_id = config["reference"]["id"],
+        sample_size = int(config.get("dev_tree_sample_size", 100)),
+        seed = int(config.get("dev_seed", 1)),
+    shell:
+        r"""
+        python {input.script} \
+            --sequences {input.sequences} \
+            --alignment {input.alignment} \
+            --metadata {input.metadata} \
+            --out-sequences {output.sequences} \
+            --out-alignment {output.alignment} \
+            --out-metadata {output.metadata} \
+            --reference-id {params.reference_id} \
+            --sample-size {params.sample_size} \
+            --seed {params.seed}
+        """
+
 # Writes segments file based on gene annotations in reference GenBank
 rule specify_genomic_regions_genes:
     input:
         ref_gb=config["reference"]["genbank"],
         script="scripts/specify_genomic_regions_genes.py",
     output:
-        regions="defaults/genomic_regions_genes.txt",
+        regions="defaults/phylogenetics/genomic_regions_genes.txt",
     shell:
         r"""
         python {input.script} {input.ref_gb} {output.regions}
@@ -103,6 +164,10 @@ rule specify_genomic_regions_genes:
 
 # Writes segments file based on previously identified breakpoints
 rule specify_genomic_regions_breakpoints:
+    """
+    Lift breakpoints from the old reference and write the derived regions file.
+    Verify that the lifted breakpoints work as intended before using them.
+    """
     input:
         ref_gb=config["reference"]["genbank"],
         script="scripts/specify_genomic_regions_breakpoints.py",
@@ -115,6 +180,7 @@ rule specify_genomic_regions_breakpoints:
         buffer=int(config["breakpoints"].get("buffer", 0)),
     shell:
         r"""
+        echo "WARNING: Verify that the lifted breakpoints work as intended before use." >&2
         python {input.script} \
           --ref-gb {input.ref_gb} \
           --old-ref {params.old_ref} \
@@ -124,15 +190,13 @@ rule specify_genomic_regions_breakpoints:
           --out {output.regions}
         """
 
-# To Do: have this segment the tsv metadata as well, including calculating new quality metrics
-# To Do: make this work for non complete sequences, i.e. additional filtering for each region if region not sufficiently covered
 rule extract_genomic_regions:
     input:
-        alignment="data/filtered/alignment.len_filtered.fasta",
+        alignment=FILTERED_ALIGNMENT,
         regions=config["genomic_regions"],
         ref_gb=config["reference"]["genbank"],
         script="scripts/extract_regions.py",
-        metadata="data/filtered/metadata.len_filtered.tsv",
+        metadata=FILTERED_METADATA,
 
     output:
         fasta=expand(f"{OUTDIR}" + "/{name}/{name}_sub-alignment.fasta", name=REGION_NAMES),
@@ -172,13 +236,15 @@ rule augur_tree:
         """
 
 rule cut_outliers:
+    """Prune long-branch outliers from each regional tree and record excluded accessions for later merging."""
     input:
         tree_nwk = f"{OUTDIR}/{{name}}/{{name}}.tree.nwk",
         metadata = f"{OUTDIR}/{{name}}/{{name}}_metadata.tsv",
     output:
         out_tree = f"{OUTDIR}/{{name}}/{{name}}.pruned.tree.nwk",
         metadata = f"{OUTDIR}/{{name}}/{{name}}_metadata.pruned.tsv",
-        exclude = f"defaults/{{name}}_excluded_accessions.txt",
+        exclude = f"defaults/phylogenetics/{{name}}_excluded_accessions.txt",
+        tip_lengths = f"{RESULTS}/phylogenetics/tip_length_distr/{{name}}.tip_length_loglog.png",
     params:
         long_branch_threshold = config["long_branch_threshold"],
         tip_branch_threshold = config["tip_branch_threshold"],
@@ -191,17 +257,19 @@ rule cut_outliers:
             --cutoff_allbranches {params.long_branch_threshold} \
             --cutoff_tips {params.tip_branch_threshold} \
             --out-tree {output.out_tree} \
-            --exclude {output.exclude}
+            --exclude {output.exclude} \
+            --tip-length-plot {output.tip_lengths}
         """
 
 rule joint_exclude_file:
+    """Merge region-specific exclude lists into one combined file used for downstream review and reference."""
     input:
-        excludes=expand(f"defaults/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
+        excludes=expand(f"defaults/phylogenetics/{{name}}_excluded_accessions.txt", name=REGION_NAMES),
     output:
-        joint_exclude="defaults/exclude.txt",
+        joint_exclude="defaults/phylogenetics/exclude.txt",
     shell:
         """
-        cat defaults/*_excluded_accessions.txt \
+        cat defaults/phylogenetics/*_excluded_accessions.txt \
         | tr -s '[:space:]' '\n' \
         | awk 'NF' \
         | sort -u \
@@ -244,29 +312,13 @@ rule ancestral:
           --output-sequences {output.sequences} \
         """
 
-# THIS DOES NOT RUN SINCE SEGMENTS ONLY PARTIALLY OVERLAP WITH CDS AND AUGUR TRANSLATE CANNOT HANDLE THAT
-#rule translate_ancestral:
-#    input:
-#        tree      = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
-#        ancestral = f"{OUTDIR}/{{name}}/{{name}}.ancestral.json",
-#        ref_gb    = f"{OUTDIR}/{{name}}/{{name}}.gb",
-#    output:
-#       aa        = f"{OUTDIR}/{{name}}/{{name}}.aa-mutations.json",
-#    run:
-#        shell(r"""
-#        augur translate \
-#          --tree {input.tree} \
-#          --ancestral-sequences {input.ancestral} \
-#          --reference-sequence {input.ref_gb} \
-#          --output-node-data {output.aa}
-#        """)
-
 rule augur_export:
+    """Export each regional tree plus ancestral data as an Auspice JSON dataset."""
     input:
         tree         = f"{OUTDIR}/{{name}}/{{name}}.refined.tree.nwk",
         node_data    = f"{OUTDIR}/{{name}}/{{name}}.ancestral.json",
         metadata     = f"{OUTDIR}" + "/{name}/{name}_metadata.pruned.tsv",
-        config       = "defaults/auspice_config.json",
+        config       = "defaults/phylogenetics/auspice_config.json",
     output:
         auspice_json = f"{OUTDIR}" + "/{name}/{name}.json",
     threads: 1
@@ -299,6 +351,7 @@ rule augur_export:
         """
 
 rule copy_auspice_view:
+    """Copy regional Auspice JSONs into the top-level exploratory viewer directory."""
     input:
         json=f"{OUTDIR}" + "/{name}/{name}.json",
     output:
@@ -308,5 +361,5 @@ rule copy_auspice_view:
         cp {input.json} {output.json}
         """
 
-# rules to compare differnt region trees to inform recombination via different metrics (partially have to be called individually)
+# Rules to compare different region trees to inform recombination via different metrics.
 include: "rules/tree_comparisons.smk"

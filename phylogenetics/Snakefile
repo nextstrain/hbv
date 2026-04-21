@@ -1,30 +1,43 @@
-#    Expcted inputs from ingest:
-#        sequences="../ingest/results/sequences.fasta",
-#        metadata="../ingest/results/metadata.tsv",
-#        alignment="../ingest/results/aligned.fasta",
-#___________________________________________________________________________________________________________________________________________________________________________________________
-from os.path import join
+"""
+HBV phylogenetics workflow.
 
-if not workflow.overwrite_configfiles:
+Expected ingest inputs:
+- ../ingest/results/sequences.fasta
+- ../ingest/results/metadata.tsv
+- ../ingest/results/aligned.fasta
+"""
+from os.path import join
+configfile: "defaults/nextstrain/config_nextstrain.yaml"
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return bool(value)
+
+
+VERBOSE = parse_bool(config.get("verbose", False))
+DEV_MODE = parse_bool(config.get("dev", False))
+
+if not workflow.overwrite_configfiles and VERBOSE:
     print(
         "No config provided, using defaults/nextstrain/config_nextstrain.yaml.\n"
         "For nextclade workflow run: snakemake --configfile defaults/nextclade/config_nextclade.yaml"
     )
-configfile: "defaults/nextstrain/config_nextstrain.yaml"
 
-if config["dev"]:
-    print("DEVELOPMENT MODE ENABLED. CHANGE IN CONFIG FILE")
-
-#___________________________________________________________________________________________________________________________________________________________________________________________
+if DEV_MODE and VERBOSE:
+    print("Development mode enabled; sampling limits and extra dev targets are active.")
 
 GENE_MASKS = config["gene_mask"]
-ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if config.get("dev", False) else config["ancestral_genes"]["prod"]
+ANCESTRAL_GENES = config["ancestral_genes"]["dev"] if DEV_MODE else config["ancestral_genes"]["prod"]
 
 ALL_GTS = config["all_genotypes"]
 SINGLE_BUILD_GENOTYPES = config["single_build_genotypes"]
 
 MODES = ["basic", "stitched", "single-clade"]
 
+# Throughout phylogenetics outputs, {gene} refers to the masked genomic region (P/S/C/X), not an HBV genotype.
 RESULTS = join("results", config["workflow"])
 STITCHED_DIR = RESULTS + "/stitched/{gene}_global"
 
@@ -51,23 +64,20 @@ if wf == "nextclade":
         "reference.fasta"
     ]
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
-
-# Single genotype trees and basic non-stitched tree only for development mode
+# Development mode also builds a small set of single-clade and full-tree targets.
 single_clade_targets = (
     expand("auspice_datasets/{gene}_masked/clade_{key}.json", gene=GENE_MASKS, key=SINGLE_BUILD_GENOTYPES)
-    if config.get("dev", False)
+    if DEV_MODE
     else []
 )
 
 full_tree_target = (
     expand("auspice_datasets/{gene}_masked/full-tree.json", gene=GENE_MASKS)
-    if config.get("dev", False)
+    if DEV_MODE
     else []
 )
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
-
+# Define top-level targets for the selected workflow mode.
 if wf == "nextstrain":
     rule all:
         input:
@@ -84,8 +94,7 @@ elif wf == "nextclade":
 else:
     raise ValueError(f"Unknown workflow: {wf}")
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
-# Length filtering, other filter steps that specifcy the different builds, and gene masking
+# Length filtering, other filter steps that specify the different builds, and gene masking
 include: "rules/filter_and_masking.smk"
 # Augur tree, pruning problematic clades, refinement and ancestral reconstruction
 include: "rules/generating_tree.smk"
@@ -98,8 +107,6 @@ include: "rules/export_and_auspice_view.smk"
 # Generates Nextclade dataset (if nextclade config is used)
 if config.get("workflow") == "nextclade":
     include: "rules/nextclade_dataset.smk"
-
-#______________________________________________________________________________________________________________________________________________________________________________________________
 
 rule clean:
     params:

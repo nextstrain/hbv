@@ -19,15 +19,18 @@ import json
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.parse_args()
 
     for line in stdin:
         record = json.loads(line)
 
-        c = record.get("country") or record.get("location") or record.get("geo-location")
+        c = (
+            record.get("country")
+            or record.get("location")
+            or record.get("geo-location")
+        )
         if c:
             c = c.split(":")[0]
             if c == "None":

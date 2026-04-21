@@ -7,13 +7,17 @@ REQUIRED INPUTS:
 
 OUTPUTS:
 
-    ndjson = data/ncbi.ndjson
-    ndjson_genbank = "data/genbank.ndjson" # for metadata only
+    ndjson = "data/raw/ncbi/ncbi_records.ndjson"
+    ndjson_genbank = "data/raw/entrez/genbank_records.ndjson" # for metadata only
+    active_ndjson = "data/active/ncbi_records.ndjson"
 
-There are two different approaches for fetching data from NCBI. The "Fetching from Entrez" workflow was adapted to "Fetch from NCBI" using the Mumps repo (https://github.com/nextstrain/mumps/blob/main/ingest/rules/fetch_from_ncbi.smk) as a template.
-Fetching from Entrez is still included to provide *self-described* HBV (sub)genotype metadata to be compared with Nextclade assignments at later steps.
+Accession-based active-set selection can additionally create:
 
-Edit the workflow config to provide the correct parameter.
+    data/active/active_entrez_accessions.txt
+
+The workflow uses both NCBI Datasets and Entrez. NCBI Datasets provides the
+main sequence set used downstream, while Entrez provides GenBank records used
+for additional HBV genotype and subgenotype annotations.
 
 Workflow:
 1. Fetch with NCBI Datasets (https://www.ncbi.nlm.nih.gov/datasets/)
@@ -30,89 +34,82 @@ Workflow:
 
 """
 
-###########################################################################
-####################### 1. Fetch from NCBI Datasets #######################
-###########################################################################
+# Fetch from NCBI Datasets.
 
 rule fetch_ncbi_dataset_package:
+    """Download the raw NCBI Datasets package used to derive the ingest FASTA and metadata report."""
     params:
         ncbi_taxon_id=config["ncbi_taxon_id"],
     output:
-        dataset_package=temp("data/ncbi_dataset.zip"),
+        dataset_package=temp("data/raw/ncbi/ncbi_dataset.zip"),
     # Allow retries in case of network errors
     retries: 5
     log:
         "logs/fetch_ncbi_dataset_package.txt"
-    benchmark:
-        "benchmarks/fetch_ncbi_dataset_package.txt"
     shell:
         r"""
-        exec &> >(tee {log:q})
-
         datasets download virus genome taxon {params.ncbi_taxon_id:q} \
             --no-progressbar \
-            --filename {output.dataset_package}
+            --filename {output.dataset_package:q} \
+            > {log:q} 2>&1
         """
 
-# Note: This rule is not part of the default workflow!
-# It is intended to be used as a specific target for users to be able
-# to inspect and explore the full raw metadata from NCBI Datasets.
 rule dump_ncbi_dataset_report:
+    """
+    This rule is not part of the default workflow.
+    It is intended to be used as a specific target for users to be able
+    to inspect and explore the full raw metadata from NCBI Datasets.
+    """
     input:
-        dataset_package="data/ncbi_dataset.zip",
+        dataset_package="data/raw/ncbi/ncbi_dataset.zip",
     output:
-        ncbi_dataset_tsv="data/ncbi_dataset_report_raw.tsv",
+        ncbi_dataset_tsv="data/raw/ncbi/ncbi_dataset_report_raw.tsv",
     log:
         "logs/dump_ncbi_dataset_report.txt"
     shell:
         r"""
-        exec &> >(tee {log:q})
-
         dataformat tsv virus-genome \
-            --package {input.dataset_package} > {output.ncbi_dataset_tsv}
+            --package {input.dataset_package:q} \
+            > {output.ncbi_dataset_tsv:q} 2> {log:q}
         """
 
 rule extract_ncbi_dataset_sequences:
+    """Extract the genomic FASTA from the downloaded NCBI Datasets archive."""
     input:
-        dataset_package="data/ncbi_dataset.zip",
+        dataset_package="data/raw/ncbi/ncbi_dataset.zip",
     output:
-        ncbi_dataset_sequences=temp("data/ncbi_dataset_sequences.fasta"),
+        ncbi_dataset_sequences=temp("data/raw/ncbi/ncbi_dataset_sequences.fasta"),
     log:
         "logs/extract_ncbi_dataset_sequences.txt"
-    benchmark:
-        "benchmarks/extract_ncbi_dataset_sequences.txt"
     shell:
         r"""
-        exec &> >(tee {log:q})
-
         unzip -jp {input.dataset_package} \
-            ncbi_dataset/data/genomic.fna > {output.ncbi_dataset_sequences}
+            ncbi_dataset/data/genomic.fna \
+            > {output.ncbi_dataset_sequences:q} 2> {log:q}
         """
 
 rule format_ncbi_dataset_report:
+    """Select and normalize the NCBI Datasets metadata fields used to build raw ingest NDJSON."""
     input:
-        dataset_package="data/ncbi_dataset.zip",
+        dataset_package="data/raw/ncbi/ncbi_dataset.zip",
     output:
-        ncbi_dataset_tsv=temp("data/ncbi_dataset_report.tsv"),
+        ncbi_dataset_tsv=temp("data/raw/ncbi/ncbi_dataset_report.tsv"),
     params:
         ncbi_datasets_fields=",".join(config["ncbi_datasets_fields"]),
     log:
         "logs/format_ncbi_dataset_report.txt"
-    benchmark:
-        "benchmarks/format_ncbi_dataset_report.txt"
     shell:
         r"""
-        exec &> >(tee {log:q})
-
-        dataformat tsv virus-genome \
-            --package {input.dataset_package} \
-            --fields {params.ncbi_datasets_fields:q} \
-            --elide-header \
-            | csvtk fix-quotes -Ht \
-            | csvtk add-header -t -n {params.ncbi_datasets_fields:q} \
-            | csvtk rename -t -f accession -n accession_version \
-            | csvtk -t mutate -f accession_version -n accession -p "^(.+?)\." --at 1 \
-            > {output.ncbi_dataset_tsv}
+        (
+            dataformat tsv virus-genome \
+                --package {input.dataset_package:q} \
+                --fields {params.ncbi_datasets_fields:q} \
+                --elide-header \
+                | csvtk fix-quotes -Ht \
+                | csvtk add-header -t -n {params.ncbi_datasets_fields:q} \
+                | csvtk rename -t -f accession -n accession_version \
+                | csvtk -t mutate -f accession_version -n accession -p "^(.+?)\." --at 1
+        ) > {output.ncbi_dataset_tsv:q} 2> {log:q}
         """
 
 # Technically you can bypass this step and directly provide FASTA and TSV files
@@ -120,21 +117,17 @@ rule format_ncbi_dataset_report:
 # We do the formatting here to have a uniform NDJSON file format for the raw
 # data that we host on data.nextstrain.org
 rule format_ncbi_datasets_ndjson:
+    """Combine the formatted NCBI metadata table and FASTA into raw NDJSON records."""
     input:
-        ncbi_dataset_sequences="data/ncbi_dataset_sequences.fasta",
-        #ncbi_dataset_tsv="data/ncbi_dataset_report_with_strain.tsv",
-        ncbi_dataset_tsv="data/ncbi_dataset_report.tsv",
+        ncbi_dataset_sequences="data/raw/ncbi/ncbi_dataset_sequences.fasta",
+        ncbi_dataset_tsv="data/raw/ncbi/ncbi_dataset_report.tsv",
 
     output:
-        ndjson="data/ncbi.ndjson",
+        ndjson="data/raw/ncbi/ncbi_records.ndjson",
     log:
         "logs/format_ncbi_datasets_ndjson.txt",
-    benchmark:
-        "benchmarks/format_ncbi_datasets_ndjson.txt"
     shell:
         r"""
-        exec &> >(tee {log:q})
-
         augur curate passthru \
             --metadata {input.ncbi_dataset_tsv} \
             --fasta {input.ncbi_dataset_sequences} \
@@ -142,104 +135,83 @@ rule format_ncbi_datasets_ndjson:
             --seq-field sequence \
             --unmatched-reporting warn \
             --duplicate-reporting warn \
-            2> {log} > {output.ndjson}
+            > {output.ndjson:q} 2> {log:q}
         """
 
-rule ncbi_active:
+rule select_active_ncbi_records:
+    """
+    Select the NDJSON consumed by downstream curation.
+    In development mode, or when complete-genome Entrez filtering is enabled,
+    this is the subset of raw NCBI records whose accessions were first selected
+    from the Entrez GenBank sample. Otherwise it is the full raw NCBI NDJSON.
+    """
     input:
-        ndjson="data/ncbi.ndjson"
+        ndjson="data/raw/ncbi/ncbi_records.ndjson",
+        accessions=(
+            "data/active/active_entrez_accessions.txt"
+            if SUBSET_ACTIVE_NCBI
+            else []
+        )
     output:
-        ACTIVE_NDJSON
+        ndjson="data/active/ncbi_records.ndjson"
     params:
-        dev=config.get("dev", False),
-        n=config.get("dev_n_ingest", 100),
-        ref=config["reference_accession"],
+        subset_active=str(SUBSET_ACTIVE_NCBI).lower(),
+        verbose=str(config.get("verbose", False)).lower(),
     shell:
         r"""
-        if [ "{params.dev}" = "true" ] || [ "{params.dev}" = "True" ] || [ "{params.dev}" = "1" ]; then
-          (
-            grep '"accession"[[:space:]]*:[[:space:]]*"{params.ref}"' {input.ndjson} || true
-            head -n {params.n} {input.ndjson}
-          ) | awk '!seen[$0]++' > {output}
+        if [ "{params.subset_active}" = "true" ] || [ "{params.subset_active}" = "True" ] || [ "{params.subset_active}" = "1" ]; then
+          HBV_VERBOSE={params.verbose} python scripts/subset_ndjson_by_accessions.py \
+            --input {input.ndjson:q} \
+            --accessions {input.accessions:q} \
+            --output {output.ndjson:q}
         else
-          cp {input.ndjson} {output}
+          cp {input.ndjson:q} {output.ndjson:q}
         fi
         """
 
-###########################################################################
-########################## 2. Fetch from Entrez ###########################
-###########################################################################
 
-# overrides.smk
-rule fetch_genbank:
-    params:
-        term=config["entrez_query"]
+rule write_active_entrez_accessions:
+    """
+    Record the fetched Entrez accessions used to define the active NCBI subset.
+    """
+    input:
+        genbank="data/raw/entrez/genbank_records.gb"
     output:
-        genbank="data/entrez/genbank.gb"
+        temp("data/active/active_entrez_accessions.txt")
     shell:
         r"""
-        python - {params.term:q} {output.genbank:q} <<'PY'
-import json, sys, time, random
-from http.client import IncompleteRead
-from urllib.error import HTTPError, URLError
-from Bio import SeqIO, Entrez
+        grep '^ACCESSION' {input.genbank:q} \
+            | awk '{{print $2}}' \
+            | awk 'NF && !seen[$0]++' > {output:q}
+        """
 
-Entrez.email = "hello@nextstrain.org"
-BATCH_SIZE = 1000
+# Fetch from Entrez.
 
-def get_esearch_history(term):
-    handle = Entrez.esearch(
-        db="nucleotide",
-        term=term,
-        retmode="json",
-        usehistory="y",
-        retmax=0,
-    )
-    esearch_result = json.loads(handle.read())["esearchresult"]
-    print(f"Search term {{term!r}} returned {{esearch_result['count']}} IDs.")
-    return {{
-        "count": int(esearch_result["count"]),
-        "query_key": esearch_result["querykey"],
-        "web_env": esearch_result["webenv"],
-    }}
-
-def fetch_batch(query_key, web_env, start, tries=8):
-    for attempt in range(tries):
-        try:
-            handle = Entrez.efetch(
-                db="nucleotide",
-                query_key=query_key,
-                webenv=web_env,
-                retstart=start,
-                retmax=BATCH_SIZE,
-                rettype="gb",
-                retmode="text",
-            )
-            return handle.read()
-        except (IncompleteRead, HTTPError, URLError, OSError):
-            time.sleep(min(60, (2 ** attempt) + random.random()))
-    raise RuntimeError(f"efetch failed after {{tries}} tries at retstart={{start}}")
-
-def main(term, out_path):
-    h = get_esearch_history(term)
-    count, query_key, web_env = h["count"], h["query_key"], h["web_env"]
-
-    print(f"Fetching GenBank records in batches of n={{BATCH_SIZE}}")
-    with open(out_path, "w") as output_handle:
-        written = 0
-        for start in range(0, count, BATCH_SIZE):
-            records = fetch_batch(query_key, web_env, start)
-            output_handle.write(records)
-            output_handle.flush()
-            written += records.count("\nLOCUS")
-            print(f"[batch] total_written={{written}}")
-            time.sleep(0.4)
-
-if __name__ == "__main__":
-    term = sys.argv[1]
-    out_path = sys.argv[2]
-    main(term, out_path)
-PY
+rule fetch_genbank:
+    """Fetch GenBank records either from the full Entrez query or a small development sample."""
+    params:
+        term=config["entrez_query"],
+        verbose=str(config.get("verbose", False)).lower(),
+        dev_args=(
+            f"--limit {config['dev_n_ingest']} "
+            f"--complete-genomes"
+            if DEV_MODE
+            else ""
+        ),
+        full_query_args=(
+            "--complete-genomes"
+            if config.get("entrez_complete_genomes_only", False) and not DEV_MODE
+            else ""
+        ),
+    output:
+        genbank="data/raw/entrez/genbank_records.gb"
+    shell:
+        r"""
+        HBV_VERBOSE={params.verbose} python scripts/fetch-genbank.py \
+            --term {params.term:q} \
+            --output {output.genbank:q} \
+            {params.full_query_args} \
+            {params.dev_args}
         """
 
 rule add_extra_genomes:
@@ -249,21 +221,24 @@ rule add_extra_genomes:
     to add this genome.
     """
     input:
-        entrez = "data/entrez/genbank.gb",
+        entrez = "data/raw/entrez/genbank_records.gb",
         ref = config['reference_genbank'],
     output:
-        genbank = "data/entrez/genbank.with-reference.gb",
+        genbank = temp("data/raw/entrez/genbank_records_with_reference.gb"),
     shell:
         """
         cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
         """
 
 rule parse_genbank:
+    """Parse fetched GenBank records into NDJSON for metadata-only curation."""
     input:
-        genbank = "data/entrez/genbank.with-reference.gb",
+        genbank = "data/raw/entrez/genbank_records_with_reference.gb",
     output:
-        ndjson = "data/genbank.ndjson"
+        ndjson = "data/raw/entrez/genbank_records.ndjson"
+    params:
+        verbose=str(config.get("verbose", False)).lower(),
     shell:
         """
-        scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
+        HBV_VERBOSE={params.verbose} scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
         """

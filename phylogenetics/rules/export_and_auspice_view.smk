@@ -1,4 +1,9 @@
+"""
+Rules for exporting Auspice JSON and copying the final viewer entry points.
+"""
+
 rule augur_export:
+    """Export a non-stitched build as an Auspice JSON dataset."""
     wildcard_constraints:
         gene="P|S|C|X"
     input:
@@ -13,7 +18,9 @@ rule augur_export:
     output:
         auspice_json = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}.json",
     params:
-        colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
+        colours = " \\\n            ".join(
+            f'"{field}"' for field in config["auspice"]["color_by_metadata"]
+        )
     threads: 1
     shell:
         """
@@ -29,6 +36,7 @@ rule augur_export:
         """
 
 rule export_stitched:
+    """Export a stitched global build as an Auspice JSON dataset."""
     wildcard_constraints:
         gene="P|S|C|X"
     input:
@@ -40,12 +48,13 @@ rule export_stitched:
             STITCHED_DIR + "/node_data/{gene}_muts.json",
             STITCHED_DIR + "/{gene}_subclades.json",
             STITCHED_DIR + "/{gene}_clades.json",]
-            #STITCHED_DIR + "/{gene}_node_metadata.json",
 
     output:
         auspice_json = STITCHED_DIR + "/{gene}.json",
     params:
-        colours = " \\\n            ".join(config["auspice"]["color_by_metadata"])
+        colours = " \\\n            ".join(
+            f'"{field}"' for field in config["auspice"]["color_by_metadata"]
+        )
     threads: 1
     shell:
         """
@@ -61,7 +70,7 @@ rule export_stitched:
             --include-root-sequence-inline
         """
 
-#______________________________________________________________________________________________________________________________________________________________________________________________
+# Create final Auspice dataset entry points.
 
 rule create_auspice_view_main_clades:
     input:

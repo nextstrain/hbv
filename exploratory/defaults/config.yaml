@@ -1,24 +1,42 @@
-length_filtering: true
-min_length: 3000
-max_length: 3400
+#__________________________________________________________________________________________________________ REFERENCE / DATASET INPUTS __________________________________________________________________________________________________________
 
+# Reference sequence used to derive regions and extract per-region GenBank files.
 reference:
   id: NC_003977
   genbank: ../ingest/defaults/NC_003977.gb
 
-#genomic_regions: defaults/genomic_regions_genes.txt
-genomic_regions: defaults/genomic_regions_breakpoints_2005.txt
+# Path to the nextclade dataset, which will be used to align all sequences
+nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
+
+#__________________________________________________________________________________________________________ REGION DEFINITION __________________________________________________________________________________________________________
+
+# Region definition file used for the current exploratory run.
+genomic_regions: defaults/phylogenetics/genomic_regions_genes.txt
+#genomic_regions: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
+# Alternatively, use the breakpoint-derived file above for segment-based breakpoint analysis.
 
 # Current breakpoints based on https://journals.asm.org/doi/10.1128/jvi.79.24.15467-15476.2005, published in 2005
 breakpoints:
   old_ref: X02763.1
   list: [1, 750, 900, 1600, 1950, 2500, 2650, 2750] # Make sure to include 0 if there is a segment starting at the beginning of the genome
   buffer: 25  # Controls for the amount of variability around breakpoints when extracting segments
-  out: defaults/genomic_regions_breakpoints_2005.txt
-  map_out: defaults/X02763_to_NC_003977_map.tsv
+  out: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt
+  map_out: defaults/phylogenetics/X02763_to_NC_003977_map.tsv
+
+#__________________________________________________________________________________________________________ FILTERING / COVERAGE __________________________________________________________________________________________________________
+
+# Whether to apply a length filter before regional extraction/tree building.
+length_filtering: true
+# Minimum retained sequence length for exploratory inputs.
+min_length: 3000
+# Maximum retained sequence length for exploratory inputs.
+max_length: 3400
 
 min_coverage_per_region: 0.8  # Minimum fraction of region that must be covered in a sequence for it to be retained in that segment's alignment
 
+#__________________________________________________________________________________________________________ METADATA __________________________________________________________________________________________________________
+
+# Metadata columns retained in per-region metadata tables.
 metadata_keep_cols:
   - name
   - accession
@@ -48,15 +66,31 @@ metadata_keep_cols:
   - circularise_shift_bp
   - clade_nextclade
 
-# Path to the nextclade dataset, which will be used to align all sequences
-nextclade_dataset: "../nextclade_datasets/references/NC_003977/versions/2023-08-22"
+#__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
 
+# Development-mode settings for faster exploratory runs.
+dev_mode: false
+# Random seed used for deterministic dev-mode subsampling.
+dev_seed: 1
+# Number of sequences kept for exploratory tree building in dev mode.
+dev_tree_sample_size: 300
+# Number of sampled comparisons used by dev-mode metrics.
+dev_metric_subsample_size: 10
+
+#__________________________________________________________________________________________________________ COMPARISON SAMPLING __________________________________________________________________________________________________________
+
+# Number of pairwise tip-distance samples for the full comparison run.
 n_subsamples_pairwise_distance_comparison: 10000
+
+#__________________________________________________________________________________________________________ TREE PRUNING __________________________________________________________________________________________________________
 
 # all branches with length higher than this threshold will be pruned from the tree
 long_branch_threshold: 0.3
 tip_branch_threshold: 0.1
 
+#__________________________________________________________________________________________________________ TREEKNIT __________________________________________________________________________________________________________
+
+# TreeKnit sampling settings.
 treeknit:
   n_subset: 10000
   treeknit_seed: 1

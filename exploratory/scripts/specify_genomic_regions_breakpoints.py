@@ -1,12 +1,18 @@
-# This script lifts genomic region breakpoints from an old reference to a new reference using pairwise alignment and writes a segments file based on the lifted breakpoints.
 #!/usr/bin/env python3
+"""Lift genomic breakpoints from an old reference to a new reference.
+
+Verify that the lifted breakpoints behave as intended before using them.
+"""
+
 import argparse
 from Bio import SeqIO
 from Bio.Align import PairwiseAligner
 
+
 def read_ref_seq_from_genbank(gb_path: str) -> str:
     rec = SeqIO.read(gb_path, "genbank")
     return str(rec.seq).upper()
+
 
 def read_old_ref_sequence(old_ref: str) -> str:
     """
@@ -25,8 +31,11 @@ def read_old_ref_sequence(old_ref: str) -> str:
     # 2) otherwise treat as accession and try Entrez
     try:
         from Bio import Entrez  # only used if needed
+
         Entrez.email = "hello@nextstrain.org"
-        with Entrez.efetch(db="nucleotide", id=old_ref, rettype="fasta", retmode="text") as h:
+        with Entrez.efetch(
+            db="nucleotide", id=old_ref, rettype="fasta", retmode="text"
+        ) as h:
             rec = SeqIO.read(h, "fasta")
         return str(rec.seq).upper()
     except Exception as e:
@@ -34,6 +43,7 @@ def read_old_ref_sequence(old_ref: str) -> str:
             f"Could not read old reference from file or fetch accession '{old_ref}'. "
             f"Provide a local FASTA/GenBank file path instead. Underlying error: {e}"
         )
+
 
 def build_src_to_tgt_map(src_seq: str, tgt_seq: str) -> dict[int, int | None]:
     """
@@ -58,8 +68,8 @@ def build_src_to_tgt_map(src_seq: str, tgt_seq: str) -> dict[int, int | None]:
 
     cols = []
     for j in range(len(t) - 1):
-        t0, t1 = int(t[j]), int(t[j+1])
-        q0, q1 = int(q[j]), int(q[j+1])
+        t0, t1 = int(t[j]), int(t[j + 1])
+        q0, q1 = int(q[j]), int(q[j + 1])
 
         dt = t1 - t0
         dq = q1 - q0
@@ -69,12 +79,13 @@ def build_src_to_tgt_map(src_seq: str, tgt_seq: str) -> dict[int, int | None]:
             tgt_pos = (t0 + s) if dt else None
 
             if dq:
-                circ_pos = q0 + s          # 0-based in src+src
-                src_pos = circ_pos % L     # fold back to original src
+                circ_pos = q0 + s  # 0-based in src+src
+                src_pos = circ_pos % L  # fold back to original src
             else:
                 src_pos = None
             cols.append((tgt_pos, src_pos))
     return cols
+
 
 def lift_breakpoint_from_cols(x, cols, L, max_scan=500):
     """
@@ -100,7 +111,10 @@ def lift_breakpoint_from_cols(x, cols, L, max_scan=500):
         if src2tgt[right]:
             return src2tgt[right][0]
 
-    raise ValueError(f"Breakpoint {x} could not be lifted (gap/indel region too large).")
+    raise ValueError(
+        f"Breakpoint {x} could not be lifted (gap/indel region too large)."
+    )
+
 
 def shrink_interval(start, end, buf, L):
     # start/end are 1-based inclusive; may wrap if start > end
@@ -112,7 +126,9 @@ def shrink_interval(start, end, buf, L):
         s2 = start + buf
         e2 = end - buf
         if s2 > e2:
-            raise ValueError(f"segment became invalid after buffer={buf}: {start}-{end} -> {s2}-{e2}")
+            raise ValueError(
+                f"segment became invalid after buffer={buf}: {start}-{end} -> {s2}-{e2}"
+            )
         return s2, e2
     else:
         # wrap: [start..L] + [1..end]
@@ -121,7 +137,9 @@ def shrink_interval(start, end, buf, L):
         total = tail_len + head_len
 
         if 2 * buf >= total:
-            raise ValueError(f"wrap segment too short for buffer={buf}: {start}-{end} (len {total})")
+            raise ValueError(
+                f"wrap segment too short for buffer={buf}: {start}-{end} (len {total})"
+            )
 
         # shrink both ends (stay wrap)
         s2 = start + buf
@@ -135,14 +153,34 @@ def shrink_interval(start, end, buf, L):
 
         return s2, e2
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ref-gb", required=True, help="Target reference GenBank")
-    ap.add_argument("--old-ref", required=True, help="Old reference accession OR local fasta/genbank path")
-    ap.add_argument("--breakpoints", required=True, nargs="+", type=int, help="Breakpoint list on old reference (1-based)")
-    ap.add_argument("--buffer", type=int, default=0, help="Shrink each segment on both sides by this many bp")
+    ap.add_argument(
+        "--old-ref",
+        required=True,
+        help="Old reference accession OR local fasta/genbank path",
+    )
+    ap.add_argument(
+        "--breakpoints",
+        required=True,
+        nargs="+",
+        type=int,
+        help="Breakpoint list on old reference (1-based)",
+    )
+    ap.add_argument(
+        "--buffer",
+        type=int,
+        default=0,
+        help="Shrink each segment on both sides by this many bp",
+    )
     ap.add_argument("--out", required=True, help="Output txt path (segments file)")
-    ap.add_argument("--map-out", default=None, help="Optional path to write alignment-column index (tab-separated)")
+    ap.add_argument(
+        "--map-out",
+        default=None,
+        help="Optional path to write alignment-column index (tab-separated)",
+    )
     args = ap.parse_args()
 
     buf = args.buffer
@@ -187,7 +225,9 @@ def main():
     bps_tgt_1based = sorted(set(p + 1 for p in lifted_tgt_0based))  # back to 1-based
 
     with open(args.out, "w") as fh:
-        fh.write("# name\tstart\tend\t(1-based, inclusive; start>end means wrap-around)\n")
+        fh.write(
+            "# name\tstart\tend\t(1-based, inclusive; start>end means wrap-around)\n"
+        )
 
         k = len(bps_tgt_1based)
         for seg_idx in range(k):
@@ -199,6 +239,7 @@ def main():
 
             start2, end2 = shrink_interval(start, end, buf, L_tgt)
             fh.write(f"segment{seg_idx + 1}\t{start2}\t{end2}\n")
+
 
 if __name__ == "__main__":
     main()
