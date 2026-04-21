@@ -10,14 +10,16 @@ This is the experimental Nextstrain phylogenetic workflow behind the (as yet unr
 snakemake --cores 4 -pf
 ```
 
+By default this uses `defaults/nextstrain/config_nextstrain.yaml`. Building the Nextclade dataset is a separate run with `defaults/nextclade/config_nextclade.yaml`.
+
 The following build is automatically generated (change the mask between P and S genes in config file):
 
 - `auspice_datasets/P_masked/main-clades.json` the entire human-HBV tree, with appr. 2k tips using stitched genotypes
 
 The following alternative builds are additionally generated in dev mode (set in config file):
 
-- `auspice/P_masked/full-tree.jso` the entire human-HBV tree, without the stitching procedure
-- `auspice/hbv_{A,B,C,D,E,F,G,H,I}.json` for single genotype builds. Note that some of these are very small and one should consider disabling filtering by subgenotype annotation availability (via config)
+- `auspice_datasets/P_masked/full-tree.json` the entire human-HBV tree, without the stitching procedure
+- `auspice_datasets/P_masked/clade_{A,B,C,D,E,F,G,H,I}.json` for single genotype builds. Note that some of these are very small and one should consider disabling filtering by subgenotype annotation availability (via config)
 
 ## Configuration
 
@@ -42,7 +44,7 @@ snakemake --cores 4 --configfile defaults/nextclade/config_nextclade.yaml
 
 This creates a new version of the dataset in `../nextclade_datasets`
 
-Specify a new date-stamped version name in version in the config file and finally update `nextclade_dataset` in the ingest `../ingest/default/config.yaml` to point to the new dataset
+Specify a new date-stamped version name in version in the config file and finally update `nextclade_dataset` in the ingest `../ingest/defaults/config.yaml` to point to the new dataset
 
 #### Updating example sequences
 
