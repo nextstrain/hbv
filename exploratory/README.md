@@ -15,7 +15,7 @@ To run only the comparison workflow once the trees exist, use the dedicated aggr
 snakemake --cores 4 comparison_targets
 ```
 
-For faster testing, dev mode can be enabled from the command line. This keeps the reference plus up to 99 additional sequences for tree building, and uses 50 sampled tip pairs/shared tips in the comparison metrics:
+For faster testing, dev mode can be enabled from the command line. This keeps the reference plus up to 99 additional sequences for tree building, and uses 10 sampled tip pairs/shared tips in the comparison metrics:
 
 ```bash
 snakemake -n --cores 1 comparison_targets --config dev_mode=true
