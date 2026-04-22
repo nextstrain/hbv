@@ -1,10 +1,16 @@
 """
-HBV exploratory workflow.
+HBV exploratory workflow entry point.
 
-Expected ingest inputs:
-- ../ingest/results/sequences.fasta
-- ../ingest/results/metadata.tsv
-- ../ingest/results/aligned.fasta
+Required external inputs:
+- `../ingest/results/sequences.fasta`
+- `../ingest/results/metadata.tsv`
+- `../ingest/results/aligned.fasta`
+
+Key outputs:
+- `data/regions/{name}/{name}.tree.nwk`
+- `data/regions/{name}/{name}.json`
+- `auspice_datasets/{name}.json`
+- exploratory comparison summaries under `results/genes/` or `results/segments/`
 """
 
 import os
