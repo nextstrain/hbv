@@ -1,0 +1,24 @@
+# Subgenotype_anotated,Subgenotype_new(This file specifies which subgenotypes should be deleted/merged if they do not make sense to portray)
+old,new
+F1a,F1
+F1b,F1
+F1B,F1
+F2a,F2
+F2A,F2
+Aa,REMOVE
+A8,REMOVE
+CD,REMOVE
+C1,C1/C2
+C2,C1/C2
+D-E,REMOVE
+CS,REMOVE
+CE,REMOVE
+CD1,REMOVE
+ADC,REMOVE
+D1M,REMOVE
+DI,REMOVE
+AA,REMOVE
+BC,REMOVE
+DA,REMOVE
+D1I,REMOVE
+D?,REMOVE

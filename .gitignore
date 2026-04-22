@@ -34,6 +34,10 @@ snakemake_log
 # Local config overrides
 /config_local.yaml
 
+# Local exploratory helpers not used by the workflow
+exploratory/scripts/map_gb_position_to_msa.py
+exploratory/auspice_datasets/
+
 # For Python #
 ##############
 *.pyc
@@ -67,3 +71,4 @@ Thumbs.db
 
 # SLURM log files
 slurm-*.out
+nextclade_datasets/references/NC_003977/versions/2026_04_jonas/

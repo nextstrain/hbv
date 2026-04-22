@@ -1,0 +1,2 @@
+# Use breakpoint-derived segment regions for the exploratory workflow.
+genomic_regions: defaults/phylogenetics/genomic_regions_breakpoints_2005.txt

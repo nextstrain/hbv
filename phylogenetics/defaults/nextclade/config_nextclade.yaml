@@ -1,0 +1,125 @@
+#__________________________________________________________________________________________________________ WORKFLOW / VERSION / REFERENCE __________________________________________________________________________________________________________
+
+# All HBV genes
+genes: ["P", "S", "C", "X"]
+
+# Workflow selector for Nextclade dataset generation.
+workflow: nextclade
+# Enable workflow/helper verbosity.
+verbose: false
+# Version label written into the generated dataset metadata.
+version: "2026_04_jonas"
+
+# Reference sequence
+reference:
+  id: NC_003977
+  genbank: ../ingest/defaults/NC_003977.gb
+  # FASTA used where augur expects a plain-sequence root input.
+  fasta: ../nextclade_datasets/references/NC_003977/versions/2023-08-22/reference.fasta
+  gff: "defaults/NC_003977.2_version_2026.gff"
+
+#__________________________________________________________________________________________________________ DATASET BUILD __________________________________________________________________________________________________________
+
+# Source tree build used to assemble the dataset.
+nextclade_tree_build: "stitched/P_global/P.json"
+# Output dataset name.
+nextclade_buildname: "stitched_P_masked"
+
+#__________________________________________________________________________________________________________ EXAMPLE SEQUENCES / AUSPICE __________________________________________________________________________________________________________
+
+# Example sequence selection for the packaged dataset.
+example_sequences:
+  n: 30
+  recombinant_fraction: 0.3
+  sampling: "curated" # select from ["curated", "randomly"], "curated" samples evenly across genotypes and QC status
+
+# Auspice export settings for the packaged dataset view.
+auspice:
+  auspice_config: "defaults/nextclade/auspice_config_nextclade.json"
+  color_by_metadata:
+    - "HBV Type"
+    - "HBV Subtype"
+    - region
+    - country
+    - date
+
+#__________________________________________________________________________________________________________ FILTERING CRITERIA __________________________________________________________________________________________________________
+
+sampling:
+  augur_custom_filter: 'year > "1977" & ((is_lab_host != True) | is_lab_host.isnull()) & host == "Homo sapiens"'  # First sequenced genome is 1978; earlier dates may reflect older samples and should be treated cautiously
+  group_by:
+    - genotype_genbank
+    - subgenotype_genbank
+    - region
+    - year
+
+# Defines whether we filter by sequence completeness (length) and which thresholds to use. DO NOT use small genes in ancestral reconstruction if length filtering is not strict.
+length_filtering:
+  use_as_filter: true
+  min_length: 3000
+  max_length: 3400
+
+#__________________________________________________________________________________________________________ CLADE HANDLING / PRUNING __________________________________________________________________________________________________________
+
+# Defines whether only sequences with a known subgenotype will be sampled for the phylogeny and Nextclade dataset
+subgenotype_filtering_fulltree: true
+subgenotype_filtering_singleclade: false
+
+# all branches with length higher than this threshold will be pruned from the tree
+long_branch_threshold:  0.25  # fine up to 0.3
+tip_branch_threshold: 0.01  # up to 0.1  works for pretty clean tree to still see some recent recombinants, for nextclade better lower
+
+# Whether to drop records when GenBank and Nextclade genotype assignments disagree.
+filter_genbank_vs_nextclade: true
+# Whether to reuse exclude files collected from previous runs.
+filter_previously_excluded: false
+
+# There are 2 ways to filter messy subgenotype annotation so that trees appear cleaner:
+# 1) Clade Purity: Broadly enforce minimal purity of subclades of a given size (clade fraction), i.e. delete small impurities/supposed outliers
+# 2) Clade Settings: Different ways to deal with monophyletic groups of given subtype smaller than a minimum size (either delete labels, annotations or prune them completely)
+
+clade_purity:
+  use_as_filter: false
+  clade_fraction: 0.3 # Multiplied by genotype tree size gives the clade size where purity is enforced
+  minimal_monophyletic_purity: 0.1 # Minimum fraction of sequences that need to belong to same subtype in a clade to not be removed
+
+clade_settings:
+  only_monophyletic: true # if true, only clades that are monophyletic with respect to the genotype annotation will be considered as clades (this leads to multiple clades per subtype), If false, MRCAs of genotypes are considered as clades (even if containing outliers)
+  min_count_per_clade: 10
+  min_count_per_subclade: 7
+  min_count_mode: "use_for_pruning" # chose from ["use_for_branch_display", "use_for_annotation","use_for_pruning"]  -> monophyletic clades of any subtype of size <min_count are either just not displayed with branch-labels, annotated as "other", or pruned completely from the tree
+  branch_display_only_largest: false # if only_monophyletic is true: branch labels for non-monophyletic subtypes are per default (False) displayed for ALL monophyletic clades of a subtype. Change to True to display labels ONCE only for the largest monophyletic clade.
+
+#__________________________________________________________________________________________________________ BUILD SIZES __________________________________________________________________________________________________________
+
+# Sequence limit used by augur filter for stitched per-genotype builds. `dev_n_stitched_parts` overrides this limit in development mode.
+n_stitched_parts: 1000
+
+#__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
+
+# Development mode overrides the stitched build-size limit and uses the development ancestral gene set.
+dev: false
+# Number of sequences to use per stitched part in development mode.
+dev_n_stitched_parts: 800
+
+#__________________________________________________________________________________________________________ ANCESTRAL RECONSTRUCTION / GENE MASKS __________________________________________________________________________________________________________
+
+# Defines which exact transcript to use for the ancestral reconstruction.
+gene_products_for_ancestral:
+  S: "envL"                    #can be either: "envL", "envM" or "envS"
+  C: "pre-capsid"              #can be either: "pre-capsid" or "capsid"
+ancestral_genes: # If length filtering is disabled or not strict, ancestral reconstruction might not work for all genes, as some sequences might be too short. Perform ancestral reconstruction for longer genes (P > S> C > X).
+  prod: ["P", "S", "C", "X"]
+  dev: ["X"] #Testing reconstruction on 1 gene speeds runtime up significantly
+
+# Defines which genes to use for the phylogenetic reconstruction. Ideally P or S with lowest recombination burden (Note that ancestral reconstruction will be performed for all genes)
+gene_mask: ["P"]
+
+#__________________________________________________________________________________________________________ TARGETS / BUILDS __________________________________________________________________________________________________________
+
+# Defines which genotypes to include in the single build phylogeny
+single_build_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+
+# Warning: with small n, rare genotypes may be filtered out completely after the
+# metadata, length, and subtype filters. Avoid including rare genotypes in small builds.
+all_genotypes: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]

@@ -1,166 +1,58 @@
-# Use default configuration values. Override with Snakemake's --configfile/--config options.
+"""
+HBV ingest workflow entry point.
+
+Required external inputs:
+- workflow configuration in `defaults/config.yaml` or user-provided overrides
+- local reference files under `defaults/`
+
+Key outputs:
+- `results/sequences.fasta`
+- `results/metadata.tsv`
+- `results/aligned.fasta`
+"""
+
 configfile: "defaults/config.yaml"
 
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() == "true"
+    return bool(value)
+
+
+DEV_MODE = parse_bool(config.get("dev", False))
+COMPLETE_GENOMES_ONLY = parse_bool(config.get("entrez_complete_genomes_only", False))
+SUBSET_ACTIVE_NCBI = DEV_MODE or COMPLETE_GENOMES_ONLY
+
+if not workflow.overwrite_configfiles:
+    print("No config provided, using defaults/config.yaml.")
+
+print(f"INGEST DEVELOPMENT MODE: {'ON' if DEV_MODE else 'OFF'}")
+
+if COMPLETE_GENOMES_ONLY:
+    print("ENTREZ COMPLETE-GENOME FILTER: ON")
+    if not DEV_MODE:
+        print("Development mode is OFF, so all complete-genome Entrez matches will be fetched.")
+
+# Default ingest outputs used downstream by phylogenetics and exploratory.
 rule all:
     input:
         "results/aligned.fasta",
         "results/sequences.fasta",
         "results/metadata.tsv",
 
+# Core ingest steps.
+include: "rules/fetch_from_ncbi.smk"
+include: "rules/curate.smk"
 
-rule fetch_genbank:
-    params:
-        term = config['entrez_query']
-    output:
-        genbank = "data/entrez/genbank.gb",
-    retries: 1  # Requires snakemake 7.7.0 or later
-    shell:
-        """
-        vendored/fetch-from-ncbi-entrez --term {params.term:q} --output {output.genbank}
-        """
+# Nextclade alignment and annotations are merged into the final ingest outputs.
+include: "rules/nextclade.smk"
 
-rule add_extra_genomes:
-    """
-    This step shouldn't be necessary but the NCBI reference genome, NC_003977,
-    is not returned via the ENTREZ query. Even if we change the reference it's good
-    to add this genome.
-    """
-    input:
-        entrez = "data/entrez/genbank.gb",
-        ref = config['reference_genbank'],
-    output:
-        genbank = "data/entrez/genbank.with-reference.gb",
-    shell:
-        """
-        cat {input.ref:q} {input.entrez:q} > {output.genbank:q}
-        """
+# Optional local extensions or overrides.
+if "custom_rules" in config:
+    for rule_file in config["custom_rules"]:
 
-rule parse_genbank:
-    input:
-        genbank = "data/entrez/genbank.with-reference.gb",
-    output:
-        ndjson = "data/genbank.ndjson"
-    shell:
-        """
-        scripts/parse-genbank.py --input {input.genbank} --output {output.ndjson}
-        """
-
-rule curate:
-    input:
-        ndjson = "data/genbank.ndjson"
-    output:
-        metadata = "data/curated-metadata.tsv",
-        sequences = "data/curated-sequences.fasta",
-    params:
-        metadata_columns = ['name', 'accesion', "strain_name", "date", "year", "region", "country", "host", "genotype_genbank", "subgenotype_genbank", \
-        "circularise", "circularise_shift_bp","clade_nextclade","QC_overall_score","QC_overall_status","total_substitutions","total_deletions", \
-        "total_insertions","total_frame_shifts","total_missing","alignment_score","coverage","QC_missing_data","QC_mixed_sites","QC_rare_mutations", \
-        "QC_frame_shifts","QC_stop_codons"]
-    shell:
-        # scripts/fix_country_field.py Modifies country entries in the NDJSON records from stdin to split on the ':' character and discard any content after.
-        # vendored/apply-geolocation-rules 
-        # scripts/add-year.py adds "year" to NDJSON entries
-        """
-        cat {input.ndjson} \
-            | scripts/fix_country_field.py \
-            | vendored/apply-geolocation-rules --geolocation-rules defaults/geoLocationRules.tsv \
-            | scripts/add-year.py \
-            | augur curate passthru \
-                --output-seq-field sequence --output-id-field accession \
-                --output-metadata {output.metadata} --output-fasta {output.sequences}
-        """
-
-
-rule recircularise:
-    input:
-        metadata = "data/curated-metadata.tsv",
-        sequences = "data/curated-sequences.fasta",
-    output:
-        sequences = "data/circularised.fasta",
-        metadata = "data/circularised.tsv",
-    params:
-        reference = config['reference_accession']
-    shell:
-        """
-        scripts/re-circularise.py \
-            --seqs-in {input.sequences} --meta-in {input.metadata} \
-            --seqs-out {output.sequences} --meta-out {output.metadata} \
-            --reference {params.reference}
-        """
-
-rule nextclade:
-    """
-    Nextclade v3 is used to align all genomes using a reference dataset and infer genotypes ("clade_nextclade")
-    Note that the minimum seed match rate is specified in the dataset itself.
-    """
-    input:
-        sequences = "data/circularised.fasta",
-    output:
-        alignment = "data/nextclade/aligned.fasta",
-        tree = "data/nextclade/nextclade.json",
-        translations_snakemake = expand("data/nextclade/cds_{gene}.fasta", gene=config['genes']),
-        metadata = "data/nextclade/metadata.tsv",
-    params:
-        dataset = config['nextclade_dataset'],
-        translations_pattern = lambda w: "data/nextclade/cds_{cds}.fasta",
-    threads: 4
-    shell:
-        """
-        nextclade run \
-            -j {threads} --silent --replace-unknown \
-            --input-dataset {params.dataset} \
-            --output-fasta {output.alignment} \
-            --output-translations {params.translations_pattern} \
-            --output-tsv {output.metadata} \
-            --output-tree {output.tree} \
-            {input.sequences}
-        """
-
-rule join_nextclade_metadata:
-    input:
-        metadata = "data/circularised.tsv",
-        nextclade = "data/nextclade/metadata.tsv"
-    output:
-        metadata = "results/metadata.tsv",
-        summary = "data/metadata.summary.txt",
-    shell:
-        """
-        scripts/join-nextclade-metadata.py \
-             --metadata {input.metadata} --nextclade {input.nextclade} \
-             --output {output.metadata} --summary {output.summary}
-        """
-
-rule copy_ingest_files:
-    input:
-        sequences = "data/circularised.fasta",
-        aligned = "data/nextclade/aligned.fasta",
-    output:
-        sequences = "results/sequences.fasta",
-        aligned = "results/aligned.fasta"
-    shell:
-        """
-        cp {input.sequences} {output.sequences}
-        cp {input.aligned} {output.aligned}
-        """
-
-
-rule align_unrotated:
-    """
-    Align all genomes before rotation for parsing by our notebook.
-    This rule must be called explicitly, it is not part of the DAG to produce the outputs of `rule all`
-    """
-    input:
-        sequences = "data/curated-sequences.fasta",
-    output:
-        alignment = "data/curated-sequences.aligned.fasta",
-    params:
-        dataset = config['nextclade_dataset'],
-    threads: 4
-    shell:
-        """
-        nextclade run \
-            -j {threads} --silent --replace-unknown \
-            --input-dataset {params.dataset} \
-            --output-fasta {output.alignment} \
-            {input.sequences}
-        """
+        # Resolve custom rule paths relative to the analysis directory.
+        include: os.path.join(os.getcwd(), rule_file)

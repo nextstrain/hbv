@@ -1,0 +1,142 @@
+"""
+Rules for assembling and validating the packaged HBV Nextclade dataset.
+
+Required external inputs:
+- the configured source tree JSON from `results/{workflow}/...`
+- ingest sequences and metadata for example-sequence selection
+- local reference, annotation, and pathogen metadata files
+
+Key outputs:
+- `tree.json`
+- `sequences.fasta`
+- `genome_annotation.gff3`
+- `test_output/`
+"""
+
+from os.path import join
+
+
+def describe_nextclade_tree_build(tree_build):
+    parts = tree_build.split("/")
+    if len(parts) >= 3 and parts[-1].endswith(".json"):
+        build_mode = parts[0]
+        tree_name = parts[-1].removesuffix(".json")
+        if parts[1].endswith("_global"):
+            return f"`{build_mode}` build using the `{tree_name}`-masked global tree"
+        return f"`{build_mode}` build using `{tree_name}`"
+    return f"build `{tree_build}`"
+
+rule generate_example_sequences:
+    input:
+        metadata="../ingest/results/metadata.tsv",
+        sequences="../ingest/results/sequences.fasta",
+        script="scripts/select_examples_nextclade.py"
+    output:
+        sequences="results/nextclade/example_sequences/sequences.fasta",
+        selected="results/nextclade/example_sequences/selected_examples.tsv"
+    params:
+        n_total=config["example_sequences"]["n"],
+        recomb_frac=config["example_sequences"]["recombinant_fraction"],
+        sampling=config["example_sequences"]["sampling"]
+    shell:
+        r"""
+        python {input.script} \
+          --metadata {input.metadata} \
+          --output {output.selected} \
+          --n-total {params.n_total} \
+          --recomb-frac {params.recomb_frac}\
+          --sampling {params.sampling}
+
+        tail -n +2 {output.selected} | cut -f1 | seqkit grep \
+          --pattern-file /dev/stdin \
+          {input.sequences} \
+          > {output.sequences}
+        """
+
+rule assemble_dataset:
+    """Assemble the Nextclade dataset directory from the selected tree build, examples, and reference files."""
+    input:
+        tree=join(RESULTS, config["nextclade_tree_build"]),
+        sequences = "results/nextclade/example_sequences/sequences.fasta",
+        reference = "defaults/nextclade/reference.fasta",
+        annotation= config["reference"]["gff"],
+        pathogen = "defaults/nextclade/pathogen.json"
+    output:
+        tree=       DATASET_DIR + "tree.json",
+        annotation= DATASET_DIR + "genome_annotation.gff3",
+        readme=     DATASET_DIR + "README.md",
+        changelog=  DATASET_DIR + "CHANGELOG.md",
+        reference=  DATASET_DIR + "reference.fasta",
+        sequences=  DATASET_DIR + "sequences.fasta",
+        pathogen =  DATASET_DIR + "pathogen.json"
+    params:
+        tree_build=config["nextclade_tree_build"],
+        tree_description=describe_nextclade_tree_build(config["nextclade_tree_build"])
+    shell:
+        """
+        cp {input.tree} {output.tree}
+        cp {input.annotation} {output.annotation}
+        cp {input.reference} {output.reference}
+        cp {input.sequences} {output.sequences}
+        cp {input.pathogen} {output.pathogen}
+        cat > {output.readme} <<'EOF'
+# Example dataset for Hepatitis B virus (HBV)
+
+Dataset for Hepatitis B virus.
+
+Source tree: {params.tree_description} (`{params.tree_build}`).
+
+Note that alignment parameters are set to those suggested for highly diverse viruses and not adapted for HBV specifically.
+EOF
+        printf "## Unreleased\n\nInitial release.\n" > {output.changelog}
+        """
+
+rule test_dataset:
+    """Run nextclade3 against the assembled dataset directory as a basic validity check."""
+    input:
+        sequences=  DATASET_DIR + "sequences.fasta",
+        tree=       DATASET_DIR + "tree.json",
+        annotation= DATASET_DIR + "genome_annotation.gff3",
+        readme=     DATASET_DIR + "README.md",
+        changelog=  DATASET_DIR + "CHANGELOG.md",
+        reference=  DATASET_DIR + "reference.fasta",
+        pathogen =  DATASET_DIR + "pathogen.json"
+    output:
+        outdir=directory(DATASET_DIR + "test_output"),
+    params:
+        dataset_dir=DATASET_DIR,
+    shell:
+        """
+        nextclade3 run \
+            {input.sequences} \
+            --input-dataset {params.dataset_dir} \
+            --output-all {output.outdir}
+        """
+
+# Optional deployment helpers for the generated dataset.
+
+rule deploy_to_nextstrain_staging:
+    """Does not run by default as part of rule all."""
+    input:
+        rules.all.input
+    shell:
+        """
+        nextstrain deploy s3://nextstrain-staging {input}
+        """
+
+rule download:
+   "Downloading ingested sequences and metadata from data.nextstrain.org"
+   output:
+       sequences="nextclade/data/sequences.fasta.zst",
+       metadata="nextclade/data/metadata.tsv.zst",
+       alignment="nextclade/data/alignment.fasta.zst",
+   params:
+       metadata_url="https://data.nextstrain.org/files/workflows/hbv/metadata.tsv.zst",
+       sequences_url="https://data.nextstrain.org/files/workflows/hbv/sequences.fasta.zst",
+       alignment_url="https://data.nextstrain.org/files/workflows/hbv/alignment.fasta.zst",
+   shell:
+       """
+       curl -fsSL {params.sequences_url:q} --output {output.sequences}
+       curl -fsSL {params.metadata_url:q} --output {output.metadata}
+       curl -fsSL {params.alignment_url:q} --output {output.alignment}
+       """

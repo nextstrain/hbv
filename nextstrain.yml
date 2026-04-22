@@ -1,0 +1,31 @@
+name: hbv_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.12
+  - snakemake=9.14.7
+  - augur=32.1.0
+  - nextclade=3.18.1
+  - nextstrain-cli=10.4.2
+  - ncbi-datasets-cli=18.14.0
+  - fasttree=2.2.0
+  - seqkit=2.12.0
+  - csvtk=0.36.0
+  - jq
+  - biopython=1.86
+  - pandas=2.3.3
+  - numpy=2.4.1
+  - scipy=1.17.0
+  - matplotlib=3.10.8
+  - ete3=3.1.3
+  - treetime=0.11.4
+  - mafft=7.526
+  - iqtree=3.0.1
+  - nodejs=16.20.2
+  - zstd=1.5.7
+  - curl
+  - unzip
+  - git
+  - pip

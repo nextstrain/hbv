@@ -1,0 +1,33 @@
+{
+  "maintainers": [
+    { "name": "Jonas Amirar", "url": "https://github.com/" }
+  ],
+  "colorings": [
+    { "key": "strain", "title": "Strain", "type": "categorical" },
+    { "key": "isolate", "title": "Isolate", "type": "categorical" },
+    { "key": "date", "title": "Date", "type": "temporal" },
+    { "key": "year", "title": "Year", "type": "temporal" },
+    { "key": "region", "title": "Region", "type": "categorical" },
+    { "key": "country", "title": "Country", "type": "categorical" },
+    { "key": "division", "title": "Division", "type": "categorical" },
+    { "key": "location", "title": "Location", "type": "categorical" },
+    { "key": "host", "title": "Host", "type": "categorical" },
+    { "key": "HBV Type", "title": "HBV Type", "type": "categorical" },
+    { "key": "HBV Subtype", "title": "HBV Subtype", "type": "categorical" }
+  ],
+  "filters": [
+    "HBV Type",
+    "HBV Subtype",
+    "region",
+    "country",
+    "host",
+    "strain"
+  ],
+  "geo_resolutions": ["country", "region"],
+  "panels": ["tree", "map", "entropy"],
+  "display_defaults": {
+    "color_by": "HBV Type",
+    "geo_resolution": "country",
+    "distance_measure": "div"
+  }
+}

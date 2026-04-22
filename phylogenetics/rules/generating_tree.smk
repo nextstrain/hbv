@@ -1,0 +1,151 @@
+"""
+Rules for tree inference, pruning, refinement, and ancestral reconstruction.
+
+Required external inputs:
+- masked alignments and filtered metadata produced by the filtering rules
+- translation FASTAs and reference annotation files for ancestral reconstruction
+
+Key outputs:
+- `{gene}_masked_refined.tree.nwk`
+- `{gene}_metadata.pruned.tsv`
+- `{gene}_exclude.txt`
+- `ancestral/{gene}.json`
+"""
+
+rule augur_tree:
+    """Reference sequence is to be included in the alignment but excluded from tree building to avoid it appearing in wrong individual clade-trees."""
+    input:
+        alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta",
+    output:
+        tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
+    log:
+        "logs/{mode}.{key}.{gene}_masked.tree.log"
+    threads: 4
+    shell:
+        r"""
+        augur tree \
+          --alignment {input.alignment} \
+          --method fasttree \
+          --output {output.tree}
+
+        if [ -f "{output.tree}.log" ]; then
+          mv "{output.tree}.log" "{log}"
+        fi
+        """
+
+rule prune_tree:
+    """Prune long-branch and small-clade outliers, then write the cleaned tree, metadata, and exclude list."""
+    input:
+        tree_nwk=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.tree.nwk",
+        metadata=RESULTS + "/{mode}/{key}/filtered.tsv",
+        script="scripts/prune_trees.py"
+    output:
+        out_tree=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
+        metadata=RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_metadata.pruned.tsv",
+        exclude= RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_exclude.txt",
+    params:
+        long_branch_threshold = config["long_branch_threshold"],
+        tip_branch_threshold  = config["tip_branch_threshold"],
+        metadata_col="subgenotype_genbank", # for clade purity filtering,
+        verbose=str(config.get("verbose", False)).lower(),
+
+        purity_args=(
+            f"--purity_metadata_col subgenotype_genbank "
+            f"--minimal_monophyletic_purity {config['clade_purity']['minimal_monophyletic_purity']} "
+            f"--maximal_monophyletic_fraction {config['clade_purity']['clade_fraction']}"
+            if config["clade_purity"]["use_as_filter"] else ""
+        ),
+
+        minclade_args=(
+            f"--minclade_metadata_cols genotype_genbank subgenotype_genbank "
+            f"--prune_min_counts {config['clade_settings']['min_count_per_clade']} {config['clade_settings']['min_count_per_subclade']}"
+            if config["clade_settings"]["min_count_mode"] == "use_for_pruning" else ""
+        ),
+    shell:
+        r"""
+        HBV_VERBOSE={params.verbose} python {input.script} \
+          --tree {input.tree_nwk} \
+          --metadata_in {input.metadata} \
+          --metadata_out {output.metadata} \
+          --cutoff_allbranches {params.long_branch_threshold} \
+          --cutoff_tips {params.tip_branch_threshold} \
+          --out_tree {output.out_tree} \
+          --exclude {output.exclude} \
+          {params.purity_args} \
+          {params.minclade_args}
+
+        if [ "{params.verbose}" = "true" ]; then
+          n=$(tr ' ' '\n' < {output.exclude} | sed '/^$/d' | sort -u | wc -l)
+          echo "$n unique accessions in {output.exclude}"
+        fi
+        """
+
+rule augur_refine:
+    """Refine branch lengths and rooting after custom pruning so downstream ancestral reconstruction uses the cleaned tree."""
+    input:
+        tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked.pruned.tree.nwk",
+        alignment = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta"
+    output:
+        tree      = RESULTS + "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+    threads: 4
+    shell:
+        """
+        augur refine \
+          --tree {input.tree} \
+          --alignment {input.alignment} \
+          --root mid_point \
+          --output-tree {output.tree}
+        """
+
+rule alias_translations_for_augur:
+    """Translation aliases also cover the pre-regions in C and S."""
+    input:
+        dir="../ingest/data/nextclade/translations",
+        pol="../ingest/data/nextclade/translations/cds_pol.fasta",
+        x="../ingest/data/nextclade/translations/cds_X.fasta",
+    params: # for genes with multiple transcripts
+        s=config["gene_products_for_ancestral"]["S"], # "envL", "envM" or "envS"
+        c=config["gene_products_for_ancestral"]["C"], # "pre-capsid" or "capsid"
+    output:
+        p="data/ancestral_translations/cds_P.fasta",
+        s="data/ancestral_translations/cds_S.fasta",
+        c="data/ancestral_translations/cds_C.fasta",
+        x="data/ancestral_translations/cds_X.fasta",
+    shell:
+        r"""
+        cp {input.pol} {output.p}
+        cp {input.dir}/cds_{params.s}.fasta {output.s}
+        cp {input.dir}/cds_{params.c}.fasta {output.c}
+        cp {input.x} {output.x}
+        """
+
+rule ancestral:
+    """Infer ancestral states. Mutations are relative to the configured reference sequence."""
+    input:
+        tree=     RESULTS +  "/{mode}/{key}/{gene}_masked/{gene}_masked_refined.tree.nwk",
+        alignment= RESULTS + "/{mode}/{key}/filtered.fasta", # Using non-masked alignment for ancestral reconstruction
+        annotation= config["reference"]["gff"],
+        translations=expand("data/ancestral_translations/cds_{g}.fasta", g=config["genes"]),
+        root = config["reference"]["fasta"],
+
+    output:
+        node_data = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.json",
+        sequences = RESULTS + "/{mode}/{key}/{gene}_masked/ancestral/{gene}.fasta",
+    params:
+        genes=" ".join(ANCESTRAL_GENES),
+        translation_pattern="data/ancestral_translations/cds_%GENE.fasta",
+
+    threads: 4
+    shell:
+        r"""
+        augur ancestral \
+          --tree {input.tree} \
+          --alignment {input.alignment} \
+          --annotation {input.annotation} \
+          --genes {params.genes} \
+          --translations {params.translation_pattern} \
+          --output-node-data {output.node_data} \
+          --output-sequences {output.sequences} \
+          --root-sequence {input.root}
+
+        """
