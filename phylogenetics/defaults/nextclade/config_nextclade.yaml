@@ -6,7 +6,7 @@ genes: ["P", "S", "C", "X"]
 # Workflow selector for Nextclade dataset generation.
 workflow: nextclade
 # Enable workflow/helper verbosity.
-verbose: true
+verbose: false
 # Version label written into the generated dataset metadata.
 version: "2026_04_jonas"
 

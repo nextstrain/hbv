@@ -52,7 +52,7 @@ ncbi_datasets_fields:
 #__________________________________________________________________________________________________________ DEVELOPMENT MODE __________________________________________________________________________________________________________
 
 # Enable helper-script logging during ingest runs.
-verbose: true
+verbose: false
 
 # Development mode:
 # - curate always reads `data/active/ncbi_records.ndjson`

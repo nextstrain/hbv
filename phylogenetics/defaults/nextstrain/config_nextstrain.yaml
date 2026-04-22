@@ -6,7 +6,7 @@ genes: ["P", "S", "C", "X"]
 # Workflow selector for the main Nextstrain build.
 workflow: nextstrain
 # Enable workflow/helper verbosity.
-verbose: true
+verbose: false
 
 # Reference sequence
 reference:

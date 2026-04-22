@@ -50,13 +50,6 @@ rule curate_genbank_metadata:
 
         """
 
-# This curate pipeline is based on existing pipelines for pathogen repos using NCBI data.
-# You may want to add and/or remove steps from the pipeline for custom metadata
-# curation for your pathogen. Note that the curate pipeline is streaming NDJSON
-# records between scripts, so any custom scripts added to the pipeline should expect
-# the input as NDJSON records from stdin and output NDJSON records to stdout.
-# The final step of the pipeline should convert the NDJSON records to two
-# separate files: a metadata TSV and a sequences FASTA.
 rule curate_ncbi:
     """Run the main streaming NCBI curation pipeline and write curated metadata plus sequences."""
     input:
