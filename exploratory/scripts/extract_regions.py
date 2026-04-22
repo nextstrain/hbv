@@ -74,33 +74,41 @@ def pick_ref_record(aln, ref_id):
         rid = r.id.split()[0]
         if rid == ref_id or rid.startswith(ref_id):
             return r
-    raise ValueError(
-        f"Reference ID '{ref_id}' not found in alignment. "
-        f"First few IDs: {[r.id for r in aln[:10]]}"
-    )
+    return None
 
 
 ref = pick_ref_record(aln, ref_id)
-ref_seq = str(ref.seq)
-
-# --- build mapping: reference ungapped pos (1-based) -> alignment column (0-based) ---
-refpos_to_col = {}
-pos = 0
-for col, c in enumerate(ref_seq):
-    if c != "-":
-        pos += 1
-        refpos_to_col[pos] = col
-
-aln_ref_len = pos
 gb_ref_len = len(gb_ref.seq)
+aln_len = aln.get_alignment_length()
 
-if aln_ref_len != gb_ref_len:
-    raise ValueError(
-        f"Reference length mismatch:\n"
-        f"  alignment reference ({ref.id}): {aln_ref_len} bp\n"
-        f"  GenBank reference ({gb_ref.id}): {gb_ref_len} bp\n"
-        f"This means the alignment reference and GenBank are not the same origin or not the same reference."
-    )
+if ref is not None:
+    ref_seq = str(ref.seq)
+
+    # --- build mapping: reference ungapped pos (1-based) -> alignment column (0-based) ---
+    refpos_to_col = {}
+    pos = 0
+    for col, c in enumerate(ref_seq):
+        if c != "-":
+            pos += 1
+            refpos_to_col[pos] = col
+
+    aln_ref_len = pos
+
+    if aln_ref_len != gb_ref_len:
+        raise ValueError(
+            f"Reference length mismatch:\n"
+            f"  alignment reference ({ref.id}): {aln_ref_len} bp\n"
+            f"  GenBank reference ({gb_ref.id}): {gb_ref_len} bp\n"
+            f"This means the alignment reference and GenBank are not the same origin or not the same reference."
+        )
+else:
+    if aln_len != gb_ref_len:
+        raise ValueError(
+            f"Reference ID '{ref_id}' not found in alignment, and the alignment length "
+            f"({aln_len} bp) does not match the GenBank reference length ({gb_ref_len} bp).\n"
+            f"First few IDs: {[r.id for r in aln[:10]]}"
+        )
+    refpos_to_col = {pos: pos - 1 for pos in range(1, gb_ref_len + 1)}
 
 
 def clip_features(gb_ref, seg0, seg1, out_offset):

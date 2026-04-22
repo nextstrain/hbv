@@ -12,6 +12,8 @@ import os
 configfile: "defaults/config.yaml"
 
 def region_names(path):
+    if os.path.basename(path).startswith("genomic_regions_breakpoints"):
+        return [f"segment{i + 1}" for i in range(len(config["breakpoints"]["list"]))]
     names = []
     with open(path) as f:
         for line in f:

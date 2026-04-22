@@ -11,17 +11,27 @@ snakemake --cores 4
 ```
 Regions can be specified in the config file; currently, the HBV genes and breakpoints identified by an early study are identified.
 
+Use genes by default:
+
+```bash
+snakemake --cores 1 comparison_targets --config dev_mode=true
+```
+
+Use breakpoint-derived segments instead:
+
+```bash
+snakemake --cores 1 comparison_targets --configfile defaults/config.segments.yaml --config dev_mode=true --rerun-incomplete
+```
+
+> The full exploratory trees are large and there is no automatic subsampling in normal mode, so a full run can take a long time. Use `dev_mode=true` for faster test runs.
+
 To run only the comparison workflow once the trees exist, use the dedicated aggregate target:
 
 ```bash
 snakemake --cores 4 comparison_targets
 ```
 
-For faster testing, dev mode can be enabled from the command line. This keeps the reference plus up to 99 additional sequences for tree building, and uses 10 sampled tip pairs/shared tips in the comparison metrics:
-
-```bash
-snakemake -n --cores 1 comparison_targets --config dev_mode=true
-```
+For faster testing, dev mode keeps 300 sequences for tree building and uses 10 sampled tip pairs/shared tips in the comparison metrics.
 
 The comparison outputs can also be targeted individually. For the current breakpoint-based segment setup, use:
 

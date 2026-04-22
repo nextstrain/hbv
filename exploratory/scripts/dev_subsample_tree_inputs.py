@@ -1,4 +1,4 @@
-"""Subsample exploratory tree inputs while always keeping the reference record.
+"""Subsample exploratory tree inputs while keeping the reference record when available.
 
 Write matching FASTA and metadata subsets for fast dev-mode comparison runs.
 """
@@ -10,7 +10,7 @@ from Bio import SeqIO
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Subset exploratory tree inputs while always retaining the reference record."
+        description="Subset exploratory tree inputs while retaining the reference record when present."
     )
     parser.add_argument("--sequences", required=True, help="Input sequences FASTA.")
     parser.add_argument("--alignment", required=True, help="Input alignment FASTA.")
@@ -27,13 +27,13 @@ def parse_args():
         "--sample-size",
         type=int,
         required=True,
-        help="Total number of sequences to keep, including the reference.",
+        help="Total number of sequences to keep.",
     )
     parser.add_argument(
         "--seed",
         type=int,
         default=1,
-        help="Random seed for subsampling non-reference records.",
+        help="Random seed for subsampling.",
     )
     return parser.parse_args()
 
@@ -66,24 +66,26 @@ def main():
         ),
         None,
     )
-    if reference_record is None:
-        raise SystemExit(
-            f"Reference ID '{args.reference_id}' was not found in {args.sequences}."
-        )
+    rng = random.Random(args.seed)
 
-    other_ids = [
-        record.id for record in sequence_records if record.id != reference_record.id
-    ]
-    n_other = min(len(other_ids), args.sample_size - 1)
-    sampled_other_ids = set(random.Random(args.seed).sample(other_ids, n_other))
-    keep_ids = {reference_record.id} | sampled_other_ids
+    if reference_record is None:
+        all_ids = [record.id for record in sequence_records]
+        n_keep = min(len(all_ids), args.sample_size)
+        keep_ids = set(rng.sample(all_ids, n_keep))
+    else:
+        other_ids = [
+            record.id for record in sequence_records if record.id != reference_record.id
+        ]
+        n_other = min(len(other_ids), args.sample_size - 1)
+        sampled_other_ids = set(rng.sample(other_ids, n_other))
+        keep_ids = {reference_record.id} | sampled_other_ids
 
     kept_sequence_ids = write_fasta_subset(args.sequences, args.out_sequences, keep_ids)
     kept_alignment_ids = write_fasta_subset(
         args.alignment, args.out_alignment, keep_ids
     )
 
-    if reference_record.id not in kept_alignment_ids:
+    if reference_record is not None and reference_record.id not in kept_alignment_ids:
         raise SystemExit(
             f"Reference ID '{reference_record.id}' was not found in {args.alignment}."
         )
