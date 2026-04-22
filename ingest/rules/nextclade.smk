@@ -1,21 +1,18 @@
 """
-This part of the workflow handles running Nextclade on the curated metadata
-and sequences.
+Rules for running Nextclade on curated ingest sequences and merging its outputs.
 
-REQUIRED INPUTS:
+Required external inputs:
+- `results/sequences.fasta`
+- `data/circularised/circularised_metadata.tsv`
+- the local Nextclade dataset configured in `defaults/config.yaml`
 
-    sequences = "results/sequences.fasta",
-    metadata = "data/circularised/circularised_metadata.tsv",
+Key outputs:
+- `data/nextclade/translations/`
+- `results/metadata.tsv`
+- `results/aligned.fasta`
+- `data/qc/metadata_summary.txt`
 
-OUTPUTS:
-
-    metadata = "results/metadata.tsv",
-    sequences = "results/sequences.fasta",
-    aligned = "results/aligned.fasta"
-    summary = "data/qc/metadata_summary.txt",
-
-See Nextclade docs for more details on usage, inputs, and outputs if you would
-like to customize the rules:
+See the Nextclade CLI docs for details on configurable inputs and outputs:
 https://docs.nextstrain.org/projects/nextclade/page/user/nextclade-cli.html
 """
 
