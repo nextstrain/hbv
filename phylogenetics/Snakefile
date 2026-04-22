@@ -1,10 +1,16 @@
 """
-HBV phylogenetics workflow.
+HBV phylogenetics workflow entry point.
 
-Expected ingest inputs:
-- ../ingest/results/sequences.fasta
-- ../ingest/results/metadata.tsv
-- ../ingest/results/aligned.fasta
+Required external inputs:
+- `../ingest/results/sequences.fasta`
+- `../ingest/results/metadata.tsv`
+- `../ingest/results/aligned.fasta`
+- workflow configuration in `defaults/nextstrain/` or `defaults/nextclade/`
+
+Key outputs:
+- `auspice_datasets/{gene}_masked/main-clades.json`
+- `auspice_datasets/{gene}_masked/full-tree.json` in development mode
+- `../nextclade_datasets/.../tree.json` and sibling dataset files for the Nextclade workflow
 """
 from os.path import join
 configfile: "defaults/nextstrain/config_nextstrain.yaml"

@@ -1,5 +1,16 @@
 """
-Rules for ingest-derived filtering, clade-specific subsampling, and gene masking.
+Rules for ingest-derived filtering, clade-specific subsampling, and masking.
+
+Required external inputs:
+- `../ingest/results/sequences.fasta`
+- `../ingest/results/metadata.tsv`
+- `../ingest/results/aligned.fasta`
+- the reference GenBank file used to derive gene masks
+
+Key outputs:
+- `data/filtered/metadata.len_filtered.tsv`
+- `results/{workflow}/{mode}/{key}/filtered.fasta`
+- `results/{workflow}/{mode}/{key}/{gene}_masked/{gene}_masked_aln.fasta`
 """
 
 rule length_filter:

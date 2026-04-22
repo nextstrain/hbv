@@ -1,5 +1,15 @@
 """
-Rules for exporting Auspice JSON and copying the final viewer entry points.
+Rules for exporting final tree builds as Auspice JSON datasets.
+
+Required external inputs:
+- refined trees, ancestral node data, and clade annotations from earlier steps
+- pruned metadata tables for the corresponding builds
+
+Key outputs:
+- stitched global Auspice JSON under `results/{workflow}/stitched/{gene}_global/`
+- `auspice_datasets/{gene}_masked/main-clades.json`
+- `auspice_datasets/{gene}_masked/full-tree.json`
+- `auspice_datasets/{gene}_masked/clade_{key}.json`
 """
 
 rule augur_export:

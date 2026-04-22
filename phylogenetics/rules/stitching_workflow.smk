@@ -1,5 +1,14 @@
 """
-Rules for stitching genotype-specific trees into a single global tree.
+Rules for stitching genotype-specific trees into one global build per gene.
+
+Required external inputs:
+- genotype-specific refined trees and masked alignments from the stitched builds
+- filtered metadata and reference annotation files used during refinement and ancestry
+
+Key outputs:
+- `results/{workflow}/stitched/{gene}_global/tree_raw.nwk`
+- `results/{workflow}/stitched/{gene}_global/{gene}_tree.nwk`
+- `results/{workflow}/stitched/{gene}_global/node_data/{gene}_muts.json`
 """
 
 rule collect_trees_for_stitching:

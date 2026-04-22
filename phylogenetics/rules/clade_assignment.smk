@@ -1,5 +1,13 @@
 """
-Rules for assigning clades and subclades to stitched and non-stitched trees.
+Rules for assigning genotype and subgenotype clades to inferred trees.
+
+Required external inputs:
+- refined stitched or non-stitched trees from the tree-building rules
+- filtered metadata with genotype and subgenotype annotations
+
+Key outputs:
+- `{gene}_clades.json`
+- `{gene}_subclades.json`
 """
 
 rule clades_stitched:

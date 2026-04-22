@@ -1,5 +1,16 @@
 """
-Rules for assembling and testing the HBV Nextclade dataset.
+Rules for assembling and validating the packaged HBV Nextclade dataset.
+
+Required external inputs:
+- the configured source tree JSON from `results/{workflow}/...`
+- ingest sequences and metadata for example-sequence selection
+- local reference, annotation, and pathogen metadata files
+
+Key outputs:
+- `tree.json`
+- `sequences.fasta`
+- `genome_annotation.gff3`
+- `test_output/`
 """
 
 from os.path import join
