@@ -1,16 +1,17 @@
 """
-This part of the workflow to compare trees between different regions of HBV
+Rules for comparing region-specific HBV trees across three summary views.
 
-REQUIRED INPUTS:
--  trees: expand(f"data/regions/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
+The comparison workflow produces pairwise tip-distance correlation plots,
+Robinson-Foulds summaries, and TreeKnit comparison tables and plots from the
+per-region trees generated earlier in the exploratory pipeline.
 
-OUTPUTS:
--   matrix = f"{PW_RESULTS}/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png",
--   grid = f"{PW_RESULTS}/corr_grid/grid_patristic_scatter.pdf",
--   f"{RF_RESULTS}/compare_trees_RF.tsv"
--   grid= f"{RF_RESULTS}/RF.pdf"
--   summary = f"{TREEKNIT_RESULTS}/runs/{{seg1}}_{{seg2}}/results_summary.txt"
--   done=f"{TREEKNIT_RESULTS}/plots/.done"
+Required external inputs:
+- `data/regions/{name}/{name}.tree.nwk` for each configured region
+
+Key outputs:
+- pairwise tip distances: `pw_distances/corr_matrix/pw_tip_distance_correlation_matrix.patristic.png`
+- Robinson-Foulds: `rf/RF.pdf`
+- TreeKnit: `treeknit/compare_trees_treeknit.csv`
 """
 
 TAG = make_tag(REGION_NAMES)
@@ -32,6 +33,7 @@ rule comparison_targets:
         f"{TREEKNIT_RESULTS}/plots/.done"
 
 rule compare_pairwise_distances:
+    """Compare patristic tip distances across all region trees and render correlation summaries."""
     input:
         trees = expand(f"{OUTDIR}/{{name}}/{{name}}.tree.nwk", name=REGION_NAMES),
     output:
@@ -48,6 +50,7 @@ rule compare_pairwise_distances:
         """
 
 rule compare_trees_RF_pair:
+    """Compute one pairwise Robinson-Foulds comparison table for a region pair."""
     input:
         t1 = f"{OUTDIR}" + "/{seg1}/{seg1}.tree.nwk",
         t2 = f"{OUTDIR}" + "/{seg2}/{seg2}.tree.nwk",
@@ -60,6 +63,7 @@ rule compare_trees_RF_pair:
         """
 
 rule compare_trees_RF_all:
+    """Concatenate all pairwise Robinson-Foulds comparison tables into one summary file."""
     input:
         expand(f"{RF_RESULTS}/pairwise/{{seg1}}_{{seg2}}.tsv", zip,
                seg1=[a for a,b in PAIRS],
@@ -77,6 +81,7 @@ rule compare_trees_RF_all:
         """
 
 rule display_RF:
+    """Render the combined Robinson-Foulds summary table as a comparison plot."""
     input:
         table=f"{RF_RESULTS}/compare_trees_RF.tsv"
     output:
@@ -135,6 +140,7 @@ rule treeknit_all:
         """
 
 rule treeknit_visualisation:
+    """Render workflow-level TreeKnit summary plots and mark the plot directory complete."""
     input:
         summary=f"{TREEKNIT_RESULTS}/compare_trees_treeknit.csv"
     output:

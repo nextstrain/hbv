@@ -1,5 +1,15 @@
 """
 Rules for tree inference, pruning, refinement, and ancestral reconstruction.
+
+Required external inputs:
+- masked alignments and filtered metadata produced by the filtering rules
+- translation FASTAs and reference annotation files for ancestral reconstruction
+
+Key outputs:
+- `{gene}_masked_refined.tree.nwk`
+- `{gene}_metadata.pruned.tsv`
+- `{gene}_exclude.txt`
+- `ancestral/{gene}.json`
 """
 
 rule augur_tree:

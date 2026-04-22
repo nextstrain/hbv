@@ -1,6 +1,14 @@
 """
-This is the main ingest Snakefile that orchestrates the full ingest workflow
-and defines its default outputs.
+HBV ingest workflow entry point.
+
+Required external inputs:
+- workflow configuration in `defaults/config.yaml` or user-provided overrides
+- local reference files under `defaults/`
+
+Key outputs:
+- `results/sequences.fasta`
+- `results/metadata.tsv`
+- `results/aligned.fasta`
 """
 
 configfile: "defaults/config.yaml"

@@ -1,15 +1,15 @@
 """
-This part of the workflow handles the curation of data from NCBI
+Rules for curating fetched NCBI and GenBank records into the ingest handoff.
 
-REQUIRED INPUTS:
+Required external inputs:
+- `data/active/ncbi_records.ndjson`
+- `data/raw/entrez/genbank_records.ndjson`
+- local defaults such as `geoLocationRules.tsv` and the subgenotype map
 
-    ndjson      = "data/active/ncbi_records.ndjson"
-
-OUTPUTS:
-
-    sequences = "results/sequences.fasta",
-    metadata = "data/circularised/circularised_metadata.tsv",
-
+Key outputs:
+- `data/circularised/circularised_metadata.tsv`
+- `data/circularised/circularised_sequences.fasta`
+- `results/sequences.fasta`
 """
 
 def format_field_map(field_map: dict[str, str]) -> str:

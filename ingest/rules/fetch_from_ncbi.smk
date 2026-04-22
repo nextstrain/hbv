@@ -1,19 +1,15 @@
 """
-This part of the workflow handles fetching sequences and metadata from NCBI.
+Rules for fetching the raw HBV record sets used by ingest.
 
-REQUIRED INPUTS:
+Required external inputs:
+- no upstream workflow outputs; this module starts from configured NCBI sources
+- local defaults such as the reference GenBank file used by `add_extra_genomes`
 
-    None
-
-OUTPUTS:
-
-    ndjson = "data/raw/ncbi/ncbi_records.ndjson"
-    ndjson_genbank = "data/raw/entrez/genbank_records.ndjson" # for metadata only
-    active_ndjson = "data/active/ncbi_records.ndjson"
-
-Accession-based active-set selection can additionally create:
-
-    data/active/active_entrez_accessions.txt
+Key outputs:
+- `data/raw/ncbi/ncbi_records.ndjson`
+- `data/raw/entrez/genbank_records.ndjson`
+- `data/active/ncbi_records.ndjson`
+- `data/active/active_entrez_accessions.txt` when active-set subsetting is used
 
 The workflow uses both NCBI Datasets and Entrez. NCBI Datasets provides the
 main sequence set used downstream, while Entrez provides GenBank records used
@@ -22,16 +18,15 @@ for additional HBV genotype and subgenotype annotations.
 Workflow:
 1. Fetch with NCBI Datasets (https://www.ncbi.nlm.nih.gov/datasets/)
     - requires `ncbi_taxon_id` config
-    - Directly returns NDJSON without custom parsing
-    - Fastest option for large datasets (e.g. SARS-CoV-2)
-    - Only returns metadata fields that are available through NCBI Datasets
-    - Only works for viral genomes
+    - directly returns NDJSON without custom parsing
+    - fastest option for large datasets
+    - only returns metadata fields available through NCBI Datasets
+    - only works for viral genomes
 
 2. Fetch from Entrez (https://www.ncbi.nlm.nih.gov/books/NBK25501/)
-    - requires `entrez_search_term` config (now `entrez_query`)
-    - Returns all available data via a GenBank file
-    - Requires a custom script to parse the necessary fields from the GenBank file
-
+    - requires `entrez_query` config
+    - returns full GenBank records
+    - requires custom parsing to extract the fields used downstream
 """
 
 # Fetch from NCBI Datasets.
